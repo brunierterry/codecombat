@@ -8,7 +8,7 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict'
 
-  const DEFAULT_DRAGON_RANGE = 4
+  const DEFAULT_DRAGON_RANGE = 3
   const CARDINAL_DIRECTIONS = Object.freeze({
     right: [1, 0],
     left: [-1, 0],
