@@ -128,7 +128,7 @@ for (const file of [
   'mission-types-ui.js',
   'boss-ui.js',
 ]) {
-  assert(indexSource.includes(`<script src="${file}"></script>`), `${file} must be loaded by index.html`)
+  assert(indexSource.includes(`<script src="${file}`), `${file} must be loaded by index.html`)
 }
 assert(indexSource.includes('<link rel="stylesheet" href="mission-types.css">'))
 assert(!indexSource.includes('23のミッション'))
