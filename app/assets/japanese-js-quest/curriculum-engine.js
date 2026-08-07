@@ -176,6 +176,15 @@
     return { passed: messages.length === 0, messages }
   }
 
+  function evaluateRequiredForm (base, mission, result) {
+    const requiredForm = mission.requirements?.state?.form
+    if (!requiredForm || !result?.ok || result.state?.form === requiredForm) return base
+    const messages = base.messages.slice()
+    const formLabel = requiredForm === 'frog' ? 'カエル' : requiredForm
+    messages.push('最後は' + formLabel + 'の姿になっている必要があります。')
+    return { passed: messages.length === 0, messages }
+  }
+
   function evaluateSourceCallLimits (base, mission, code) {
     const limits = mission.requirements && mission.requirements.sourceCallLimits
     if (!Array.isArray(limits) || !limits.length) return base
@@ -207,7 +216,8 @@
       const executableSource = stripComments(source)
       const base = originalEvaluate(mission, result, executableSource)
       const booleanEvaluation = evaluateBooleanDemo(base, mission, result, executableSource)
-      return evaluateSourceCallLimits(booleanEvaluation, mission, executableSource)
+      const formEvaluation = evaluateRequiredForm(booleanEvaluation, mission, result)
+      return evaluateSourceCallLimits(formEvaluation, mission, executableSource)
     }
 
     engine.INVALID_BOOLEAN_MESSAGE = INVALID_BOOLEAN_MESSAGE
@@ -224,6 +234,7 @@
     transformCode,
     stripComments,
     countMethodCalls,
+    evaluateRequiredForm,
     INVALID_BOOLEAN_MESSAGE,
     TRUE_MESSAGE,
     FALSE_MESSAGE
