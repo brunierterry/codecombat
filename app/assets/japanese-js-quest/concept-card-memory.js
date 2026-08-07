@@ -40,11 +40,26 @@
     return match ? Number(match[1]) : 0
   }
 
+  function currentMission () {
+    const missions = root && Array.isArray(root.JSQuestMissions) ? root.JSQuestMissions : []
+    const missionId = currentMissionId()
+    return missions.find(mission => Number(mission.id) === missionId) || null
+  }
+
+  function requiresCardValidation (mission) {
+    return !mission || !mission.type || mission.type === 'concept'
+  }
+
+  function currentMissionRequiresCardValidation () {
+    return requiresCardValidation(currentMission())
+  }
+
   function isAdminMode () {
     return Boolean(root && root.location && new URLSearchParams(root.location.search).get('admin') === '1')
   }
 
   function missionCardIds () {
+    if (!currentMissionRequiresCardValidation()) return []
     const guide = root.JSQuestConceptCards?.getMissionGuide(currentMissionId())
     return guide ? guide.cardIds.slice() : []
   }
@@ -66,7 +81,7 @@
   }
 
   function validateCurrentMissionCardsForAdmin () {
-    if (!isAdminMode()) return false
+    if (!isAdminMode() || !currentMissionRequiresCardValidation()) return false
     const cardIds = missionCardIds()
     if (cardIds.length === 0) return false
 
@@ -79,12 +94,13 @@
   }
 
   function isMissionReady () {
+    if (!currentMissionRequiresCardValidation()) return true
     const cardIds = missionCardIds()
     return cardIds.length === 0 || cardIds.every(isValidated)
   }
 
   function explainBlockedExecution () {
-    if (typeof document === 'undefined') return
+    if (typeof document === 'undefined' || !currentMissionRequiresCardValidation()) return
     const feedback = document.getElementById('feedback')
     if (feedback) {
       feedback.className = 'feedback neutral'
@@ -291,7 +307,7 @@
   function renderProgress () {
     const guide = document.getElementById('mission-learning-guide')
     const heading = guide?.querySelector('.learning-guide-heading')
-    if (!guide || !heading) return
+    if (!guide || !heading || !currentMissionRequiresCardValidation()) return
 
     let progress = guide.querySelector('.concept-card-memory-progress')
     if (!progress) {
@@ -311,7 +327,7 @@
     if (!guide) return
 
     let button = guide.querySelector('.concept-card-admin-validate-all')
-    if (!isAdminMode()) {
+    if (!isAdminMode() || !currentMissionRequiresCardValidation()) {
       button?.remove()
       return
     }
@@ -402,6 +418,7 @@
     isValidated,
     validateCard,
     validateCurrentMissionCardsForAdmin,
+    requiresCardValidation,
     isMissionReady,
     executionGate,
     install,
