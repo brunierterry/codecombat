@@ -22,6 +22,33 @@
 
   const syntax = (type, message) => ({ type, message })
 
+  const DRAGON_PILLAR_LEVER_SCENARIO = Object.freeze({
+    map: [
+      '############',
+      '#B....P...G#',
+      '#.....#....#',
+      '#..H..#..L.#',
+      '#.*........#',
+      '############',
+    ],
+    sign: null,
+    boss: {
+      kind: 'dragon',
+      dragon: { x: 1, y: 1 },
+      pillar: { x: 6, y: 1 },
+      lever: { x: 9, y: 3 },
+      attackRange: 4,
+      fireCells: [
+        { x: 2, y: 1 },
+        { x: 3, y: 1 },
+        { x: 4, y: 1 },
+        { x: 5, y: 1 },
+      ],
+      resolution: 'lever',
+      defeatVisual: 'skull',
+    },
+  })
+
   function shiftedExistingId (id) {
     const value = Number(id)
     return value > INSERT_AFTER_ID ? value + INSERT_COUNT : value
@@ -70,6 +97,7 @@
     const solution = [
       'hero.move("right");',
       'hero.move("right");',
+      'hero.transform("frog");',
       'hero.move("right");',
       'hero.move("right");',
     ].join('\n')
@@ -80,28 +108,33 @@
       practiceOf: 1,
       title: 'こわれたカッコ',
       concept: 'タイポを見つけて直す',
-      story: 'コードはほとんど完成しています。でも、たった1文字のまちがいで動きません。',
+      story: 'タイポ（Typo）は、1文字だけ入力をまちがえることです。たった1文字でもタイポがあると、コードは動きません。このミッションにはタイポが2つあります。',
       instructions: [
-        '新しいコードを書くより先に、すでにあるコードの文字をよく見ましょう。',
-        'エラーを直して、宝石を取り、ゴールまで進めばクリアです。',
+        'コードの中にある2つのタイポを見つけて、1文字ずつ正しく直しましょう。',
+        '2つとも直して、カエルに変身し、宝石を取ってゴールまで進めばクリアです。',
       ],
-      api: ['hero.move("right")'],
+      api: ['hero.move("right")', 'hero.transform("frog")'],
       starterCode: [
-        '// 右へ4マス進めばクリアできるはずです',
+        '// タイポが2つあります。1文字ずつよく見よう',
         'hero.move("right");',
         'hero.move("right"];',
+        'hero.transform("forg");',
         'hero.move("right");',
         'hero.move("right");',
       ].join('\n'),
       hints: [
-        'エラーがある行では、開く記号と閉じる記号の形を比べてみよう。',
-        '英語と日本語には、見た目がよく似ていても別の文字があります。今後は全角の（ ）などにも注意しよう。今回は `(` `)` `[` `]` の組み合わせを確認してね。',
+        '1つ目は、開く記号と閉じる記号の形を比べてみよう。',
+        'もう1つはカエルの英語です。カエルは "frog"。文字の順番をよく見てね。',
+        '英語と日本語には、見た目がよく似ていても別の文字があります。今後は全角の（ ）などにも注意しよう。',
       ],
       solution,
       variants: [{ map: ['########', '#H..*G.#', '########'], sign: null }],
       requirements: {
-        state: { goal: true, minGems: 1, maxMoves: 4 },
-        syntax: [syntax('moveParameter', 'hero.move(...) の書き方を正しく直しましょう。')],
+        state: { goal: true, minGems: 1, maxMoves: 4, form: 'frog' },
+        syntax: [
+          syntax('moveParameter', 'hero.move(...) の書き方を正しく直しましょう。'),
+          syntax('transform', 'hero.transform("frog") のタイポも直しましょう。'),
+        ],
       },
     }
   }
@@ -194,18 +227,9 @@
 
   function bossMission () {
     const solution = [
-      'hero.move("down");',
-      'hero.move("left");',
       'hero.move("right");',
       'hero.move("right");',
       'hero.move("right");',
-      'hero.move("right");',
-      'hero.move("right");',
-      'hero.move("right");',
-      'hero.move("right");',
-      'hero.move("up");',
-      'hero.move("up");',
-      'hero.move("up");',
       'hero.move("right");',
     ].join('\n')
 
@@ -214,51 +238,48 @@
       type: 'boss',
       practiceOf: 1,
       title: '炎のドラゴン',
-      concept: '覚えた移動だけでボスを攻略する',
-      story: 'ドラゴンは柱まで一直線に火を吐きます。火の通り道を避け、柱の下を回ってレバーを踏もう。',
+      concept: '覚えた横移動だけでドラゴンから逃げる',
+      story: 'ドラゴンはヒーローを見つけると、上下左右のその方向へ4マスまで火を吐きます。近づかずに右へ逃げよう。',
       instructions: [
-        'ドラゴンと柱の間の赤い通り道に入ると、ドラゴンの火でその場で失敗します。',
-        '柱の下を大きく回り、右側のレバーを踏むとドラゴンを倒せます。',
-        '宝石を集め、レバーを踏んでから旗まで進みましょう。使う命令は `hero.move(...)` だけです。',
+        'ドラゴンは、ヒーローが上下左右のどこかで4マス以内に入ると、その方向へ4マス火を吐きます。',
+        '今はドラゴンから5マス離れているので安全です。ドラゴンへ近づかず、右へ逃げましょう。',
+        '途中の宝石を取り、右のゴールまで逃げ切ればクリアです。使う命令は `hero.move("right")` だけです。',
       ],
-      api: ['hero.move("right")', 'hero.move("left")', 'hero.move("up")', 'hero.move("down")'],
+      api: ['hero.move("right")', 'hero.move("left")'],
       starterCode: [
-        '// 炎の通り道を避けて、柱の下から右側へ回ろう',
-        '',
-        '// レバーを踏んでドラゴンを倒し、ゴールへ進もう',
+        '// ドラゴンから離れるように、右のゴールへ逃げよう',
+        'hero.move("right");',
       ].join('\n'),
       hints: [
-        'スタートから上へ近道すると、ドラゴンと柱の間に入ってしまいます。まず下へ進もう。',
-        '下の宝石を取ったあと、いちばん下の通路で柱の右側まで進み、レバーへ上がります。',
+        '左へ1マス進むと、ドラゴンから4マスの場所に入って火が届きます。',
+        'ゴールまでは右へ4マスです。同じ命令を必要な回数だけ使おう。',
       ],
       solution,
       variants: [{
         map: [
           '############',
-          '#B....P...G#',
-          '#.....#....#',
-          '#..H..#..L.#',
-          '#.*........#',
+          '#B....H.*.G#',
           '############',
         ],
         sign: null,
         boss: {
           kind: 'dragon',
           dragon: { x: 1, y: 1 },
-          pillar: { x: 6, y: 1 },
-          lever: { x: 9, y: 3 },
+          attackRange: 4,
           fireCells: [
             { x: 2, y: 1 },
             { x: 3, y: 1 },
             { x: 4, y: 1 },
             { x: 5, y: 1 },
           ],
+          resolution: 'escape',
         },
       }],
       bossEncounter: true,
+      bossResolution: 'escape',
       requirements: {
-        state: { goal: true, minGems: 1, maxMoves: 13, bossDefeated: true, noDragonFire: true },
-        syntax: [syntax('moveParameter', 'hero.move(...) だけで安全な道を進みましょう。')],
+        state: { goal: true, minGems: 1, maxMoves: 4, noDragonFire: true },
+        syntax: [syntax('moveParameter', 'hero.move(...) でドラゴンから右へ逃げましょう。')],
       },
     }
   }
@@ -346,6 +367,7 @@
     shiftedExistingId,
     previousIdForFinalId,
     patchCurriculumMapping,
+    DRAGON_PILLAR_LEVER_SCENARIO,
     FINAL_MISSION_COUNT,
     INSERT_COUNT,
   })
