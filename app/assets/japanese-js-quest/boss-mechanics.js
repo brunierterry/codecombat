@@ -27,15 +27,6 @@
       .replace(/L/g, '.')
   }
 
-  function normalizedMission (mission) {
-    if (!isBossMission(mission)) return mission
-    return Object.assign({}, mission, {
-      variants: mission.variants.map(variant => Object.assign({}, variant, {
-        map: variant.map.map(normalizeRow),
-      })),
-    })
-  }
-
   function sameCell (left, right) {
     return left && right && Number(left.x) === Number(right.x) && Number(left.y) === Number(right.y)
   }
@@ -106,64 +97,67 @@
     return rows
   }
 
-  function withBossState (frame, boss, bossDefeated, extra) {
-    const activeFireCells = extra?.type === 'dragon-fire' ? extra.fireCells : []
-    return Object.assign({}, frame, {
-      grid: visualGrid(frame.grid, boss, bossDefeated, activeFireCells),
-      bossDefeated,
-    }, extra || {})
+  function currentGridRows (state) {
+    return state.grid.map(row => Array.isArray(row) ? row.join('') : String(row))
   }
 
-  function decorateBossResult (mission, result, variantIndex) {
-    if (!isBossMission(mission) || !result) return result
-    const safeIndex = ((variantIndex || 0) % mission.variants.length + mission.variants.length) % mission.variants.length
-    const variant = mission.variants[safeIndex]
+  function bossActionHook (variant) {
     const boss = variant.boss
-    let bossDefeated = false
-    let dragonHit = false
-    const trace = []
+    return function ({ state, phase }) {
+      if (state.bossDefeated == null) state.bossDefeated = false
+      if (state.dragonHit == null) state.dragonHit = false
+      if (state.alive === false) return null
 
-    for (const originalFrame of result.trace || []) {
-      const frame = withBossState(originalFrame, boss, bossDefeated)
-      trace.push(frame)
-
-      if (frame.type !== 'move') continue
-
-      if (!bossDefeated && boss.lever && sameCell(frame, boss.lever)) {
-        bossDefeated = true
-        trace.push(withBossState(frame, boss, true, {
-          type: 'boss-defeated',
-          bossEvent: 'lever',
-        }))
-        continue
-      }
-
-      if (!bossDefeated) {
-        const threat = dragonThreat(variant, boss, frame)
-        if (threat.hit) {
-          dragonHit = true
-          trace.push(withBossState(frame, boss, false, {
-            type: 'dragon-fire',
-            dragonHit: true,
-            fireDirection: threat.direction,
-            fireCells: threat.fireCells.map(cell => Object.assign({}, cell)),
-            dragon: Object.assign({}, boss.dragon),
-            attackRange: dragonRange(boss),
-          }))
-          break
+      if (!state.bossDefeated && boss.lever && sameCell(state.hero, boss.lever)) {
+        state.bossDefeated = true
+        if (phase === 'after') {
+          return {
+            trace: {
+              type: 'boss-defeated',
+              bossEvent: 'lever',
+              grid: visualGrid(currentGridRows(state), boss, true, []),
+            },
+          }
         }
       }
+
+      if (state.bossDefeated) return null
+      const threat = dragonThreat(variant, boss, state.hero)
+      if (!threat.hit) return null
+
+      state.dragonHit = true
+      return {
+        killHero: true,
+        deathCause: 'dragon-fire',
+        message: 'ドラゴンの炎に当たって、ヒーローが倒れました。',
+        trace: {
+          type: 'dragon-fire',
+          dragonHit: true,
+          fireDirection: threat.direction,
+          fireCells: threat.fireCells.map(cell => Object.assign({}, cell)),
+          dragon: Object.assign({}, boss.dragon),
+          attackRange: dragonRange(boss),
+          grid: visualGrid(currentGridRows(state), boss, false, threat.fireCells),
+        },
+      }
     }
+  }
 
-    const lastFrame = trace[trace.length - 1]
-    const state = Object.assign({}, result.state, lastFrame || {}, {
-      bossDefeated,
-      dragonHit,
+  function normalizedMission (mission) {
+    if (!isBossMission(mission)) return mission
+    return Object.assign({}, mission, {
+      variants: mission.variants.map(variant => {
+        const normalized = Object.assign({}, variant, {
+          map: variant.map.map(normalizeRow),
+        })
+        normalized.runtimeActionHook = bossActionHook(variant)
+        return normalized
+      }),
     })
-    state.grid = visualGrid(state.grid, boss, bossDefeated, dragonHit ? lastFrame?.fireCells : [])
-    if (dragonHit) state.goalReached = false
+  }
 
-    return Object.assign({}, result, { trace, state })
+  function decorateBossResult (mission, result) {
+    return result
   }
 
   function evaluateBoss (base, mission, result) {
@@ -196,8 +190,6 @@
     engine.createState = function (mission, variantIndex) {
       const state = baseCreateState(normalizedMission(mission), variantIndex)
       if (isBossMission(mission)) {
-        const safeIndex = ((variantIndex || 0) % mission.variants.length + mission.variants.length) % mission.variants.length
-        state.variant = mission.variants[safeIndex]
         state.bossDefeated = false
         state.dragonHit = false
       }
@@ -205,8 +197,7 @@
     }
 
     engine.simulate = function (code, mission, variantIndex) {
-      const result = baseSimulate(code, normalizedMission(mission), variantIndex)
-      return decorateBossResult(mission, result, variantIndex)
+      return baseSimulate(code, normalizedMission(mission), variantIndex)
     }
 
     engine.evaluate = function (mission, result, code) {
