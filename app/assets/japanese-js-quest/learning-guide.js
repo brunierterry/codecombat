@@ -179,9 +179,15 @@
     const library = window.JSQuestConceptCards
     const guide = library?.getMissionGuide(displayedMissionId())
     const story = document.getElementById('mission-story')
-    if (!story || !guide) return
+    const existingSection = document.getElementById('mission-learning-guide')
+    if (!story) return
+    if (!guide) {
+      existingSection?.remove()
+      scheduleAnnotations()
+      return
+    }
 
-    let section = document.getElementById('mission-learning-guide')
+    let section = existingSection
     if (!section) {
       section = document.createElement('section')
       section.id = 'mission-learning-guide'
