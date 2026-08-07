@@ -247,7 +247,10 @@ assert(missionTypeCss.includes('.tile.boss-fire-active'))
 assert(missionTypeCss.includes('@keyframes boss-fire-spread'))
 
 const runtime = read('app/assets/japanese-js-quest/curriculum-runtime.js')
-for (const text of ['🐉 ドラゴン', '🗿 柱', '🎚️ レバー', '🔥 炎']) assert(runtime.includes(text))
+for (const text of ['🐉 ドラゴン', '🔥 炎']) assert(runtime.includes(text))
+assert(!runtime.includes("text: '🗿 柱'"))
+assert(!runtime.includes("text: '🎚️ レバー'"))
+assert(runtime.includes("{ visible: finalId >= 3, text: '🐸 カエル' }"))
 assert(runtime.includes('missions().find(item => item.infiniteLoopDemo)'))
 
 const worker = read('app/assets/japanese-js-quest/quest-worker.js')
