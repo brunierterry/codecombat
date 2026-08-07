@@ -22,6 +22,10 @@
   letter-spacing: 0.02em;
 }
 
+.mission-item.mission-hidden-by-focus {
+  display: none !important;
+}
+
 .mission-item[data-mission-type="adventure"] {
   box-shadow: inset 3px 0 0 rgba(107, 183, 255, 0.65);
 }
