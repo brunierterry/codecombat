@@ -56,12 +56,14 @@ assert(allMissions.slice(7).every(mission => mission.type === 'concept'))
 assert(allMissions.slice(2, 7).every(mission => mission.practiceOf === 1))
 
 for (const mission of allMissions.slice(2, 7)) {
-  assert.deepStrictEqual(
-    mission.api.filter(item => item.startsWith('hero.')).every(item => item.startsWith('hero.move(')),
-    true,
-    'Practice mission ' + mission.id + ' must expose only hero.move from learned JavaScript APIs',
-  )
-  assert(!mission.api.some(item => item.includes('transform')), 'Practice mission ' + mission.id + ' exposed transform too early')
+  const heroApi = mission.api.filter(item => item.startsWith('hero.'))
+  if (mission.id === 3) {
+    assert(heroApi.some(item => item.startsWith('hero.transform(')), 'Mission 03 must expose the typo target transform call')
+    assert(heroApi.every(item => item.startsWith('hero.move(') || item.startsWith('hero.transform(')))
+  } else {
+    assert(heroApi.every(item => item.startsWith('hero.move(')), 'Practice mission ' + mission.id + ' must expose only learned movement APIs')
+    assert(!heroApi.some(item => item.includes('transform')), 'Practice mission ' + mission.id + ' exposed transform unexpectedly')
+  }
 }
 
 assert.strictEqual(conceptMemoryApi.requiresCardValidation(allMissions[0]), true)
@@ -103,11 +105,34 @@ assert.deepStrictEqual(
 assert.deepStrictEqual(visibleIds([], true), Array.from({ length: 28 }, (_, id) => id))
 
 const typoMission = allMissions[3]
+assert(typoMission.story.includes('タイポ（Typo）'))
+assert(typoMission.story.includes('1文字'))
+assert(typoMission.story.includes('タイポが2つ'))
+assert(typoMission.starterCode.includes('hero.move("right"];'))
+assert(typoMission.starterCode.includes('hero.transform("forg");'))
+assert(typoMission.solution.includes('hero.transform("frog");'))
+
 const typoStarter = engine.simulate(typoMission.starterCode, typoMission, 0)
 assert.strictEqual(typoStarter.ok, false)
-assert(typoMission.starterCode.includes('hero.move("right"];'))
+
+const firstTypoOnlyFixedCode = typoMission.starterCode.replace('hero.move("right"];', 'hero.move("right");')
+const firstTypoOnlyFixed = engine.simulate(firstTypoOnlyFixedCode, typoMission, 0)
+assert.strictEqual(firstTypoOnlyFixed.ok, false)
+assert.strictEqual(firstTypoOnlyFixed.error.code, 'invalid-transform')
+
+const typoWithoutTransform = typoMission.solution
+  .split('\n')
+  .filter(line => !line.includes('hero.transform'))
+  .join('\n')
+const typoWithoutTransformResult = engine.simulate(typoWithoutTransform, typoMission, 0)
+assert.strictEqual(typoWithoutTransformResult.ok, true)
+const typoWithoutTransformEvaluation = engine.evaluate(typoMission, typoWithoutTransformResult, typoWithoutTransform)
+assert.strictEqual(typoWithoutTransformEvaluation.passed, false)
+assert(typoWithoutTransformEvaluation.messages.some(message => message.includes('hero.transform("frog")')))
+
 const typoSolution = engine.simulate(typoMission.solution, typoMission, 0)
 assert.strictEqual(typoSolution.ok, true)
+assert.strictEqual(typoSolution.state.form, 'frog')
 assert.strictEqual(engine.evaluate(typoMission, typoSolution, typoMission.solution).passed, true)
 
 const logicMission = allMissions[4]
@@ -118,29 +143,72 @@ const logicSolution = engine.simulate(logicMission.solution, logicMission, 0)
 assert.strictEqual(engine.evaluate(logicMission, logicSolution, logicMission.solution).passed, true)
 
 const bossMission = allMissions[6]
+const bossVariant = bossMission.variants[0]
 assert.strictEqual(bossMission.type, 'boss')
 assert.strictEqual(bossMission.bossEncounter, true)
-assert(bossMission.variants[0].map.some(row => row.includes('B')))
-assert(bossMission.variants[0].map.some(row => row.includes('P')))
-assert(bossMission.variants[0].map.some(row => row.includes('L')))
+assert.strictEqual(bossMission.bossResolution, 'escape')
+assert(bossVariant.map.some(row => row.includes('B')))
+assert(!bossVariant.map.some(row => row.includes('P')))
+assert(!bossVariant.map.some(row => row.includes('L')))
+assert.strictEqual(bossVariant.map.length, 3)
+assert.strictEqual(bossVariant.boss.attackRange, 4)
+assert.strictEqual(bossVariant.boss.resolution, 'escape')
+assert.strictEqual(bossVariant.boss.dragon.x, 1)
+assert.strictEqual(bossVariant.boss.dragon.y, 1)
 
-const bossShortcutCode = [
-  'hero.move("up");',
-  'hero.move("up");',
-].join('\n')
-const bossShortcut = engine.simulate(bossShortcutCode, bossMission, 0)
-const bossShortcutEvaluation = engine.evaluate(bossMission, bossShortcut, bossShortcutCode)
-assert.strictEqual(bossShortcut.state.dragonHit, true)
-assert(bossShortcut.trace.some(frame => frame.type === 'dragon-fire'))
-assert.strictEqual(bossShortcutEvaluation.passed, false)
-assert(bossShortcutEvaluation.messages.some(message => message.includes('ドラゴンの火')))
+const initialBossState = engine.createState(bossMission, 0)
+assert.strictEqual(initialBossState.hero.x - bossVariant.boss.dragon.x, 5)
+assert.strictEqual(initialBossState.hero.y, bossVariant.boss.dragon.y)
+
+const bossDangerCode = 'hero.move("left");'
+const bossDanger = engine.simulate(bossDangerCode, bossMission, 0)
+const bossDangerEvaluation = engine.evaluate(bossMission, bossDanger, bossDangerCode)
+assert.strictEqual(bossDanger.state.dragonHit, true)
+assert(bossDanger.trace.some(frame => frame.type === 'dragon-fire'))
+assert.strictEqual(bossDangerEvaluation.passed, false)
+assert(bossDangerEvaluation.messages.some(message => message.includes('上下左右')))
+assert.deepStrictEqual(
+  bossDanger.trace.find(frame => frame.type === 'dragon-fire').fireCells,
+  [
+    { x: 2, y: 1 },
+    { x: 3, y: 1 },
+    { x: 4, y: 1 },
+    { x: 5, y: 1 },
+  ],
+)
+
+const openDragonVariant = {
+  map: Array.from({ length: 11 }, (_, y) => {
+    if (y === 0 || y === 10) return '###########'
+    return '#.........#'
+  }),
+}
+const centeredDragon = { dragon: { x: 5, y: 5 }, attackRange: 4 }
+for (const direction of ['right', 'left', 'up', 'down']) {
+  assert.strictEqual(bossMechanics.dragonRayCells(openDragonVariant, centeredDragon, direction).length, 4)
+}
+for (const hero of [
+  { x: 9, y: 5 },
+  { x: 1, y: 5 },
+  { x: 5, y: 1 },
+  { x: 5, y: 9 },
+]) {
+  assert.strictEqual(bossMechanics.dragonThreat(openDragonVariant, centeredDragon, hero).hit, true)
+}
+assert.strictEqual(bossMechanics.dragonThreat(openDragonVariant, centeredDragon, { x: 9, y: 9 }).hit, false)
+
+assert(missionPack.DRAGON_PILLAR_LEVER_SCENARIO.map.some(row => row.includes('P')))
+assert(missionPack.DRAGON_PILLAR_LEVER_SCENARIO.map.some(row => row.includes('L')))
+assert.strictEqual(missionPack.DRAGON_PILLAR_LEVER_SCENARIO.boss.resolution, 'lever')
 
 const bossSolution = engine.simulate(bossMission.solution, bossMission, 0)
 const bossEvaluation = engine.evaluate(bossMission, bossSolution, bossMission.solution)
 assert.strictEqual(bossSolution.ok, true)
-assert.strictEqual(bossSolution.state.bossDefeated, true)
+assert.strictEqual(bossSolution.state.bossDefeated, false)
 assert.strictEqual(bossSolution.state.dragonHit, false)
-assert(bossSolution.trace.some(frame => frame.type === 'boss-defeated'))
+assert(!bossSolution.trace.some(frame => frame.type === 'boss-defeated'))
+assert.strictEqual(bossSolution.state.goalReached, true)
+assert.strictEqual(bossSolution.state.gems, 1)
 assert.strictEqual(bossEvaluation.passed, true, bossEvaluation.messages.join('\n'))
 
 for (const mission of allMissions) {
@@ -198,11 +266,14 @@ for (const text of [
   '`boss`',
   'concept → adventure → typo-fix → logic-fix → adventure → boss',
   'Mission 00 is the exception',
-  'only concepts already introduced',
+  'explicit debugging exception',
   'full-width',
-  'dragon',
+  'four cardinal directions',
+  'four tiles',
+  'introductory escape-boss exception',
+  'dragon must remain alive',
   'lily',
   'next concept mission',
 ]) assert(productRules.includes(text), 'Missing product rule: ' + text)
 
-console.log('Validated 28 missions / 42 fields, concept-only card gating, permanent completed-history navigation, first reinforcement pack and boss mechanics.')
+console.log('Validated 28 missions / 42 fields, two-typo debugging, concept-only card gating, permanent completed-history navigation and four-direction dragon boss mechanics.')
