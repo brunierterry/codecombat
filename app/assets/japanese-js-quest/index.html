@@ -16,6 +16,8 @@
   <link rel="stylesheet" href="editor-header-v3.css">
   <link rel="stylesheet" href="concept-complete-celebration.css">
   <link rel="stylesheet" href="global-tooltip-layer.css">
+  <link rel="stylesheet" href="hero-life.css">
+  <link rel="stylesheet" href="version.css">
 </head>
 <body>
   <header class="topbar"><div><p class="eyebrow">CODECOMBAT LOCAL CAMPAIGN</p><h1>JavaScript クエスト</h1><p class="subtitle">いろいろなミッションで、JavaScriptを少しずつ身につけよう</p></div><div class="top-actions"><span id="save-status" aria-live="polite">自動保存</span><button id="reset-progress" class="button ghost" type="button">進みぐあいをリセット</button></div></header>
@@ -28,7 +30,7 @@
       <section class="feedback-panel" aria-live="polite"><div><h3>結果</h3><div id="feedback" class="feedback neutral">コードを書いて「実行する」を押そう。</div><div id="hint-box" class="hint-box" hidden></div></div><button id="next-mission" class="button success" type="button" hidden>次のミッションへ →</button></section>
     </section>
   </main>
-  <footer><p>進みぐあいとコードは、このブラウザの中だけに保存されます。</p></footer>
+  <footer><p>進みぐあいとコードは、このブラウザの中だけに保存されます。</p><small id="app-version" class="app-version" aria-label="アプリのバージョン"></small></footer>
   <script src="engine.js"></script>
   <script src="curriculum-engine.js"></script>
   <script src="boss-mechanics.js"></script>
@@ -62,5 +64,6 @@
   <script src="global-tooltip-layer.js"></script>
   <script src="mission-types-ui.js?v=2"></script>
   <script src="boss-ui.js"></script>
+  <script src="version.js"></script>
 </body>
 </html>
