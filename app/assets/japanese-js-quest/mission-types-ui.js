@@ -14,25 +14,65 @@
     return new Set(Array.from(completedIds || []).map(Number).filter(Number.isInteger))
   }
 
-  function visibleRangeFor (missions, completedIds, adminShowAll) {
-    if (!Array.isArray(missions) || missions.length === 0) return { start: 0, end: -1 }
-    if (adminShowAll) return { start: 0, end: missions.length - 1 }
+  function visibleMissionIdsFor (missions, completedIds, adminShowAll) {
+    const visible = new Set()
+    if (!Array.isArray(missions) || missions.length === 0) return visible
+
+    if (adminShowAll) {
+      missions.forEach(mission => visible.add(mission.id))
+      return visible
+    }
+
     const completed = normalizedCompleted(completedIds)
+    const knownIds = new Set(missions.map(mission => mission.id))
 
-    if (!completed.has(0)) return { start: 0, end: Math.min(1, missions.length - 1) }
+    // Mission 00 is part of the permanent history and never disappears.
+    visible.add(missions[0].id)
 
-    let firstIncomplete = missions.findIndex(mission => !completed.has(mission.id))
-    if (firstIncomplete < 0) firstIncomplete = missions.length - 1
+    // Every mission already completed remains visible forever, including
+    // non-contiguous completions created during admin review.
+    completed.forEach(id => {
+      if (knownIds.has(id)) visible.add(id)
+    })
 
-    let start = firstIncomplete
-    while (start > 0 && missions[start].type !== 'concept') start--
-    if (missions[start]?.type !== 'concept') start = Math.max(0, firstIncomplete)
+    // Before mission 00 is complete, reveal only the environment intro and
+    // the first concept mission as the next destination.
+    if (!completed.has(missions[0].id)) {
+      if (missions[1]) visible.add(missions[1].id)
+      return visible
+    }
 
-    let end = start + 1
-    while (end < missions.length && missions[end].type !== 'concept') end++
-    end = Math.min(end, missions.length - 1)
+    const firstIncompleteIndex = missions.findIndex(mission => !completed.has(mission.id))
+    if (firstIncompleteIndex < 0) {
+      missions.forEach(mission => visible.add(mission.id))
+      return visible
+    }
 
-    return { start, end }
+    // Find the concept segment containing the first unfinished mission.
+    let anchorIndex = firstIncompleteIndex
+    while (anchorIndex > 0 && missions[anchorIndex].type !== 'concept') anchorIndex--
+    if (missions[anchorIndex]?.type !== 'concept') anchorIndex = firstIncompleteIndex
+
+    // Reveal the whole current segment and the next concept mission as its
+    // visible boundary. Nothing unfinished after that boundary is shown.
+    let boundaryIndex = anchorIndex + 1
+    while (boundaryIndex < missions.length && missions[boundaryIndex].type !== 'concept') boundaryIndex++
+    if (boundaryIndex >= missions.length) boundaryIndex = missions.length - 1
+
+    for (let index = anchorIndex; index <= boundaryIndex; index++) {
+      visible.add(missions[index].id)
+    }
+
+    return visible
+  }
+
+  function visibleRangeFor (missions, completedIds, adminShowAll) {
+    const ids = visibleMissionIdsFor(missions, completedIds, adminShowAll)
+    const indexes = missions
+      .map((mission, index) => ids.has(mission.id) ? index : -1)
+      .filter(index => index >= 0)
+    if (!indexes.length) return { start: 0, end: -1 }
+    return { start: Math.min(...indexes), end: Math.max(...indexes) }
   }
 
   function install () {
@@ -60,7 +100,8 @@
       if (!mission || !type) return
 
       number.classList.add('mission-number-row')
-      if (number.querySelector('.mission-type-badge')) return
+      const existing = number.querySelector('.mission-type-badge')
+      if (existing) existing.remove()
       const badge = document.createElement('span')
       badge.className = 'mission-type-badge'
       badge.textContent = type.emoji + ' ' + type.label
@@ -75,7 +116,7 @@
       if (!buttons.length) return
       const completedIds = savedCompleted()
       const completed = normalizedCompleted(completedIds)
-      const range = visibleRangeFor(missions, completedIds, adminShowAll)
+      const visibleIds = visibleMissionIdsFor(missions, completedIds, adminShowAll)
       let visibleCompleted = 0
       let visibleTotal = 0
 
@@ -84,7 +125,7 @@
         if (!mission) return
         const type = types.get(mission.type) || types.TYPES.concept
         button.dataset.missionType = type.code
-        const visible = adminShowAll || (index >= range.start && index <= range.end)
+        const visible = visibleIds.has(mission.id)
         button.hidden = !visible
         button.classList.toggle('mission-hidden-by-focus', !visible)
         if (visible) {
@@ -132,6 +173,7 @@
   }
 
   return Object.freeze({
+    visibleMissionIdsFor,
     visibleRangeFor,
     install,
   })
