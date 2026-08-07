@@ -38,7 +38,9 @@ This document is the functional and business source of truth for the local Japan
 - Starting with concept mission 01, a complete reinforcement pack follows this canonical order: `concept → adventure → typo-fix → logic-fix → adventure → boss`.
 - The first implemented pack is missions 01–06: mission 01 remains the unchanged concept mission, followed by missions 02 adventure, 03 typo-fix, 04 logic-fix, 05 adventure and 06 boss. The next concept mission is mission 07.
 - New non-concept missions must use only concepts already introduced by an earlier `concept` mission. They must not introduce new JavaScript syntax, methods, operators or language rules through practice alone.
-- Non-concept missions have no `新しい考え方` concept-card section and no concept-card gate. Their editor and execution become available normally as soon as the mission itself is unlocked.
+- Concept-card validation is a `concept`-mission rule only. `adventure`, `typo-fix`, `logic-fix` and `boss` missions never use concept-card memory to decide whether their editor or execution controls are available.
+- Non-concept missions have no `新しい考え方` concept-card section and no concept-card gate. Their editor and execution become available immediately as soon as the mission itself is unlocked.
+- Switching from a gated concept mission to any non-concept mission must synchronously remove any stale concept-card pending UI state and re-enable the editor/run controls.
 - An `adventure` mission must be a new scenario rather than a copy of an earlier field. It reinforces learned commands through different layouts, routes, objectives or world interactions.
 - A `typo-fix` starter begins from the intended solution and deliberately introduces a small number of typos. Early missions use obvious single-character problems such as a mismatched bracket or a comma where a dot belongs.
 - Typo difficulty increases gradually over the campaign. Later missions may use visually similar ASCII and Japanese/full-width characters, such as `(` versus `（`, `)` versus `）`, or other punctuation that looks close but is not valid JavaScript.
@@ -55,13 +57,17 @@ This document is the functional and business source of truth for the local Japan
 ## Focused sidebar navigation
 
 - The normal sidebar deliberately does not show the entire campaign, to avoid an intimidating tunnel effect and to preserve discovery.
+- Mission 00 is always visible and never disappears from the sidebar.
+- Every mission already completed remains visible permanently, even when it belongs to an older concept segment or was completed non-contiguously during admin review.
 - Before mission 00 is completed, the sidebar shows only mission 00 and mission 01, even though mission 01 is still locked.
-- After mission 00, the sidebar shows the current or last relevant concept mission, all reinforcement missions belonging to that concept segment, and the next concept mission.
-- For the first pack, while missions 01–06 are the active segment, the sidebar therefore shows missions 01 through 07 and nothing beyond mission 07.
-- After the boss of a reinforcement segment is completed, the visible segment advances to the newly current concept mission and continues through the next concept mission.
+- After mission 00, the sidebar shows all completed history plus the unfinished missions in the current concept segment through the next concept mission boundary.
+- For the first pack, once mission 00 is completed, the sidebar therefore shows missions 00 through 07; mission 00 stays visible together with missions 01–06 and the locked boundary mission 07.
+- While progressing through missions 01–06, already completed missions in that segment remain visible and the visible unfinished frontier still ends at mission 07.
+- After the boss of a reinforcement segment is completed, all completed history stays visible while the unfinished frontier advances to the newly current concept segment and through its next concept boundary.
 - The next concept mission is visible as the boundary of the current segment even while it is locked.
+- Only unfinished missions after that next concept boundary are hidden.
 - Hidden missions remain part of normal linear progression; sidebar hiding changes presentation only, not completion or unlock semantics.
-- The sidebar progress count reflects the currently visible segment rather than advertising the full remaining campaign length.
+- The sidebar progress count reflects the currently visible missions rather than advertising the full remaining campaign length.
 - In admin mode, clicking the existing unlock-all control both unlocks and displays every mission in the complete campaign for review.
 
 ## Controls and learner assistance
@@ -158,7 +164,9 @@ This document is the functional and business source of truth for the local Japan
 - The concept-memory record stores stable card IDs rather than mission positions or duplicated card content.
 - A concept mission shows the number of validated cards and the total number of cards.
 - The learner cannot open the editable code view or execute a concept mission until every concept card assigned to it has been validated.
-- A mission with zero concept cards is considered card-ready immediately; non-concept missions must never be blocked by the concept-card execution gate.
+- For a `concept` mission that was already mastered, previously validated card IDs immediately satisfy the gate; the learner is never asked to validate the same cards again.
+- Every non-concept mission is card-ready by mission type, regardless of concept-card history or any pedagogical association with an earlier concept mission.
+- A missing or temporarily unresolved mission must fail open rather than trap the learner behind a card gate; only an explicitly resolved `concept` mission may be card-gated.
 - Clicking the colored code preview, the run button, or the execution keyboard shortcut before all cards of a concept mission are validated redirects attention to the concept cards and explains the requirement in Japanese.
 - The execution restriction applies equally to the normal run path and the special mission-19 preparation path.
 - When all concept cards assigned to a mission become validated, a short celebratory modal appears with a validation or festive icon, says that the mission is unlocked, and asks the learner to finish reading the explanations and scroll down.
@@ -400,11 +408,13 @@ This document is the functional and business source of truth for the local Japan
 - It verifies the five canonical mission type codes, labels and emojis and the reinforcement order after concept mission 01.
 - It verifies mission 00 remains a standalone concept mission with no reinforcement pack.
 - It verifies missions 02–06 use only JavaScript concepts available from mission 01 and have no concept-card guides.
+- It verifies `requiresCardValidation(...)` is true only for missions explicitly typed `concept`; missions 02–06 and a missing/unresolved mission are never card-gated.
+- It verifies switching to a non-concept mission clears stale `concept-cards-pending` state and leaves the run control enabled.
 - It verifies typo-fix starter code fails because of the intended typo while its reference solution succeeds.
 - It verifies logic-fix starter code executes successfully but fails mission evaluation while its reference solution succeeds.
 - It verifies the boss solution defeats the dragon, avoids dragon fire, collects the gem and reaches the goal.
 - It verifies entering the dragon fire lane produces a `dragon-fire` trace event and fails the boss mission.
-- It verifies focused sidebar ranges: 00–01 before mission 00 completion, 01–07 during the first reinforcement pack, the next concept segment after the boss, and 00–27 after admin unlock-all.
+- It verifies focused sidebar visibility: 00–01 before mission 00 completion; 00–07 once mission 00 is complete and throughout the first pack; completed missions remain visible permanently; only unfinished missions beyond the next concept boundary are hidden; and 00–27 are visible after admin unlock-all.
 - It verifies invalid direction, invalid parameter, invalid boolean, unknown method, invalid transformation and locked hero-dragon behavior.
 - It verifies the boolean concept mission checks both `true` and `false`, collects its gem and ends on the goal tile after two moves.
 - It verifies the infinite-loop mission uses the two-step reload preparation, persists completion before the actual infinite execution and requires a second page reload to leave it.
@@ -422,7 +432,7 @@ This document is the functional and business source of truth for the local Japan
 - It verifies every canonical concept card has between one and three quiz questions and every question has three or four unique choices containing its correct answer.
 - It verifies concept-card validation uses stable card IDs and a dedicated memory storage key rather than mission-number persistence.
 - It verifies every unprepared concept card is visually hidden before the memory layer applies its face-down state.
-- It verifies concept missions remain edit/execution gated until their cards are validated and missions with zero concept cards are immediately card-ready.
+- It verifies concept missions remain edit/execution gated until their cards are validated, while all non-concept types are immediately card-ready once unlocked.
 - It verifies the completion celebration appears when the last required concept card is validated and does not replace mission completion.
 - It verifies admin quiz review can select the correct choices but does not submit or validate automatically.
 - It verifies the admin-only validate-all control is rendered at the end of the guide, persists all current mission card IDs, and is absent from normal mode.
