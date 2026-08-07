@@ -8,6 +8,7 @@ This document is the functional and business source of truth for the local Japan
 - It must not copy or depend on official or Premium CodeCombat level content.
 - It must run from the static campaign directory with `py -m http.server 8000` or `python -m http.server 8000`.
 - The primary learner is a Japanese elementary-school child. Explanations must be understandable without prior English reading ability.
+- The current application version is displayed discreetly at the very bottom of the page and is read from one canonical version value.
 
 ## Campaign and persistence
 
@@ -134,8 +135,8 @@ This document is the functional and business source of truth for the local Japan
 - Mission 04 is a `logic-fix` mission whose code executes but initially walks in the wrong order and reaches the route without collecting the required gem.
 - Mission 05 is a second `adventure` mission that requires travelling to a gem and then reversing direction to return to the goal.
 - Mission 06 is the introductory `boss` escape mission. Its active field is a single horizontal corridor with walls above and below, the dragon on the left, the hero exactly five tiles away from the dragon, a gem on the route and the goal on the right.
-- Mission 06's canonical starter contains three leftward moves so the unmodified program deliberately approaches the dragon. The first leftward move leaves the hero four tiles away and is safe; the second leftward move places the hero three tiles away, triggers the three-tile fire ray, and stops visible execution before the third move can render.
-- When mission 06 triggers dragon fire, exactly three flames appear on the reachable tiles from the dragon, with the third flame landing on the hero tile. After the hit is visibly shown, the hero becomes a skeleton while the dragon remains alive.
+- Mission 06's canonical starter contains three leftward moves so the unmodified program deliberately approaches the dragon. The first leftward move leaves the hero four tiles away and is safe; the second leftward move places the hero three tiles away, triggers the three-tile fire ray, kills the hero and stops JavaScript execution before the third move can execute.
+- When mission 06 triggers dragon fire, exactly three flames appear on the reachable tiles from the dragon, with the third flame landing on the hero tile. The hero becomes a skeleton on that burning tile while the dragon remains alive.
 - The safe mission-06 solution uses only horizontal movement: moving right four times collects the gem and reaches the goal without entering the dragon's attack range.
 - Mission 06 has no active pillar, lever or boss-defeat mechanism. Completing it leaves the dragon alive. Failing by dragon fire changes only the hero into a skeleton; it must not display the dragon as defeated or as a skull.
 - The previously designed dragon/pillar/lever field is retained in the mission-pack reference data for a future boss mission, but it is not the active mission 06 field.
@@ -290,10 +291,16 @@ This document is the functional and business source of truth for the local Japan
 - User code is simulated once per field and rendered from the engine trace.
 - Movement, transformation, speech and failure speech are rendered in exact source order.
 - Each visible action must finish before the next action begins.
+- The engine maintains an authoritative `alive` state for the hero. A new hero action may begin only while that state is alive.
+- Every hero API action resolves lethal world hazards at action boundaries. Hazards are checked before an action starts and again after an action changes the hero or world state, so later movement methods or future action methods cannot bypass danger resolution.
+- When an action kills the hero, the engine sets the hero to dead, records the death cause, emits the lethal trace frame and immediately terminates the learner's JavaScript execution. No later `hero.*` action from the source program may execute or appear in the trace.
+- `hero.move(...)` checks blocking world occupancy before changing the hero position. Walls, closed doors and creature-occupied tiles cannot be entered, regardless of whether the occupying creature can currently attack.
+- Entering a lethal trap kills the hero and stops the remaining JavaScript execution. Starting another hero action while already standing on a lethal hazard also resolves the hazard before that action can run.
+- Dragon-fire danger is resolved by the same action lifecycle rather than by post-processing a fully executed trace. Entering a live dragon ray therefore kills the hero before the next source instruction can execute.
 - Speech pauses execution until the learner closes the bubble.
 - Speech bubbles are attached visually to the hero's position at the corresponding trace frame.
-- World-mechanic failure events such as dragon fire may terminate the visible trace before the learner's remaining source instructions are rendered.
-- When dragon fire is lethal, the fire ray must be rendered before the hero-death skeleton so the player can visually understand what caused the failure.
+- World-mechanic failure events such as dragon fire terminate the actual action chain, not merely the visible animation.
+- When dragon fire is lethal, the fire ray is rendered on every affected tile including the hero tile, and the hero is shown as a skeleton on the burning tile so the player can visually understand what caused the failure.
 
 ## Loop victory conditions
 
@@ -428,9 +435,11 @@ This document is the functional and business source of truth for the local Japan
 - It verifies mission 03 explains what a typo is, contains exactly the intended bracket typo and `forg`/`frog` typo, fails before correction, and cannot be completed by deleting the transformation line.
 - It verifies logic-fix starter code executes successfully but fails mission evaluation while its reference solution succeeds.
 - It verifies the dragon attacks for three tiles in all four cardinal directions and that blocking geometry stops its line of sight.
-- It verifies mission 06's starter contains three leftward moves; the first leftward move remains outside the attack range and the second enters the three-tile range, produces a `dragon-fire` trace event and stops visible execution before the third move.
+- It verifies mission 06's starter contains three leftward moves; the first leftward move remains outside the attack range and the second enters the three-tile range, produces a `dragon-fire` trace event, kills the hero and prevents the third move from executing.
 - It verifies the mission-06 fire event contains exactly three fire cells and that the last fire cell is the hero tile.
-- It verifies the dragon-fire UI displays one flame per reachable attack tile, shows the flame on the hero tile, and then changes the hero to a skeleton while leaving the dragon alive.
+- It verifies the dragon-fire UI displays one flame per reachable attack tile and shows the dead hero as a skeleton on the burning hero tile while leaving the dragon alive.
+- It verifies the engine tracks hero life authoritatively and no hero API action after a lethal hazard is executed or appended to the trace.
+- It verifies lethal traps stop execution through the same action lifecycle.
 - It verifies a hero cannot move onto a tile occupied by a creature, independently of whether that creature attacks.
 - It verifies the mission-06 reference solution moves only right, collects the gem, reaches the goal, avoids dragon fire, leaves `bossDefeated` false and produces no `boss-defeated` event.
 - It verifies the preserved dragon/pillar/lever scenario remains available as reference data for future missions.
@@ -473,5 +482,6 @@ This document is the functional and business source of truth for the local Japan
 - It verifies every finite mission's learner partial solution differs from the final solution, contains comments and a `TODO`, and must remain incomplete on at least one field.
 - It verifies the final answer is restricted to admin mode, is immediately available there without confirmation, and is not persisted as learner code.
 - It verifies concept annotation does not install a self-mutating permanent subtree observer.
+- It verifies the canonical application version is rendered discreetly in the footer and follows the repository versioning rules.
 - It verifies required documentation exists and remains consistent with the implementation.
 - ESLint must pass for changed JavaScript files.
