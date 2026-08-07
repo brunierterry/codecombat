@@ -26,8 +26,9 @@
     const lever = tileAt(grid, width, boss.lever)
 
     if (dragon) {
-      const defeated = dragon.classList.contains('floor')
-      dragon.classList.remove('enemy')
+      const explicitlyDefeatable = boss.resolution && boss.resolution !== 'escape'
+      const defeated = explicitlyDefeatable && dragon.classList.contains('floor')
+      dragon.classList.remove('enemy', 'boss-defeated', 'boss-dragon')
       dragon.classList.add(defeated ? 'boss-defeated' : 'boss-dragon')
       dragon.textContent = defeated ? '💀' : '🐉'
       dragon.setAttribute('aria-label', defeated ? '倒したドラゴン' : 'ドラゴン')
