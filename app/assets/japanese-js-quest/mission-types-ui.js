@@ -69,6 +69,7 @@
       button.dataset.missionType = type.code
       const visible = adminShowAll || (index >= range.start && index <= range.end)
       button.hidden = !visible
+      button.classList.toggle('mission-hidden-by-focus', !visible)
       if (visible) {
         visibleTotal++
         if (completed.has(mission.id)) visibleCompleted++
