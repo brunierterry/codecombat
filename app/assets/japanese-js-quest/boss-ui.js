@@ -46,18 +46,18 @@
       lever.setAttribute('aria-label', 'レバー')
     }
 
-    ;(boss.fireCells || []).forEach((cell, index) => {
-      const tile = tileAt(grid, width, cell)
-      if (!tile) return
-      const active = tile.classList.contains('trap')
-      tile.classList.add('boss-fire-zone')
-      if (active) {
-        tile.classList.remove('trap')
-        tile.classList.add('boss-fire-active')
-        tile.textContent = '🔥'
-        tile.style.setProperty('--fire-step', String(index))
-        tile.setAttribute('aria-label', 'ドラゴンの炎')
-      }
+    // The engine renders an active dragon ray as T/trap tiles. Convert every
+    // such tile in a boss encounter to fire, regardless of ray direction.
+    Array.from(grid.children).forEach((tile, index) => {
+      if (!tile.classList.contains('trap')) return
+      const x = index % width
+      const y = Math.floor(index / width)
+      const distance = Math.abs(x - boss.dragon.x) + Math.abs(y - boss.dragon.y)
+      tile.classList.remove('trap')
+      tile.classList.add('boss-fire-zone', 'boss-fire-active')
+      tile.textContent = '🔥'
+      tile.style.setProperty('--fire-step', String(Math.max(0, distance - 1)))
+      tile.setAttribute('aria-label', 'ドラゴンの炎')
     })
   }
 
