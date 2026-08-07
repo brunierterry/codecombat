@@ -1,7 +1,15 @@
 (function (root, factory) {
   const api = factory()
   if (typeof module === 'object' && module.exports) module.exports = api
-  else root.JSQuestMissionTypes = api
+  else {
+    root.JSQuestMissionTypes = api
+    if (typeof document !== 'undefined' && !document.querySelector('link[href="mission-types.css"]')) {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = 'mission-types.css'
+      document.head.appendChild(link)
+    }
+  }
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict'
 
