@@ -14,6 +14,7 @@ on:
       - 'scripts/validate-japanese-js-quest-learning-reinforcement.js'
       - 'scripts/validate-japanese-js-quest-editor-header-and-card-extension.js'
       - 'scripts/validate-japanese-js-quest-mission-pack-v1.js'
+      - 'scripts/validate-japanese-js-quest-dragon-polish.js'
       - 'docs/PRODUCT_RULES.md'
       - 'docs/DEVELOPMENT_RULES.md'
       - '.github/workflows/japanese-js-quest.yml'
@@ -26,6 +27,7 @@ on:
       - 'scripts/validate-japanese-js-quest-learning-reinforcement.js'
       - 'scripts/validate-japanese-js-quest-editor-header-and-card-extension.js'
       - 'scripts/validate-japanese-js-quest-mission-pack-v1.js'
+      - 'scripts/validate-japanese-js-quest-dragon-polish.js'
       - 'docs/PRODUCT_RULES.md'
       - 'docs/DEVELOPMENT_RULES.md'
       - '.github/workflows/japanese-js-quest.yml'
@@ -51,3 +53,5 @@ jobs:
         run: node scripts/validate-japanese-js-quest-editor-header-and-card-extension.js
       - name: Validate mission types and first reinforcement pack
         run: node scripts/validate-japanese-js-quest-mission-pack-v1.js
+      - name: Validate polished dragon encounter
+        run: node scripts/validate-japanese-js-quest-dragon-polish.js
