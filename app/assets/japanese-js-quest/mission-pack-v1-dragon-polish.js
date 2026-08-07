@@ -1,17 +1,36 @@
 (function (root, factory) {
-  const api = factory()
+  const missionPack = typeof module === 'object' && module.exports
+    ? require('./mission-pack-v1.js')
+    : root.JSQuestMissionPackV1
+  const api = factory(missionPack)
   if (typeof module === 'object' && module.exports) module.exports = api
   else {
     root.JSQuestDragonPolish = api
     if (root.JSQuestMissions) api.apply(root.JSQuestMissions)
   }
-})(typeof self !== 'undefined' ? self : this, function () {
+})(typeof self !== 'undefined' ? self : this, function (missionPack) {
   'use strict'
 
   const MISSION_ID = 6
   const DRAGON_RANGE = 3
 
+  function threeFireCellsToRight (dragon) {
+    return [
+      { x: dragon.x + 1, y: dragon.y },
+      { x: dragon.x + 2, y: dragon.y },
+      { x: dragon.x + 3, y: dragon.y },
+    ]
+  }
+
+  function normalizePreservedScenario () {
+    const boss = missionPack?.DRAGON_PILLAR_LEVER_SCENARIO?.boss
+    if (!boss?.dragon) return
+    boss.attackRange = DRAGON_RANGE
+    boss.fireCells = threeFireCellsToRight(boss.dragon)
+  }
+
   function apply (missions) {
+    normalizePreservedScenario()
     if (!Array.isArray(missions)) return null
     const mission = missions.find(item => item.id === MISSION_ID && item.type === 'boss')
     if (!mission || mission.__dragonPolishApplied) return mission || null
@@ -37,13 +56,9 @@
 
     const variant = mission.variants?.[0]
     const boss = variant?.boss
-    if (boss) {
+    if (boss?.dragon) {
       boss.attackRange = DRAGON_RANGE
-      boss.fireCells = [
-        { x: boss.dragon.x + 1, y: boss.dragon.y },
-        { x: boss.dragon.x + 2, y: boss.dragon.y },
-        { x: boss.dragon.x + 3, y: boss.dragon.y },
-      ]
+      boss.fireCells = threeFireCellsToRight(boss.dragon)
     }
 
     Object.defineProperty(mission, '__dragonPolishApplied', { value: true })
