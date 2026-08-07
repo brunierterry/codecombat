@@ -4,7 +4,12 @@
     : root.JSQuestConceptCards
   const api = factory(base)
   if (typeof module === 'object' && module.exports) module.exports = api
-  else root.JSQuestConceptCards = api
+  else {
+    root.JSQuestConceptCards = api
+    if (typeof document !== 'undefined' && document.readyState === 'loading' && root.JSQuestMissionPackV1) {
+      document.write('<script src="concept-card-mission-remap-v1.js"><\/script>')
+    }
+  }
 })(typeof self !== 'undefined' ? self : this, function (base) {
   'use strict'
 
@@ -26,7 +31,7 @@
       '<code>hero.move(direction)</code>',
       '<code>move</code> は動くメソッドです。パラメーター <code>direction</code> に <code>"left"</code> や <code>"right"</code> を渡して、動く方向を指定します。' +
         '<br><br>1回呼ぶと、ヒーローはその方向へ1マスだけ進みます。何マスも進みたいときは、進む回数だけこのメソッドを呼びます。'
-    )
+    ),
   ])
 
   const additionalCards = Object.freeze([
@@ -43,14 +48,14 @@
       1,
       tooltip('Editor', 'エディター', 'tech-term') + ' はコードを書く場所',
       tooltip('Editor', 'エディター', 'tech-term') + ' は、プログラムのコードを読んだり、書いたり、直したりする場所です。ここに JavaScript を書き、<code>実行する</code> で動かします。'
-    )
+    ),
   ])
 
   const replacementById = Object.freeze(Object.fromEntries(
-    replacementCards.map(item => [item.id, item])
+    replacementCards.map(item => [item.id, item]),
   ))
   const additionalById = Object.freeze(Object.fromEntries(
-    additionalCards.map(item => [item.id, item])
+    additionalCards.map(item => [item.id, item]),
   ))
   const cardsById = Object.freeze(Object.assign({}, base.cardsById, replacementById, additionalById))
   const missionOneGuide = Object.freeze({
@@ -59,8 +64,8 @@
       'concept-card-037',
       'concept-card-038',
       'concept-card-036',
-      'concept-card-005'
-    ])
+      'concept-card-005',
+    ]),
   })
   const missionGuides = Object.freeze(Object.assign({}, base.missionGuides, { 1: missionOneGuide }))
 
@@ -74,7 +79,7 @@
     return {
       title: guide.title,
       cardIds: guide.cardIds.slice(),
-      cards: guide.cardIds.map(getCard)
+      cards: guide.cardIds.map(getCard),
     }
   }
 
@@ -89,6 +94,6 @@
     missionGuides,
     getCard,
     getMissionGuide,
-    allCards
+    allCards,
   })
 })
