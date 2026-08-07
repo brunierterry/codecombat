@@ -2,6 +2,7 @@
   'use strict'
 
   const missions = window.JSQuestMissions || []
+  const HERO_BURN_DELAY_MS = 850
 
   function currentMission () {
     const match = (document.getElementById('mission-number')?.textContent || '').match(/(\d+)/)
@@ -11,6 +12,15 @@
   function tileAt (grid, width, point) {
     if (!grid || !point || !Number.isInteger(point.x) || !Number.isInteger(point.y)) return null
     return grid.children[(point.y * width) + point.x] || null
+  }
+
+  function scheduleBurnedHero (tile) {
+    window.setTimeout(() => {
+      if (!tile.isConnected || !tile.classList.contains('hero') || !tile.classList.contains('boss-fire-active')) return
+      tile.classList.add('boss-hero-dead')
+      tile.textContent = '💀'
+      tile.setAttribute('aria-label', 'ドラゴンの炎で倒れたヒーロー')
+    }, HERO_BURN_DELAY_MS)
   }
 
   function decorateBossGrid () {
@@ -46,8 +56,9 @@
       lever.setAttribute('aria-label', 'レバー')
     }
 
-    // The engine renders an active dragon ray as T/trap tiles. Convert every
-    // such tile in a boss encounter to fire, regardless of ray direction.
+    // The engine renders every active dragon-ray cell as T/trap. Convert each
+    // one to a flame. If the ray reaches the hero, the hero is first covered
+    // by the flame and then becomes a skeleton after the fire animation.
     Array.from(grid.children).forEach((tile, index) => {
       if (!tile.classList.contains('trap')) return
       const x = index % width
@@ -57,7 +68,8 @@
       tile.classList.add('boss-fire-zone', 'boss-fire-active')
       tile.textContent = '🔥'
       tile.style.setProperty('--fire-step', String(Math.max(0, distance - 1)))
-      tile.setAttribute('aria-label', 'ドラゴンの炎')
+      tile.setAttribute('aria-label', tile.classList.contains('hero') ? 'ヒーローに当たったドラゴンの炎' : 'ドラゴンの炎')
+      if (tile.classList.contains('hero')) scheduleBurnedHero(tile)
     })
   }
 
