@@ -201,7 +201,8 @@ for (const text of [
   '## Simplified pedagogical syntax preview',
   'CSS custom properties',
   'String quote characters remain in the default syntax color',
-  'cannot open the editable code view or execute the mission',
+  'cannot open the editable code view or execute a concept mission',
+  'A mission with zero concept cards is considered card-ready immediately',
   'Whenever a mission or concept card is added or changed',
   'Admin mode provides a quiz-review control',
   'cursor placed at the corresponding source-code offset',
@@ -223,4 +224,4 @@ for (const text of [
 ]) assert(readme.includes(text))
 assert(!fs.existsSync(path.join(repositoryPath, 'docs', 'LEARNING_REINFORCEMENT_PLAN.md')))
 
-console.log(`Validated ${allCards.length} concept-card quizzes, admin bulk validation, reading help, restored blue scrollbar styling and exact 11px execution reminder.`)
+console.log(`Validated ${allCards.length} core concept-card quizzes, admin bulk validation, reading help, restored blue scrollbar styling and exact editor reminder behavior.`)
