@@ -30,7 +30,7 @@
 
   function save () {
     storage()?.setItem(STORAGE_KEY, JSON.stringify({
-      validatedCardIds: Array.from(validatedCards).sort()
+      validatedCardIds: Array.from(validatedCards).sort(),
     }))
   }
 
@@ -80,7 +80,7 @@
 
   function isMissionReady () {
     const cardIds = missionCardIds()
-    return cardIds.length > 0 && cardIds.every(isValidated)
+    return cardIds.length === 0 || cardIds.every(isValidated)
   }
 
   function explainBlockedExecution () {
@@ -95,7 +95,7 @@
 
   const executionGate = Object.freeze({
     canRun: isMissionReady,
-    explainBlockedExecution
+    explainBlockedExecution,
   })
 
   function shuffle (values) {
@@ -130,7 +130,7 @@
       '  <h3 id="concept-card-quiz-title">ミニクイズ</h3>',
       '  <form id="concept-card-quiz-form"></form>',
       '  <p id="concept-card-quiz-feedback" class="concept-card-quiz-feedback" aria-live="polite"></p>',
-      '</div>'
+      '</div>',
     ].join('')
     document.body.appendChild(modal)
 
@@ -404,6 +404,6 @@
     validateCurrentMissionCardsForAdmin,
     isMissionReady,
     executionGate,
-    install
+    install,
   })
 })
