@@ -24,7 +24,7 @@
 
   function shiftedExistingId (id) {
     const value = Number(id)
-    return value >= 2 ? value + INSERT_COUNT : value
+    return value > INSERT_AFTER_ID ? value + INSERT_COUNT : value
   }
 
   function previousIdForFinalId (id) {
