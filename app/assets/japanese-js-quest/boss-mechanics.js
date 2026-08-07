@@ -8,6 +8,14 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict'
 
+  const DEFAULT_DRAGON_RANGE = 4
+  const CARDINAL_DIRECTIONS = Object.freeze({
+    right: [1, 0],
+    left: [-1, 0],
+    down: [0, 1],
+    up: [0, -1],
+  })
+
   function isBossMission (mission) {
     return Boolean(mission && mission.bossEncounter && mission.variants?.some(variant => variant.boss))
   }
@@ -32,8 +40,55 @@
     return left && right && Number(left.x) === Number(right.x) && Number(left.y) === Number(right.y)
   }
 
-  function isFireCell (boss, frame) {
-    return (boss.fireCells || []).some(cell => sameCell(cell, frame))
+  function mapTile (variant, x, y) {
+    if (!variant?.map?.[y] || x < 0 || x >= variant.map[y].length) return '#'
+    return variant.map[y][x]
+  }
+
+  function blocksDragonFire (tile) {
+    return tile === '#' || tile === 'P'
+  }
+
+  function dragonRange (boss) {
+    const configured = Number(boss?.attackRange)
+    return Number.isFinite(configured) && configured > 0 ? Math.floor(configured) : DEFAULT_DRAGON_RANGE
+  }
+
+  function dragonRayCells (variant, boss, direction) {
+    const delta = CARDINAL_DIRECTIONS[direction]
+    if (!variant || !boss?.dragon || !delta) return []
+    const range = dragonRange(boss)
+    const cells = []
+
+    for (let step = 1; step <= range; step++) {
+      const x = boss.dragon.x + (delta[0] * step)
+      const y = boss.dragon.y + (delta[1] * step)
+      if (blocksDragonFire(mapTile(variant, x, y))) break
+      cells.push({ x, y })
+    }
+    return cells
+  }
+
+  function directionTowardHero (boss, frame) {
+    if (!boss?.dragon || !frame) return null
+    const dx = Number(frame.x) - Number(boss.dragon.x)
+    const dy = Number(frame.y) - Number(boss.dragon.y)
+    if (dy === 0 && dx > 0) return 'right'
+    if (dy === 0 && dx < 0) return 'left'
+    if (dx === 0 && dy > 0) return 'down'
+    if (dx === 0 && dy < 0) return 'up'
+    return null
+  }
+
+  function dragonThreat (variant, boss, frame) {
+    const direction = directionTowardHero(boss, frame)
+    if (!direction) return { hit: false, direction: null, fireCells: [] }
+    const fireCells = dragonRayCells(variant, boss, direction)
+    return {
+      hit: fireCells.some(cell => sameCell(cell, frame)),
+      direction,
+      fireCells,
+    }
   }
 
   function replaceCell (rows, cell, value) {
@@ -44,19 +99,17 @@
     return next
   }
 
-  function visualGrid (grid, boss, bossDefeated, fireActive) {
+  function visualGrid (grid, boss, bossDefeated, fireCells) {
     let rows = Array.isArray(grid) ? grid.slice() : []
     if (bossDefeated) rows = replaceCell(rows, boss.dragon, '.')
-    if (fireActive) {
-      for (const cell of boss.fireCells || []) rows = replaceCell(rows, cell, 'T')
-    }
+    for (const cell of fireCells || []) rows = replaceCell(rows, cell, 'T')
     return rows
   }
 
   function withBossState (frame, boss, bossDefeated, extra) {
-    const fireActive = extra?.type === 'dragon-fire'
+    const activeFireCells = extra?.type === 'dragon-fire' ? extra.fireCells : []
     return Object.assign({}, frame, {
-      grid: visualGrid(frame.grid, boss, bossDefeated, fireActive),
+      grid: visualGrid(frame.grid, boss, bossDefeated, activeFireCells),
       bossDefeated,
     }, extra || {})
   }
@@ -64,7 +117,8 @@
   function decorateBossResult (mission, result, variantIndex) {
     if (!isBossMission(mission) || !result) return result
     const safeIndex = ((variantIndex || 0) % mission.variants.length + mission.variants.length) % mission.variants.length
-    const boss = mission.variants[safeIndex].boss
+    const variant = mission.variants[safeIndex]
+    const boss = variant.boss
     let bossDefeated = false
     let dragonHit = false
     const trace = []
@@ -75,7 +129,7 @@
 
       if (frame.type !== 'move') continue
 
-      if (!bossDefeated && sameCell(frame, boss.lever)) {
+      if (!bossDefeated && boss.lever && sameCell(frame, boss.lever)) {
         bossDefeated = true
         trace.push(withBossState(frame, boss, true, {
           type: 'boss-defeated',
@@ -84,16 +138,20 @@
         continue
       }
 
-      if (!bossDefeated && isFireCell(boss, frame)) {
-        dragonHit = true
-        trace.push(withBossState(frame, boss, false, {
-          type: 'dragon-fire',
-          dragonHit: true,
-          fireCells: (boss.fireCells || []).map(cell => Object.assign({}, cell)),
-          dragon: Object.assign({}, boss.dragon),
-          pillar: Object.assign({}, boss.pillar),
-        }))
-        break
+      if (!bossDefeated) {
+        const threat = dragonThreat(variant, boss, frame)
+        if (threat.hit) {
+          dragonHit = true
+          trace.push(withBossState(frame, boss, false, {
+            type: 'dragon-fire',
+            dragonHit: true,
+            fireDirection: threat.direction,
+            fireCells: threat.fireCells.map(cell => Object.assign({}, cell)),
+            dragon: Object.assign({}, boss.dragon),
+            attackRange: dragonRange(boss),
+          }))
+          break
+        }
       }
     }
 
@@ -102,7 +160,7 @@
       bossDefeated,
       dragonHit,
     })
-    state.grid = visualGrid(state.grid, boss, bossDefeated, dragonHit)
+    state.grid = visualGrid(state.grid, boss, bossDefeated, dragonHit ? lastFrame?.fireCells : [])
     if (dragonHit) state.goalReached = false
 
     return Object.assign({}, result, { trace, state })
@@ -113,12 +171,16 @@
     const messages = base.messages.slice()
     const stateRules = mission.requirements?.state || {}
     const state = result.state || {}
+    const variant = mission.variants?.[state.variantIndex || 0] || mission.variants?.[0]
+    const boss = variant?.boss
 
     if (stateRules.noDragonFire && state.dragonHit) {
-      messages.push('ドラゴンの火に当たりました。炎の通り道を避けて、柱の下から回りましょう。')
+      messages.push('ドラゴンの火は上下左右に' + dragonRange(boss) + 'マスまで届きます。ドラゴンから離れる方向へ進みましょう。')
     }
     if (stateRules.bossDefeated && !state.bossDefeated) {
-      messages.push('まだドラゴンを倒していません。右側のレバーを踏んで罠を作動させよう。')
+      messages.push(boss?.lever
+        ? 'まだドラゴンを倒していません。レバーを踏んで仕掛けを作動させよう。'
+        : 'まだボスを倒したり捕まえたりしていません。')
     }
 
     return { passed: messages.length === 0, messages }
@@ -156,9 +218,13 @@
   }
 
   return Object.freeze({
+    DEFAULT_DRAGON_RANGE,
     apply,
     isBossMission,
     normalizedMission,
+    dragonRange,
+    dragonRayCells,
+    dragonThreat,
     decorateBossResult,
     evaluateBoss,
     visualGrid,
