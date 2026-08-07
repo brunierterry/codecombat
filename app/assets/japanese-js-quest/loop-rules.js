@@ -27,11 +27,15 @@
     return 'コードに hero.' + method + '(...)：最大 ' + maximum + ' 回'
   }
 
+  function sourceMissionId (mission) {
+    return Number.isInteger(mission?.prePracticeId) ? mission.prePracticeId : mission.id
+  }
+
   function apply (missions) {
     if (!Array.isArray(missions)) return missions
 
     for (const mission of missions) {
-      const limits = LOOP_RULES[mission.id]
+      const limits = LOOP_RULES[sourceMissionId(mission)]
       if (!limits) continue
 
       mission.requirements = mission.requirements || {}
@@ -63,5 +67,6 @@
     apply,
     LOOP_RULES,
     sourceLimitLabel,
+    sourceMissionId,
   })
 })
