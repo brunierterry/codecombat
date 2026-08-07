@@ -229,8 +229,8 @@
   function renderGuide () {
     const existingSection = document.getElementById('mission-learning-guide')
     const missionId = displayedMissionId()
-    const mission = (window.JSQuestMissions || []).find(item => item.id === missionId)
-    if (mission?.type && mission.type !== 'concept') {
+    const missionData = (window.JSQuestMissions || []).find(item => item.id === missionId)
+    if (missionData?.type && missionData.type !== 'concept') {
       existingSection?.remove()
       return
     }
@@ -240,8 +240,8 @@
       return
     }
 
-    const mission = document.querySelector('.mission-card')
-    if (!mission) return
+    const missionCard = document.querySelector('.mission-card')
+    if (!missionCard) return
 
     const sections = []
     const sourceId = sourceMissionId()
@@ -275,7 +275,7 @@
       section = document.createElement('section')
       section.id = 'mission-learning-guide'
       section.className = 'learning-guide'
-      mission.appendChild(section)
+      missionCard.appendChild(section)
     }
 
     section.innerHTML = [
