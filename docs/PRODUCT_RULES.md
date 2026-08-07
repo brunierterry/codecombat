@@ -52,11 +52,13 @@ This document is the functional and business source of truth for the local Japan
 - A `boss` mission may introduce new world mechanics without treating those mechanics as new JavaScript concepts. The programming solution must still respect the concepts that the learner is expected to know at that point, except for an explicitly documented debugging exception such as mission 03.
 - Boss missions normally cannot complete until the boss has been explicitly resolved by defeating, capturing, trapping or otherwise neutralizing it.
 - Mission 06 is the introductory escape-boss exception: its approved objective is to escape the dragon and reach the goal while the dragon is still alive. Reaching the goal is the boss resolution for this one introductory mission; the dragon must remain alive and must not turn into a skull merely because the mission succeeds or fails.
-- A dragon has a default attack range of four tiles in the four cardinal directions. If the hero is on the same row or column and enters one of those four tiles while visible to the dragon, the dragon breathes fire in that direction and the run fails.
+- A dragon has a default attack range of three tiles in the four cardinal directions. If the hero is on the same row or column and enters one of those three tiles while visible to the dragon, the dragon breathes fire in that direction and the run fails.
+- An active dragon ray displays one flame per reachable attack tile from the dragon toward the hero. If the ray reaches the hero, the hero tile first displays a flame and then the hero becomes a skeleton to show that the fire defeated the hero.
 - Dragon line of sight is blocked by impassable world geometry such as a wall or pillar. A dragon does not attack through those blockers.
+- A tile occupied by a creature is always impassable to the hero. This remains true even when that creature is sleeping, disabled, magically prevented from attacking, or otherwise unable to damage the hero.
 - Boss and adventure world mechanics are reusable building blocks. Supported or planned examples include a dragon fire lane blocked by a pillar, a lever that defeats or traps a boss, water that the normal hero cannot walk on, lily pads that only the frog form can cross, and magical zones that limit how many consecutive moves can be made in the same form.
-- New world mechanics must communicate failure visually where practical. For example, entering an active dragon fire ray stops the visible execution and shows fire propagating from the dragon in the direction of the hero.
-- A defeated visual such as a skull is shown only after an explicit boss-neutralization event. A failed run, an ordinary goal arrival or an escape objective must never implicitly mark a living boss as defeated.
+- New world mechanics must communicate failure visually where practical. For dragon fire, the visible execution stops on the hit tile, flames propagate from the dragon across every reachable fire tile, the flame visibly reaches the hero, and the hero then becomes a skeleton.
+- A defeated visual for a boss such as a skull is shown only after an explicit boss-neutralization event. A failed run, an ordinary goal arrival or an escape objective must never implicitly mark a living boss as defeated. A hero skeleton caused by lethal damage is a separate hero-death visual and does not mean the boss was defeated.
 - Defeating a boss does not require elaborate combat animation; activating a trap/lever may make the boss disappear or leave a simple defeated marker such as a skull.
 - The mission type appears in the opened mission near its mission number with the type emoji and label.
 - The sidebar keeps mission-type differences lightweight: non-concept types receive a subtle visual distinction rather than repeating large emojis in every row.
@@ -132,8 +134,10 @@ This document is the functional and business source of truth for the local Japan
 - Mission 04 is a `logic-fix` mission whose code executes but initially walks in the wrong order and reaches the route without collecting the required gem.
 - Mission 05 is a second `adventure` mission that requires travelling to a gem and then reversing direction to return to the goal.
 - Mission 06 is the introductory `boss` escape mission. Its active field is a single horizontal corridor with walls above and below, the dragon on the left, the hero exactly five tiles away from the dragon, a gem on the route and the goal on the right.
-- Mission 06 uses only horizontal movement. Moving left from the starting tile enters the dragon's four-tile attack range and triggers fire; moving right four times collects the gem and reaches the goal safely.
-- Mission 06 has no active pillar, lever or boss-defeat mechanism. Completing or failing it must leave the dragon alive and must not display a defeated/skull state.
+- Mission 06's canonical starter contains three leftward moves so the unmodified program deliberately approaches the dragon. The first leftward move leaves the hero four tiles away and is safe; the second leftward move places the hero three tiles away, triggers the three-tile fire ray, and stops visible execution before the third move can render.
+- When mission 06 triggers dragon fire, exactly three flames appear on the reachable tiles from the dragon, with the third flame landing on the hero tile. After the hit is visibly shown, the hero becomes a skeleton while the dragon remains alive.
+- The safe mission-06 solution uses only horizontal movement: moving right four times collects the gem and reaches the goal without entering the dragon's attack range.
+- Mission 06 has no active pillar, lever or boss-defeat mechanism. Completing it leaves the dragon alive. Failing by dragon fire changes only the hero into a skeleton; it must not display the dragon as defeated or as a skull.
 - The previously designed dragon/pillar/lever field is retained in the mission-pack reference data for a future boss mission, but it is not the active mission 06 field.
 - Mission 06 is the introductory escape-boss exception to the normal boss-resolution rule. Later boss missions must require explicit defeat, capture, trapping or equivalent neutralization before completion.
 
@@ -289,6 +293,7 @@ This document is the functional and business source of truth for the local Japan
 - Speech pauses execution until the learner closes the bubble.
 - Speech bubbles are attached visually to the hero's position at the corresponding trace frame.
 - World-mechanic failure events such as dragon fire may terminate the visible trace before the learner's remaining source instructions are rendered.
+- When dragon fire is lethal, the fire ray must be rendered before the hero-death skeleton so the player can visually understand what caused the failure.
 
 ## Loop victory conditions
 
@@ -422,8 +427,11 @@ This document is the functional and business source of truth for the local Japan
 - It verifies switching to a non-concept mission clears stale `concept-cards-pending` state and leaves the run control enabled.
 - It verifies mission 03 explains what a typo is, contains exactly the intended bracket typo and `forg`/`frog` typo, fails before correction, and cannot be completed by deleting the transformation line.
 - It verifies logic-fix starter code executes successfully but fails mission evaluation while its reference solution succeeds.
-- It verifies the dragon attacks for four tiles in all four cardinal directions and that blocking geometry stops its line of sight.
-- It verifies moving left once in mission 06 enters the dragon's attack range, produces a `dragon-fire` trace event and fails the mission.
+- It verifies the dragon attacks for three tiles in all four cardinal directions and that blocking geometry stops its line of sight.
+- It verifies mission 06's starter contains three leftward moves; the first leftward move remains outside the attack range and the second enters the three-tile range, produces a `dragon-fire` trace event and stops visible execution before the third move.
+- It verifies the mission-06 fire event contains exactly three fire cells and that the last fire cell is the hero tile.
+- It verifies the dragon-fire UI displays one flame per reachable attack tile, shows the flame on the hero tile, and then changes the hero to a skeleton while leaving the dragon alive.
+- It verifies a hero cannot move onto a tile occupied by a creature, independently of whether that creature attacks.
 - It verifies the mission-06 reference solution moves only right, collects the gem, reaches the goal, avoids dragon fire, leaves `bossDefeated` false and produces no `boss-defeated` event.
 - It verifies the preserved dragon/pillar/lever scenario remains available as reference data for future missions.
 - It verifies focused sidebar visibility: 00–01 before mission 00 completion; 00–07 once mission 00 is complete and throughout the first pack; completed missions remain visible permanently; only unfinished missions beyond the next concept boundary are hidden; and 00–27 are visible after admin unlock-all.
