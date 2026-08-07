@@ -32,6 +32,7 @@ loopRules.apply(allMissions)
 
 const remappedCards = require(path.join(questPath, 'concept-card-mission-remap-v1.js'))
 const sidebarUi = require(path.join(questPath, 'mission-types-ui.js'))
+const conceptMemoryApi = require(path.join(questPath, 'concept-card-memory.js'))
 
 function read (relativePath) {
   return fs.readFileSync(path.join(repositoryPath, relativePath), 'utf8')
@@ -49,6 +50,17 @@ assert.deepStrictEqual(
 assert.strictEqual(allMissions[7].title, '曲がり道')
 assert(allMissions.slice(7).every(mission => mission.type === 'concept'))
 assert(allMissions.slice(2, 7).every(mission => mission.practiceOf === 1))
+
+assert.strictEqual(conceptMemoryApi.requiresCardValidation(allMissions[0]), true)
+assert.strictEqual(conceptMemoryApi.requiresCardValidation(allMissions[1]), true)
+for (const mission of allMissions.slice(2, 7)) {
+  assert.strictEqual(
+    conceptMemoryApi.requiresCardValidation(mission),
+    false,
+    'Practice mission ' + mission.id + ' must never be blocked by concept-card validation',
+  )
+}
+assert(allMissions.slice(7).every(mission => conceptMemoryApi.requiresCardValidation(mission)))
 
 for (const mission of allMissions.slice(2, 7)) {
   assert.deepStrictEqual(
@@ -140,6 +152,9 @@ for (const mission of allMissions) {
 }
 
 const conceptMemory = read('app/assets/japanese-js-quest/concept-card-memory.js')
+assert(conceptMemory.includes("mission.type === 'concept'"))
+assert(conceptMemory.includes('if (!currentMissionRequiresCardValidation()) return true'))
+assert(conceptMemory.includes('if (!currentMissionRequiresCardValidation()) return []'))
 assert(conceptMemory.includes('cardIds.length === 0 || cardIds.every(isValidated)'))
 
 const learningGuide = read('app/assets/japanese-js-quest/learning-guide.js')
@@ -171,10 +186,12 @@ for (const text of [
   'concept → adventure → typo-fix → logic-fix → adventure → boss',
   'Mission 00 is the exception',
   'only concepts already introduced',
+  'non-concept missions must never be blocked by the concept-card execution gate',
+  'every concept card assigned to it has been validated',
   'full-width',
   'dragon',
   'lily',
   'next concept mission',
 ]) assert(productRules.includes(text), 'Missing product rule: ' + text)
 
-console.log('Validated 28 missions / 42 fields, five mission types, first reinforcement pack, boss mechanics, remapped cards and focused navigation.')
+console.log('Validated 28 missions / 42 fields, five mission types, concept-only card gating, first reinforcement pack, boss mechanics, remapped cards and focused navigation.')
