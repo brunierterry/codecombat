@@ -36,8 +36,29 @@
     return (boss.fireCells || []).some(cell => sameCell(cell, frame))
   }
 
-  function withBossState (frame, bossDefeated, extra) {
-    return Object.assign({}, frame, { bossDefeated }, extra || {})
+  function replaceCell (rows, cell, value) {
+    if (!Array.isArray(rows) || !cell || !rows[cell.y] || cell.x < 0 || cell.x >= rows[cell.y].length) return rows
+    const next = rows.slice()
+    const row = next[cell.y]
+    next[cell.y] = row.slice(0, cell.x) + value + row.slice(cell.x + 1)
+    return next
+  }
+
+  function visualGrid (grid, boss, bossDefeated, fireActive) {
+    let rows = Array.isArray(grid) ? grid.slice() : []
+    if (bossDefeated) rows = replaceCell(rows, boss.dragon, '.')
+    if (fireActive) {
+      for (const cell of boss.fireCells || []) rows = replaceCell(rows, cell, 'T')
+    }
+    return rows
+  }
+
+  function withBossState (frame, boss, bossDefeated, extra) {
+    const fireActive = extra?.type === 'dragon-fire'
+    return Object.assign({}, frame, {
+      grid: visualGrid(frame.grid, boss, bossDefeated, fireActive),
+      bossDefeated,
+    }, extra || {})
   }
 
   function decorateBossResult (mission, result, variantIndex) {
@@ -49,14 +70,14 @@
     const trace = []
 
     for (const originalFrame of result.trace || []) {
-      const frame = withBossState(originalFrame, bossDefeated)
+      const frame = withBossState(originalFrame, boss, bossDefeated)
       trace.push(frame)
 
       if (frame.type !== 'move') continue
 
       if (!bossDefeated && sameCell(frame, boss.lever)) {
         bossDefeated = true
-        trace.push(withBossState(frame, true, {
+        trace.push(withBossState(frame, boss, true, {
           type: 'boss-defeated',
           bossEvent: 'lever',
         }))
@@ -65,7 +86,7 @@
 
       if (!bossDefeated && isFireCell(boss, frame)) {
         dragonHit = true
-        trace.push(withBossState(frame, false, {
+        trace.push(withBossState(frame, boss, false, {
           type: 'dragon-fire',
           dragonHit: true,
           fireCells: (boss.fireCells || []).map(cell => Object.assign({}, cell)),
@@ -81,6 +102,7 @@
       bossDefeated,
       dragonHit,
     })
+    state.grid = visualGrid(state.grid, boss, bossDefeated, dragonHit)
     if (dragonHit) state.goalReached = false
 
     return Object.assign({}, result, { trace, state })
@@ -139,5 +161,6 @@
     normalizedMission,
     decorateBossResult,
     evaluateBoss,
+    visualGrid,
   })
 })
