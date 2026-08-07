@@ -1,34 +1,48 @@
 # Japanese JavaScript Quest
 
-Campagne locale et autonome de 23 missions pour apprendre JavaScript à un enfant japonais.
+Campagne locale et autonome de **28 missions** pour apprendre JavaScript à un enfant japonais.
 Elle utilise les fichiers statiques du dépôt CodeCombat, mais **aucun niveau officiel ou Premium**.
 
 Les règles fonctionnelles complètes sont dans [`docs/PRODUCT_RULES.md`](../../../docs/PRODUCT_RULES.md). Les contraintes générales de contribution sont dans [`docs/DEVELOPMENT_RULES.md`](../../../docs/DEVELOPMENT_RULES.md).
 
 ## Lancer le jeu sous Windows
 
-Ouvre PowerShell dans le dépôt, puis exécute :
+```powershell
+cd .\app\assets\japanese-js-quest
+py -m http.server 8000
+```
+
+Puis ouvre :
+
+```text
+http://localhost:8000/
+```
+
+Le mode autonome utilise directement l'éditeur texte intégré et ne tente pas de charger l'éditeur Ace absent de ce serveur statique.
+
+## Branche de cette PR
+
+```powershell
+cd D:\yuzu-dev\codecombat
+git fetch origin
+git switch --track origin/feature/japanese-js-quest-mission-types-first-pack
+```
+
+Si la branche existe déjà localement :
+
+```powershell
+git switch feature/japanese-js-quest-mission-types-first-pack
+git pull --ff-only origin feature/japanese-js-quest-mission-types-first-pack
+```
+
+Puis :
 
 ```powershell
 cd .\app\assets\japanese-js-quest
 py -m http.server 8000
 ```
 
-Ouvre ensuite :
-
-```text
-http://localhost:8000/
-```
-
-En mode autonome sur le port 8000, le jeu utilise directement son éditeur texte intégré. Il ne tente pas de charger l'éditeur Ace de l'application CodeCombat complète, dont les fichiers ne sont pas servis par cette commande.
-
-Si `py` n'est pas reconnu :
-
-```powershell
-python -m http.server 8000
-```
-
-Pour arrêter le serveur, utilise `Ctrl+C`. Aucun script PowerShell du dépôt n'est nécessaire.
+Recharge avec `Ctrl+F5` après une mise à jour.
 
 ## Mode administrateur
 
@@ -38,107 +52,106 @@ http://localhost:8000/?admin=1
 
 Ce mode ajoute :
 
-- un bouton permettant de débloquer temporairement toutes les missions sans les marquer comme terminées ;
-- un bouton `答えを見る` disponible immédiatement pour afficher la solution finale de la mission sélectionnée ;
-- un bouton `ADMIN：正解を選ぶ` dans chaque mini-quiz, qui sélectionne les bonnes réponses sans soumettre ni valider automatiquement la carte ;
-- un bouton placé après les cartes pour valider en une fois toutes les cartes de la mission courante.
+- un bouton qui débloque **et affiche** temporairement les 28 missions ;
+- un bouton `答えを見る` disponible immédiatement pour la solution finale ;
+- un bouton `ADMIN：正解を選ぶ` dans chaque mini-quiz ;
+- un bouton de validation en masse des cartes de la mission concept courante.
 
-L'affichage de la réponse administrateur ne demande aucune confirmation et n'enregistre pas cette réponse dans le code sauvegardé du joueur. Le déblocage total disparaît au rechargement de la page.
+Le déblocage admin ne modifie pas la progression normale persistée.
 
-## Utiliser la branche de renforcement pédagogique
+## Types de missions
 
-```powershell
-cd D:\yuzu-dev\codecombat
-git fetch origin
-git switch feature/japanese-js-quest-learning-reinforcement
-git pull --ff-only origin feature/japanese-js-quest-learning-reinforcement
-cd .\app\assets\japanese-js-quest
-py -m http.server 8000
+Chaque mission possède un type canonique :
+
+- `concept` 💡 : introduction d'un nouveau concept JavaScript ;
+- `adventure` 🗺️ : nouvelle aventure utilisant seulement les concepts déjà appris ;
+- `typo-fix` 🔧 : correction d'une erreur de frappe ou de syntaxe ;
+- `logic-fix` 🧩 : code valide mais raisonnement incorrect ;
+- `boss` 🐉 : défi final du bloc avec mécaniques de monde particulières.
+
+À partir de la mission concept 01, le motif de renforcement est :
+
+```text
+concept → adventure → typo-fix → logic-fix → adventure → boss
 ```
 
-Recharge ensuite la page avec `Ctrl+F5`.
+La mission 00 est l'exception : elle sert uniquement à découvrir l'environnement et n'a pas de pack de renforcement.
 
-La migration de curriculum déplace automatiquement les anciens codes sauvegardés et les identifiants de progression vers la nouvelle numérotation. Un code personnel reste associé à sa leçon d'origine.
+## Premier pack de renforcement
+
+Les missions 00 et 01 restent les missions concept existantes. Cinq missions sont insérées ensuite :
+
+- **02 — 宝石の一本道** : aventure avec déplacements répétés ;
+- **03 — こわれたカッコ** : typo-fix avec un crochet incorrect ;
+- **04 — 動くけど、ちがう！** : logic-fix dont le programme s'exécute mais rate la gemme ;
+- **05 — 往復トンネル** : aventure aller-retour ;
+- **06 — 炎のドラゴン** : boss avec dragon, ligne de feu, pilier et levier.
+
+L'ancienne mission 02 devient la mission 07 et toutes les missions concept suivantes sont décalées de cinq positions. Les anciennes sauvegardes de code et de progression sont migrées automatiquement.
+
+Les cinq nouvelles missions n'introduisent aucune nouvelle syntaxe JavaScript : elles utilisent seulement `hero.move(direction)`, les directions déjà vues et les commentaires.
+
+### Boss dragon
+
+Le dragon crache du feu horizontalement jusqu'au pilier. Si le héros entre dans cette ligne avant d'avoir activé le levier, l'exécution visible s'arrête et le feu se propage sur le field. Le héros doit contourner le pilier, activer le levier, récupérer la gemme puis atteindre le goal.
+
+Le dragon ennemi est une mécanique du monde et ne révèle pas le futur pouvoir `hero.transform("dragon")`.
+
+## Navigation sans effet tunnel
+
+Le menu latéral n'affiche pas toute la campagne :
+
+- au démarrage : seulement missions 00 et 01 ;
+- après la mission 00 : missions 01 à 07, soit le concept courant, ses cinq renforcements et le concept suivant ;
+- après le boss : le segment visible avance au concept suivant ;
+- en admin après `全ミッションを開く` : toutes les missions sont visibles et déverrouillées.
+
+Les types non-concept ont seulement une légère différence visuelle dans le menu. L'emoji et le nom du type apparaissent dans la mission ouverte.
 
 ## Cartes de concepts et mini-quiz
 
-Les 36 cartes originales de `新しい考え方`, plus les deux cartes `JavaScript` et `Editor`, forment maintenant **38 cartes canoniques**. Elles sont cachées au premier affichage. L'enfant peut les retourner dans l'ordre qu'il souhaite, mais une seule carte non validée reste ouverte à la fois.
+Les 36 cartes originales de `新しい考え方`, plus les deux cartes `JavaScript` et `Editor`, forment **38 cartes canoniques**.
 
-La mission 01 contient les quatre cartes suivantes dans cet ordre : `JavaScript`, `Editor`, `// はコメント（Comment）`, puis `hero.move(direction)`. Elles utilisent toutes exactement le même parcours : face cachée, prévisualisation, mini-quiz, validation et mémorisation.
+La mission 01 contient `JavaScript`, `Editor`, `// はコメント（Comment）`, puis `hero.move(direction)`. Elles utilisent toutes le même parcours : face cachée, prévisualisation, mini-quiz, validation et mémorisation.
 
-Chaque carte possède un mini-quiz de une à trois questions très simples. Toutes les réponses doivent être correctes en même temps pour valider la carte. En cas d'erreur, la bonne réponse n'est pas révélée : l'enfant est invité à relire la carte et à recommencer.
+Les missions `adventure`, `typo-fix`, `logic-fix` et `boss` n'ont pas de fausses cartes de concept et ne sont pas bloquées par le système de cartes.
 
-Les mots difficiles en kanji reçoivent les mêmes infobulles de lecture dans les explications, les cartes, les questions et les choix des mini-quiz.
+Chaque carte possède une à trois questions. En cas d'erreur, la bonne réponse n'est pas révélée. Les mots difficiles ont les mêmes infobulles de lecture dans les explications, les cartes et les quiz.
 
-Une carte validée reste visible avec une coche. Ses identifiants sont sauvegardés séparément dans :
+Les IDs validés sont enregistrés dans :
 
 ```text
 japanese-js-quest-concept-memory-v1
 ```
 
-Le compteur `カード X / N` montre la progression. L'éditeur et l'exécution restent verrouillés jusqu'à la validation de toutes les cartes de la mission.
+## Coloration pédagogique et éditeur
 
-## Coloration pédagogique simplifiée
+Quand l'éditeur n'a pas le focus :
 
-Quand l'éditeur n'a pas le focus, une prévisualisation colorée montre les catégories de concepts :
-
-- bleu : objet et noms de variables ou constantes ;
+- bleu : objets, variables et constantes ;
 - violet : méthodes ;
-- rouge : valeurs littérales et contenu des chaînes ;
+- rouge : valeurs littérales ;
 - gris : commentaires ;
-- blanc : mots-clés, opérateurs, ponctuation, parenthèses, quotes et autres éléments de syntaxe.
+- blanc : syntaxe et opérateurs.
 
-Les quotes des chaînes restent blanches ; seul leur contenu est rouge. Une légende très compacte apparaît sous le code.
+Au clic dans la prévisualisation, le curseur est placé à l'endroit correspondant dans l'éditeur réel. La ligne de raccourcis contient `Ctrl+Enter`, `Ctrl+C`, `Ctrl+V`, `Ctrl+Z` et `Ctrl+F5`, avec retour responsive à la ligne sans scroll horizontal.
 
-Au clic dans la zone de code, la coloration disparaît, l'éditeur retrouve sa couleur uniforme et le curseur est placé à l'endroit correspondant au caractère ou au mot sélectionné. Lorsque l'éditeur perd le focus, la prévisualisation est reconstruite à partir du dernier texte. Les couleurs sont centralisées dans des variables CSS faciles à modifier.
+Toutes les zones défilables utilisent le même thème bleu que l'éditeur.
 
-## Interface et défilement
+## Progression des concepts après insertion
 
-L'en-tête de l'éditeur utilise deux lignes sur toute la largeur : `JavaScript editor` seul sur la première, puis une ligne centrée contenant `Ctrl / ⌘ + Enter で実行`, `Ctrl+C コピー`, `Ctrl+V はりつけ`, `Ctrl+Z もどす` et `Ctrl+F5 再読み込み` avec le même style.
+Quelques repères après renumérotation :
 
-Toutes les zones défilables utilisent désormais le même thème bleu que l'éditeur : page, liste des missions, panneaux d'aide, prévisualisation du code et fenêtres de mini-quiz. Les couleurs et la taille sont centralisées dans des variables CSS.
-
-## Progression pédagogique
-
-- Mission 00 : `hero.say("Hello Yuzu")`, objet, méthode, paramètre et chaîne de caractères ;
-- missions 01–02 : JavaScript, l'éditeur, commentaires, déplacements et ordre des instructions ;
-- mission 03 : booléens, `true`, `false`, `const`, affectation et `hero.isTrue(boolean)` ;
-- missions 04–10 : `if`, `else`, `else if`, comparaisons, `&&` et `||` ;
-- missions 11–13 : boucles `for` et première boucle conditionnelle `while` ;
-- mission 14 : démonstration volontaire de `while (true)` et d'une boucle infinie ;
-- missions 15–22 : conditions dans les boucles, boucles imbriquées et combinaison des concepts.
-
-L'interface, les consignes, les erreurs et les indices sont en japonais. Les termes techniques japonais sont accompagnés de leur nom anglais et de sa prononciation en katakana. Les kanji difficiles disposent d'infobulles de lecture.
-
-## Mission 03 : booléens
-
-Le code est déjà complet :
-
-```javascript
-// true という値に alwaysTrue という名前をつける
-const alwaysTrue = true;
-hero.isTrue(alwaysTrue);
-
-// false という値に alwaysFalse という名前をつける
-const alwaysFalse = false;
-hero.isTrue(alwaysFalse);
-
-// 宝石を取って、旗まで進む
-hero.move("right");
-hero.move("right");
-```
-
-Le premier déplacement collecte la gemme et le second place le héros sur le drapeau.
-
-## Mission 14 : boucle infinie volontaire
-
-La mission 14 utilise deux rechargements :
-
-1. l'éditeur est d'abord grisé ;
-2. le bouton vert demande de préparer la démonstration ;
-3. `Ctrl+F5` active l'éditeur et remet le bouton jaune ;
-4. `実行する` enregistre la réussite avant de lancer `while (true)` ;
-5. un second `Ctrl+F5` sort de la boucle avec la mission déjà terminée.
+- mission 00 : `hero.say("Hello Yuzu")` ;
+- mission 01 : JavaScript, Editor, commentaires et `hero.move(direction)` ;
+- missions 02–06 : premier pack de renforcement ;
+- mission 07 : transformation en grenouille ;
+- mission 08 : booléens, `const`, affectation et `hero.isTrue(boolean)` ;
+- mission 09 : premier `if` ;
+- mission 16 : première boucle `for` ;
+- mission 19 : démonstration volontaire de `while (true)` ;
+- mission 20 : première boucle `while (!hero.isAtGoal())` ;
+- missions suivantes : boucles imbriquées et combinaison des concepts.
 
 ## Validation locale
 
@@ -150,4 +163,5 @@ node scripts/validate-japanese-js-quest-runtime.js
 node scripts/validate-japanese-js-quest-loop-rules.js
 node scripts/validate-japanese-js-quest-learning-reinforcement.js
 node scripts/validate-japanese-js-quest-editor-header-and-card-extension.js
+node scripts/validate-japanese-js-quest-mission-pack-v1.js
 ```
