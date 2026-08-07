@@ -122,151 +122,70 @@
     })
   }
 
-  function annotateText (root, variant) {
+  function annotateText (root, gray) {
     if (!root) return
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
     const nodes = []
-    while (walker.nextNode()) {
-      const node = walker.currentNode
-      const parent = node.parentElement
-      if (!parent || !node.nodeValue.trim()) continue
-      if (parent.closest('code, script, style, .glossary-token, .reading-token, .function-signature, button, a')) continue
-      nodes.push(node)
-    }
+    while (walker.nextNode()) nodes.push(walker.currentNode)
 
     for (const node of nodes) {
-      const text = node.nodeValue
-      let index = 0
-      let changed = false
+      const parent = node.parentElement
+      if (!parent || !node.nodeValue.trim()) continue
+      if (parent.closest('code, script, style, .glossary-token, .function-signature, button, a')) continue
+      const pattern = new RegExp('(' + readingWords.join('|') + ')', 'g')
+      if (!pattern.test(node.nodeValue)) continue
+      pattern.lastIndex = 0
+
       const fragment = document.createDocumentFragment()
-
-      while (index < text.length) {
-        let matchedWord = null
-        for (const word of readingWords) {
-          if (text.startsWith(word, index)) {
-            matchedWord = word
-            break
-          }
-        }
-
-        if (!matchedWord) {
-          fragment.appendChild(document.createTextNode(text[index]))
-          index++
-          continue
-        }
-
-        changed = true
-        const span = document.createElement('span')
-        span.className = variant === 'glossary'
-          ? 'glossary-token reading-token reading-token-gray'
-          : 'glossary-token reading-token'
-        span.dataset.meaning = readings[matchedWord]
-        span.tabIndex = 0
-        span.textContent = matchedWord
-        fragment.appendChild(span)
-        index += matchedWord.length
+      let cursor = 0
+      for (const match of node.nodeValue.matchAll(pattern)) {
+        fragment.appendChild(document.createTextNode(node.nodeValue.slice(cursor, match.index)))
+        const token = document.createElement('span')
+        token.className = 'glossary-token reading-token' + (gray ? ' reading-token-gray' : '')
+        token.tabIndex = 0
+        token.setAttribute('role', 'button')
+        token.dataset.tooltip = match[0] + '（' + readings[match[0]] + '）'
+        token.textContent = match[0]
+        fragment.appendChild(token)
+        cursor = match.index + match[0].length
       }
-
-      if (changed) node.parentNode.replaceChild(fragment, node)
+      fragment.appendChild(document.createTextNode(node.nodeValue.slice(cursor)))
+      node.replaceWith(fragment)
     }
     bindReadingTokens(root)
   }
 
-  window.JSQuestReadingHelp = Object.freeze({
-    readings: Object.freeze(Object.assign({}, readings)),
-    annotateText,
-  })
-
-  function sourceMissionId () {
-    const finalId = displayedMissionId()
-    const curriculum = window.JSQuestCurriculumV3
-    if (curriculum && typeof curriculum.legacyIdForFinalId === 'function') {
-      return curriculum.legacyIdForFinalId(finalId)
-    }
-    return finalId
+  function annotateCurrentContent () {
+    annotateText(document.getElementById('mission-learning-guide'), false)
+    annotateText(document.getElementById('mission-title'), false)
+    annotateText(document.getElementById('mission-instructions'), false)
+    annotateText(document.getElementById('mission-story'), false)
+    annotateText(document.getElementById('mission-concept'), false)
+    annotateText(document.getElementById('field-mission-heading'), false)
+    annotateText(document.getElementById('reference-panel'), true)
   }
 
-  function getStoredGuide () {
-    return window.JSQuestConceptCards?.getMissionGuide(displayedMissionId()) || null
+  function scheduleAnnotations () {
+    window.setTimeout(annotateCurrentContent, 0)
+    window.setTimeout(annotateCurrentContent, 80)
   }
 
-  function renderStoredCards () {
-    const guide = getStoredGuide()
-    if (!guide) return false
-
-    const host = document.querySelector('.mission-card')
-    if (!host) return false
-
-    let section = document.getElementById('mission-learning-guide')
-    if (!section) {
-      section = document.createElement('section')
-      section.id = 'mission-learning-guide'
-      section.className = 'learning-guide'
-      host.appendChild(section)
-    }
-
-    section.innerHTML = [
-      '<div class="learning-guide-heading">',
-      '  <div><h3>📚 新しい考え方</h3><p>このミッションで初めて出てくること</p></div>',
-      '</div>',
-      '  <h4>' + guide.title + '</h4>',
-      '  <div class="learning-guide-grid">',
-      guide.cardIds.map(cardId => {
-        const card = window.JSQuestConceptCards.getCard(cardId)
-        if (!card) return ''
-        return '<article class="learning-item" data-concept-card-id="' + card.id + '"><h5>' + card.titleHtml + '</h5><p>' + card.bodyHtml + '</p></article>'
-      }).join(''),
-      '  </div>',
-    ].join('')
-    annotateText(section, 'mission')
-    return true
-  }
-
-  function removeLegacyGuide () {
-    document.getElementById('mission-learning-guide')?.remove()
+  function scheduleQuizAnnotations (event) {
+    if (!event.target.closest('.concept-card-quiz-button')) return
+    window.setTimeout(() => {
+      annotateText(document.getElementById('concept-card-quiz-modal'), false)
+    }, 0)
   }
 
   function renderGuide () {
+    const library = window.JSQuestConceptCards
+    const guide = library?.getMissionGuide(displayedMissionId())
+    const story = document.getElementById('mission-story')
     const existingSection = document.getElementById('mission-learning-guide')
-    const missionId = displayedMissionId()
-    const missionData = (window.JSQuestMissions || []).find(item => item.id === missionId)
-    if (missionData?.type && missionData.type !== 'concept') {
+    if (!story) return
+    if (!guide) {
       existingSection?.remove()
-      return
-    }
-    if (renderStoredCards()) return
-    if (missionId > 0) {
-      existingSection?.remove()
-      return
-    }
-
-    const missionCard = document.querySelector('.mission-card')
-    if (!missionCard) return
-
-    const sections = []
-    const sourceId = sourceMissionId()
-
-    if (sourceId === 0) {
-      sections.push({
-        title: 'hero は主人公（Object / オブジェクト）',
-        body: '<code>hero</code> は、ゲームの世界にいる主人公を表すオブジェクトです。オブジェクトは、情報やできることをまとめて持つものです。',
-      })
-      sections.push({
-        title: '<code>.say</code> はメソッド（Method / メソッド）',
-        body: '<code>hero.say</code> の <code>.</code> は「hero が持っている <code>say</code> という方法を使う」という意味です。<code>say</code> は、hero に言葉を言わせるメソッドです。',
-      })
-      sections.push({
-        title: '<code>( )</code> の中はパラメータ（Parameter / パラメータ）',
-        body: '<code>say</code> に「何を言うか」という情報を渡します。ここでは <code>"Hello Yuzu"</code> を渡しています。',
-      })
-      sections.push({
-        title: '<code>"Hello Yuzu"</code> は文字列（String / ストリング）',
-        body: '<code>" "</code> で囲んだ文字は文字列という値です。引用符の外の <code>hero</code> や <code>say</code> はプログラムの言葉ですが、引用符の中はゲームの世界で使う文字です。',
-      })
-    }
-
-    if (!sections.length) {
-      removeLegacyGuide()
+      scheduleAnnotations()
       return
     }
 
@@ -274,57 +193,34 @@
     if (!section) {
       section = document.createElement('section')
       section.id = 'mission-learning-guide'
-      section.className = 'learning-guide'
-      missionCard.appendChild(section)
+      section.className = 'mission-learning-guide'
+      story.insertAdjacentElement('afterend', section)
     }
-
     section.innerHTML = [
-      '<div class="learning-guide-heading">',
-      '  <div><h3>📚 新しい考え方</h3><p>このミッションで初めて出てくること</p></div>',
-      '</div>',
+      '<div class="learning-guide-heading"><span>📚</span><div><strong>新しい考え方</strong><small>このミッションで初めて出てくること</small></div></div>',
+      '<h3>' + guide.title + '</h3>',
       '<div class="learning-guide-grid">',
-      sections.map(item => '<article class="learning-item"><h4>' + item.title + '</h4><p>' + item.body + '</p></article>').join(''),
+      guide.cards.map(card => [
+        '<article data-concept-card-id="' + card.id + '">',
+        '<h4>' + card.titleHtml + '</h4>',
+        '<p>' + card.bodyHtml + '</p>',
+        '</article>',
+      ].join('')).join(''),
       '</div>',
     ].join('')
-    annotateText(section, 'mission')
-  }
-
-  function annotateMissionText () {
-    const mission = document.querySelector('.mission-card')
-    if (mission) annotateText(mission, 'mission')
-  }
-
-  function annotateGlossary () {
-    const reference = document.getElementById('reference-panel')
-    if (reference) annotateText(reference, 'glossary')
-  }
-
-  function scheduleAnnotations () {
-    for (const delay of [0, 40, 120, 260]) {
-      window.setTimeout(() => {
-        annotateMissionText()
-        annotateGlossary()
-      }, delay)
-    }
-  }
-
-  function scheduleQuizAnnotations () {
-    for (const delay of [0, 30, 100]) {
-      window.setTimeout(() => {
-        const modal = document.getElementById('concept-card-quiz-modal')
-        if (modal && !modal.hidden) annotateText(modal, 'mission')
-      }, delay)
-    }
+    bindStoredCardTokens(section)
+    scheduleAnnotations()
   }
 
   function init () {
-    renderGuide()
-    scheduleAnnotations()
-    document.addEventListener('jsquest:missionloaded', () => {
-      renderGuide()
-      scheduleAnnotations()
+    window.JSQuestReadingHelp = Object.freeze({
+      annotate: (root, gray) => annotateText(root, Boolean(gray)),
+      schedule: scheduleAnnotations,
+      readings: Object.freeze(Object.assign({}, readings)),
     })
+    document.addEventListener('jsquest:missionloaded', renderGuide)
     document.addEventListener('click', scheduleQuizAnnotations, true)
+    renderGuide()
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init)
