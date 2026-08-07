@@ -70,6 +70,16 @@
   animation-delay: calc(var(--fire-step, 0) * 85ms);
 }
 
+.tile.hero.boss-hero-dead {
+  color: #f1f3f7;
+  background: #372a2b;
+}
+
+.tile.hero.boss-hero-dead::after {
+  content: none !important;
+  display: none !important;
+}
+
 @keyframes boss-fire-spread {
   0% { opacity: 0.15; transform: scale(0.72); filter: brightness(0.8); }
   45% { opacity: 1; transform: scale(1.16); filter: brightness(1.45); }
