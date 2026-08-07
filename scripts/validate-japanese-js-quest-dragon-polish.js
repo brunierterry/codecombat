@@ -27,8 +27,11 @@ bossMechanics.apply(engine)
 const mission = missions.find(item => item.id === 6)
 assert(mission, 'Mission 06 must exist')
 assert.strictEqual(mission.type, 'boss')
+assert.strictEqual(bossMechanics.DEFAULT_DRAGON_RANGE, 3)
 assert.strictEqual(mission.variants[0].boss.attackRange, 3)
 assert.strictEqual(dragonPolish.DRAGON_RANGE, 3)
+assert.strictEqual(missionPack.DRAGON_PILLAR_LEVER_SCENARIO.boss.attackRange, 3)
+assert.strictEqual(missionPack.DRAGON_PILLAR_LEVER_SCENARIO.boss.fireCells.length, 3)
 
 const leftCalls = mission.starterCode.match(/hero\.move\("left"\);/g) || []
 assert.strictEqual(leftCalls.length, 3, 'Mission 06 starter must contain exactly three left moves')
@@ -44,6 +47,10 @@ assert.deepStrictEqual(
     { x: 4, y: 1 },
   ],
 )
+
+const oneStepResult = engine.simulate('hero.move("left");', mission, 0)
+assert.strictEqual(oneStepResult.state.dragonHit, false)
+assert(!oneStepResult.trace.some(frame => frame.type === 'dragon-fire'))
 
 const starterResult = engine.simulate(mission.starterCode, mission, 0)
 assert.strictEqual(starterResult.ok, true)
