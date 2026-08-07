@@ -45,7 +45,7 @@ assert(postedMessages[0].evaluation.passed)
 assert(postedMessages[0].result.state.says.includes('Hello Yuzu'))
 
 const workerSource = readQuest('quest-worker.js')
-assert(workerSource.includes("importScripts('engine.js', 'curriculum-engine.js')"))
+assert(workerSource.includes("importScripts('engine.js', 'curriculum-engine.js', 'boss-mechanics.js')"))
 assert(workerSource.includes('workerError'))
 
 const progressAccess = require(path.join(questRoot, 'progress-access.js'))
@@ -143,4 +143,4 @@ for (const text of [
   'must remain incomplete',
 ]) assert(productRules.includes(text))
 
-console.log('Validated mission 00 worker execution, temporary admin access, normal progress repair and separated solution help.')
+console.log('Validated mission 00 worker execution, boss-mechanics worker loading, temporary admin access, normal progress repair and separated solution help.')
