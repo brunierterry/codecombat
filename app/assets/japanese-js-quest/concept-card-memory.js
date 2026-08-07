@@ -13,6 +13,7 @@
   let validatedCards = new Set()
   let previewCardId = null
   let activeModalCardId = null
+  let activeMission = null
 
   function storage () {
     return root && root.localStorage ? root.localStorage : null
@@ -41,13 +42,14 @@
   }
 
   function currentMission () {
-    const missions = root && Array.isArray(root.JSQuestMissions) ? root.JSQuestMissions : []
     const missionId = currentMissionId()
+    if (activeMission && Number(activeMission.id) === missionId) return activeMission
+    const missions = root && Array.isArray(root.JSQuestMissions) ? root.JSQuestMissions : []
     return missions.find(mission => Number(mission.id) === missionId) || null
   }
 
   function requiresCardValidation (mission) {
-    return !mission || !mission.type || mission.type === 'concept'
+    return mission?.type === 'concept'
   }
 
   function currentMissionRequiresCardValidation () {
@@ -350,10 +352,24 @@
   }
 
   function updateExecutionGate () {
-    const ready = isMissionReady()
+    const mission = currentMission()
+    const requiresValidation = requiresCardValidation(mission)
+    const ready = !requiresValidation || isMissionReady()
     const run = document.getElementById('run-code')
     const codePanel = document.querySelector('.code-panel')
     const guide = document.getElementById('mission-learning-guide')
+
+    if (!requiresValidation) {
+      if (run) {
+        run.disabled = false
+        run.setAttribute('aria-disabled', 'false')
+        run.title = ''
+      }
+      codePanel?.classList.remove('concept-cards-pending')
+      guide?.classList.remove('all-concept-cards-validated')
+      return
+    }
+
     if (run) {
       run.disabled = !ready
       run.setAttribute('aria-disabled', String(!ready))
@@ -374,14 +390,15 @@
   function installGuards () {
     const run = document.getElementById('run-code')
     run?.addEventListener('click', event => {
-      if (isMissionReady()) return
+      if (!currentMissionRequiresCardValidation() || isMissionReady()) return
       event.preventDefault()
       event.stopImmediatePropagation()
       explainBlockedExecution()
     }, true)
 
     document.addEventListener('keydown', event => {
-      if (!(event.ctrlKey || event.metaKey) || event.key !== 'Enter' || isMissionReady()) return
+      if (!(event.ctrlKey || event.metaKey) || event.key !== 'Enter') return
+      if (!currentMissionRequiresCardValidation() || isMissionReady()) return
       event.preventDefault()
       event.stopImmediatePropagation()
       explainBlockedExecution()
@@ -392,12 +409,15 @@
     if (typeof document === 'undefined') return
     const init = () => {
       load()
+      activeMission = currentMission()
       ensureModal()
       installGuards()
       refreshCards()
-      document.addEventListener('jsquest:missionloaded', () => {
+      document.addEventListener('jsquest:missionloaded', event => {
+        activeMission = event.detail?.mission || currentMission()
         previewCardId = null
         activeModalCardId = null
+        refreshCards()
         window.setTimeout(refreshCards, 0)
       })
       document.addEventListener('click', event => {
