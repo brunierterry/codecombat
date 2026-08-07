@@ -19,6 +19,8 @@ curriculum.apply(missions)
 const missionTypes = require(path.join(questPath, 'mission-types.js'))
 const missionPack = require(path.join(questPath, 'mission-pack-v1.js'))
 missionPack.apply(missions, curriculum)
+const dragonPolish = require(path.join(questPath, 'mission-pack-v1-dragon-polish.js'))
+dragonPolish.apply(missions)
 
 const bossMechanics = require(path.join(questPath, 'boss-mechanics.js'))
 bossMechanics.apply(engine)
@@ -151,18 +153,23 @@ assert(bossVariant.map.some(row => row.includes('B')))
 assert(!bossVariant.map.some(row => row.includes('P')))
 assert(!bossVariant.map.some(row => row.includes('L')))
 assert.strictEqual(bossVariant.map.length, 3)
-assert.strictEqual(bossVariant.boss.attackRange, 4)
+assert.strictEqual(bossVariant.boss.attackRange, 3)
 assert.strictEqual(bossVariant.boss.resolution, 'escape')
 assert.strictEqual(bossVariant.boss.dragon.x, 1)
 assert.strictEqual(bossVariant.boss.dragon.y, 1)
+assert.strictEqual((bossMission.starterCode.match(/hero\.move\("left"\);/g) || []).length, 3)
 
 const initialBossState = engine.createState(bossMission, 0)
 assert.strictEqual(initialBossState.hero.x - bossVariant.boss.dragon.x, 5)
 assert.strictEqual(initialBossState.hero.y, bossVariant.boss.dragon.y)
 
-const bossDangerCode = 'hero.move("left");'
-const bossDanger = engine.simulate(bossDangerCode, bossMission, 0)
-const bossDangerEvaluation = engine.evaluate(bossMission, bossDanger, bossDangerCode)
+const oneStepTowardDragon = engine.simulate('hero.move("left");', bossMission, 0)
+assert.strictEqual(oneStepTowardDragon.state.dragonHit, false)
+assert(!oneStepTowardDragon.trace.some(frame => frame.type === 'dragon-fire'))
+
+const twoStepsTowardDragonCode = 'hero.move("left");\nhero.move("left");'
+const bossDanger = engine.simulate(twoStepsTowardDragonCode, bossMission, 0)
+const bossDangerEvaluation = engine.evaluate(bossMission, bossDanger, twoStepsTowardDragonCode)
 assert.strictEqual(bossDanger.state.dragonHit, true)
 assert(bossDanger.trace.some(frame => frame.type === 'dragon-fire'))
 assert.strictEqual(bossDangerEvaluation.passed, false)
@@ -173,29 +180,29 @@ assert.deepStrictEqual(
     { x: 2, y: 1 },
     { x: 3, y: 1 },
     { x: 4, y: 1 },
-    { x: 5, y: 1 },
   ],
 )
+assert.strictEqual(bossDanger.trace.find(frame => frame.type === 'dragon-fire').x, 4)
 
 const openDragonVariant = {
-  map: Array.from({ length: 11 }, (_, y) => {
-    if (y === 0 || y === 10) return '###########'
-    return '#.........#'
+  map: Array.from({ length: 9 }, (_, y) => {
+    if (y === 0 || y === 8) return '#########'
+    return '#.......#'
   }),
 }
-const centeredDragon = { dragon: { x: 5, y: 5 }, attackRange: 4 }
+const centeredDragon = { dragon: { x: 4, y: 4 }, attackRange: 3 }
 for (const direction of ['right', 'left', 'up', 'down']) {
-  assert.strictEqual(bossMechanics.dragonRayCells(openDragonVariant, centeredDragon, direction).length, 4)
+  assert.strictEqual(bossMechanics.dragonRayCells(openDragonVariant, centeredDragon, direction).length, 3)
 }
 for (const hero of [
-  { x: 9, y: 5 },
-  { x: 1, y: 5 },
-  { x: 5, y: 1 },
-  { x: 5, y: 9 },
+  { x: 7, y: 4 },
+  { x: 1, y: 4 },
+  { x: 4, y: 1 },
+  { x: 4, y: 7 },
 ]) {
   assert.strictEqual(bossMechanics.dragonThreat(openDragonVariant, centeredDragon, hero).hit, true)
 }
-assert.strictEqual(bossMechanics.dragonThreat(openDragonVariant, centeredDragon, { x: 9, y: 9 }).hit, false)
+assert.strictEqual(bossMechanics.dragonThreat(openDragonVariant, centeredDragon, { x: 7, y: 7 }).hit, false)
 
 assert(missionPack.DRAGON_PILLAR_LEVER_SCENARIO.map.some(row => row.includes('P')))
 assert(missionPack.DRAGON_PILLAR_LEVER_SCENARIO.map.some(row => row.includes('L')))
@@ -259,6 +266,7 @@ assert(worker.includes("importScripts('engine.js', 'curriculum-engine.js', 'boss
 const index = read('app/assets/japanese-js-quest/index.html')
 assert(index.includes('concept-card-memory.js?v=3'))
 assert(index.includes('mission-types-ui.js?v=2'))
+assert(index.includes('mission-pack-v1-dragon-polish.js'))
 
 const productRules = read('docs/PRODUCT_RULES.md')
 for (const text of [
@@ -271,12 +279,15 @@ for (const text of [
   'Mission 00 is the exception',
   'explicit debugging exception',
   'full-width',
-  'four cardinal directions',
-  'four tiles',
+  'three tiles in the four cardinal directions',
+  'one flame per reachable attack tile',
+  'hero becomes a skeleton',
+  'occupied by a creature',
+  'three leftward moves',
   'introductory escape-boss exception',
   'dragon must remain alive',
   'lily',
   'next concept mission',
 ]) assert(productRules.includes(text), 'Missing product rule: ' + text)
 
-console.log('Validated 28 missions / 42 fields, two-typo debugging, concept-only card gating, permanent completed-history navigation and four-direction dragon boss mechanics.')
+console.log('Validated 28 missions / 42 fields, two-typo debugging, concept-only card gating, permanent completed-history navigation and three-direction-cell dragon boss mechanics.')
