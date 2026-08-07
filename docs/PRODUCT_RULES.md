@@ -37,19 +37,26 @@ This document is the functional and business source of truth for the local Japan
 - Mission 00 is the exception to reinforcement packs: it is a standalone `concept` mission for discovering the development environment and is not followed by five reinforcement missions.
 - Starting with concept mission 01, a complete reinforcement pack follows this canonical order: `concept → adventure → typo-fix → logic-fix → adventure → boss`.
 - The first implemented pack is missions 01–06: mission 01 remains the unchanged concept mission, followed by missions 02 adventure, 03 typo-fix, 04 logic-fix, 05 adventure and 06 boss. The next concept mission is mission 07.
-- New non-concept missions must use only concepts already introduced by an earlier `concept` mission. They must not introduce new JavaScript syntax, methods, operators or language rules through practice alone.
+- Non-concept missions normally use only concepts already introduced by an earlier `concept` mission and must not silently teach new syntax, operators or language rules through practice alone.
+- Mission 03 is an explicit debugging exception: it exposes `hero.transform("frog")` only as the correct spelling target for a typo-fix exercise before the formal transformation concept mission. The transformation is not introduced with a concept card in mission 03, and the correct spelling is available through the mission API/hints. Outside an explicitly documented debugging exception, non-concept missions use only previously introduced programming concepts.
 - Concept-card validation is a `concept`-mission rule only. `adventure`, `typo-fix`, `logic-fix` and `boss` missions never use concept-card memory to decide whether their editor or execution controls are available.
 - Non-concept missions have no `新しい考え方` concept-card section and no concept-card gate. Their editor and execution become available immediately as soon as the mission itself is unlocked.
 - Switching from a gated concept mission to any non-concept mission must synchronously remove any stale concept-card pending UI state and re-enable the editor/run controls.
 - An `adventure` mission must be a new scenario rather than a copy of an earlier field. It reinforces learned commands through different layouts, routes, objectives or world interactions.
-- A `typo-fix` starter begins from the intended solution and deliberately introduces a small number of typos. Early missions use obvious single-character problems such as a mismatched bracket or a comma where a dot belongs.
+- A `typo-fix` starter begins from the intended solution and deliberately introduces a small number of typos. A typo is explained to the learner as a one-character input mistake; even one wrong character can prevent code from working.
+- Early typo-fix missions use obvious single-character problems such as a mismatched bracket, transposed letters in a known word, or a comma where a dot belongs.
 - Typo difficulty increases gradually over the campaign. Later missions may use visually similar ASCII and Japanese/full-width characters, such as `(` versus `（`, `)` versus `）`, or other punctuation that looks close but is not valid JavaScript.
 - Typo-fix hints may explain that English/ASCII and Japanese/full-width characters can look similar without directly revealing the exact broken character.
 - A `logic-fix` starter must compile and run. Its failure comes from reasoning, ordering, direction, branch choice or another semantic mistake, not from invalid syntax.
 - Debugging missions must be unique missions built from previously learned material, not recycled concept missions with an arbitrary error inserted.
-- A `boss` mission may introduce new world mechanics without treating those mechanics as new JavaScript concepts. The programming solution must still use only concepts already learned.
+- A `boss` mission may introduce new world mechanics without treating those mechanics as new JavaScript concepts. The programming solution must still respect the concepts that the learner is expected to know at that point, except for an explicitly documented debugging exception such as mission 03.
+- Boss missions normally cannot complete until the boss has been explicitly resolved by defeating, capturing, trapping or otherwise neutralizing it.
+- Mission 06 is the introductory escape-boss exception: its approved objective is to escape the dragon and reach the goal while the dragon is still alive. Reaching the goal is the boss resolution for this one introductory mission; the dragon must remain alive and must not turn into a skull merely because the mission succeeds or fails.
+- A dragon has a default attack range of four tiles in the four cardinal directions. If the hero is on the same row or column and enters one of those four tiles while visible to the dragon, the dragon breathes fire in that direction and the run fails.
+- Dragon line of sight is blocked by impassable world geometry such as a wall or pillar. A dragon does not attack through those blockers.
 - Boss and adventure world mechanics are reusable building blocks. Supported or planned examples include a dragon fire lane blocked by a pillar, a lever that defeats or traps a boss, water that the normal hero cannot walk on, lily pads that only the frog form can cross, and magical zones that limit how many consecutive moves can be made in the same form.
-- New world mechanics must communicate failure visually where practical. For example, entering an active dragon fire lane stops the visible execution and shows fire propagating from the dragon toward the pillar.
+- New world mechanics must communicate failure visually where practical. For example, entering an active dragon fire ray stops the visible execution and shows fire propagating from the dragon in the direction of the hero.
+- A defeated visual such as a skull is shown only after an explicit boss-neutralization event. A failed run, an ordinary goal arrival or an escape objective must never implicitly mark a living boss as defeated.
 - Defeating a boss does not require elaborate combat animation; activating a trap/lever may make the boss disappear or leave a simple defeated marker such as a skull.
 - The mission type appears in the opened mission near its mission number with the type emoji and label.
 - The sidebar keeps mission-type differences lightweight: non-concept types receive a subtle visual distinction rather than repeating large emojis in every row.
@@ -94,7 +101,7 @@ This document is the functional and business source of truth for the local Japan
 
 ## Mission pedagogy
 
-- Every genuinely new programming concept must be introduced in a `concept` mission's `新しい考え方` section before the learner is expected to use it.
+- Every genuinely new programming concept must be introduced in a `concept` mission's `新しい考え方` section before the learner is expected to understand and apply it as a concept; explicitly documented debugging drills may expose a command as an opaque typo target without teaching its semantics.
 - Mission 00 contains exactly one executable line: `hero.say("Hello Yuzu");`.
 - All learner-facing starter code, reference solutions, partial solutions and code examples use double-quoted string literals. Single-quoted strings are not introduced at this stage.
 - Mission 00 explains object, method, dot access, parameters, string literals and the difference between program words and quoted text in the hero's world.
@@ -103,7 +110,7 @@ This document is the functional and business source of truth for the local Japan
 - Mission 01 explicitly tells the learner that the hero must reach the glowing goal tile to clear the mission.
 - Mission 01 displays four canonical cards in this exact order: `JavaScript`, `Editor`, `// はコメント（Comment）`, then `hero.move(direction)`.
 - The `hero.move(direction)` card explains that one method call moves the hero one tile in the requested direction and that moving several tiles requires calling the method several times.
-- Missions 02–06 are reinforcement missions for mission 01 and introduce no new JavaScript concepts or concept cards.
+- Missions 02–06 are reinforcement missions for mission 01 and introduce no new concept cards. Mission 03's transformation call is a spelling/debugging target only; the formal transformation concept remains later.
 - Mission 08 introduces booleans, `true`, `false`, `const`, assignment with `=`, reuse of a named value, constant naming in romaji, the common use of meaningful English names, and `hero.isTrue(boolean)`.
 - Mission 08 has completed starter code. The learner validates it by executing it without needing to edit it.
 - Mission 08 includes a Japanese explanatory comment directly above `const alwaysTrue = true;` and another directly above `const alwaysFalse = false;`.
@@ -119,14 +126,16 @@ This document is the functional and business source of truth for the local Japan
 ## First reinforcement pack after mission 01
 
 - Mission 02 is an `adventure` mission that practices repeated `hero.move("right")` calls on a new corridor layout.
-- Mission 03 is a `typo-fix` mission whose provided solution-shaped starter contains a mismatched closing bracket and must be repaired before it can execute.
+- Mission 03 is a `typo-fix` mission. Its mission text explains that a typo is a one-character input mistake, explicitly says that even one wrong character can stop code from working, and tells the learner that there are two typos to repair.
+- Mission 03 contains exactly the two intended early typos in its starter: the closing `)` of one `hero.move("right")` call is replaced by `]`, and `hero.transform("frog")` is misspelled as `hero.transform("forg")`.
+- Mission 03 validates only after both typos are repaired: the code must execute, collect the gem, reach the goal and finish in frog form. Deleting the transformation line is not a valid workaround.
 - Mission 04 is a `logic-fix` mission whose code executes but initially walks in the wrong order and reaches the route without collecting the required gem.
 - Mission 05 is a second `adventure` mission that requires travelling to a gem and then reversing direction to return to the goal.
-- Mission 06 is a `boss` mission featuring an enemy dragon, a blocking pillar, a fire lane and a lever.
-- In mission 06 the dragon fires horizontally toward the pillar. Entering a fire-lane tile before the lever is activated stops visible execution and fails the mission.
-- The pillar is impassable. The learner must route around it, reach the lever, defeat the dragon, collect the required gem and reach the goal.
-- Activating the lever disables the dragon and leaves a simple defeated visual marker.
-- Mission 06 uses only `hero.move(direction)` and direction string values already learned by that point; the dragon mechanics are world rules, not new JavaScript APIs.
+- Mission 06 is the introductory `boss` escape mission. Its active field is a single horizontal corridor with walls above and below, the dragon on the left, the hero exactly five tiles away from the dragon, a gem on the route and the goal on the right.
+- Mission 06 uses only horizontal movement. Moving left from the starting tile enters the dragon's four-tile attack range and triggers fire; moving right four times collects the gem and reaches the goal safely.
+- Mission 06 has no active pillar, lever or boss-defeat mechanism. Completing or failing it must leave the dragon alive and must not display a defeated/skull state.
+- The previously designed dragon/pillar/lever field is retained in the mission-pack reference data for a future boss mission, but it is not the active mission 06 field.
+- Mission 06 is the introductory escape-boss exception to the normal boss-resolution rule. Later boss missions must require explicit defeat, capture, trapping or equivalent neutralization before completion.
 
 ## Concept card reference base
 
@@ -228,7 +237,7 @@ This document is the functional and business source of truth for the local Japan
 - It contains sections for methods, parameters/variables, grammar/operators and map vocabulary.
 - English code components can be hovered, focused or clicked to display Japanese meaning and pronunciation.
 - `gem` explains that gems give experience, increase wizard level and unlock powers.
-- `transform`, `form` and `frog` are hidden before concept mission 07.
+- The formal `transform`, `form` and `frog` reference entries remain hidden before concept mission 07. Mission 03 may display the exact `hero.transform("frog")` command as an explicit typo-fix target without unlocking the full transformation reference lesson.
 - `boolean`, `true`, `false`, `always`, constants, assignment and `hero.isTrue(boolean)` appear from concept mission 08.
 - `while (true)` and the infinite-loop warning appear from concept mission 19.
 
@@ -320,7 +329,7 @@ This document is the functional and business source of truth for the local Japan
 - Unknown transformation values are different from locked recognized powers and use the invalid-transformation explanation.
 - Frog and hero-dragon forms use original local sprites.
 - The enemy dragon introduced by the boss mission is a world creature and is distinct from the future `hero.transform("dragon")` power.
-- A power or API must not be exposed in a practice mission merely because accumulated gem experience satisfies its technical level gate. It becomes visible through normal learner-facing APIs only once the corresponding concept mission has introduced it.
+- A power or API must not normally be exposed in a practice mission merely because accumulated gem experience satisfies its technical level gate. Mission 03 is the explicit typo-fix exception for `hero.transform("frog")`; the full learner-facing transformation concept and reference remain reserved for concept mission 07.
 - The future hero dragon transformation must not be exposed in normal instructions, glossary or transformation legend before its future concept/story introduction.
 
 ## Gems, experience and level progression
@@ -333,7 +342,7 @@ This document is the functional and business source of truth for the local Japan
 - Reinforcement missions also award their required gems, so wizard level is derived from the complete expanded mission sequence rather than the former 23-mission numbering.
 - The mission interface displays current wizard level and an experience progress bar.
 - Crossing a threshold displays a blocking level-up modal distinct from hero speech.
-- Level progression must not cause a JavaScript concept or power to appear in practice missions before its concept mission introduces it.
+- Level progression must not cause a JavaScript concept or power to appear in practice missions before its concept mission introduces it, except for a specifically documented debugging target such as mission 03.
 
 ## Multiple fields
 
@@ -367,11 +376,12 @@ This document is the functional and business source of truth for the local Japan
 ## Legend disclosure
 
 - The legend reveals world elements progressively and contains no duplicate entries.
-- Every new field element must be added to the legend from the first mission in which that element appears and remain available thereafter when relevant to the campaign's progressive vocabulary.
+- Every new field element or visible hero form must be added to the legend from the first mission in which that element/form actually appears and remain available thereafter when relevant to the campaign's progressive vocabulary.
 - The hero is visible from mission 00.
 - Gem and goal are visible from mission 01.
-- Enemy dragon, pillar, lever and dragon fire first appear in mission 06 and are added to the legend from mission 06 onward.
-- Frog is hidden before concept mission 07 and appears exactly once from mission 07 onward.
+- Frog first appears as a visible typo-fix result in mission 03 and therefore appears exactly once in the legend from mission 03 onward, even though its formal concept lesson remains mission 07.
+- Enemy dragon and dragon fire first appear in mission 06 and are added to the legend from mission 06 onward.
+- Pillar and lever are not active mission-06 elements anymore. They remain reserved for the preserved future dragon/pillar/lever scenario and enter the legend only when a future active mission first uses them.
 - Trap appears from mission 12.
 - Key and door appear from mission 14.
 - Enemy appears from mission 20.
@@ -407,13 +417,15 @@ This document is the functional and business source of truth for the local Japan
 - It verifies consecutive identifiers, unique identifiers, required gems, scripted levels, transformation gates and ordered action traces.
 - It verifies the five canonical mission type codes, labels and emojis and the reinforcement order after concept mission 01.
 - It verifies mission 00 remains a standalone concept mission with no reinforcement pack.
-- It verifies missions 02–06 use only JavaScript concepts available from mission 01 and have no concept-card guides.
+- It verifies missions 02–06 have no concept-card guides and that mission 03's transform exposure is only the documented explicit debugging exception.
 - It verifies `requiresCardValidation(...)` is true only for missions explicitly typed `concept`; missions 02–06 and a missing/unresolved mission are never card-gated.
 - It verifies switching to a non-concept mission clears stale `concept-cards-pending` state and leaves the run control enabled.
-- It verifies typo-fix starter code fails because of the intended typo while its reference solution succeeds.
+- It verifies mission 03 explains what a typo is, contains exactly the intended bracket typo and `forg`/`frog` typo, fails before correction, and cannot be completed by deleting the transformation line.
 - It verifies logic-fix starter code executes successfully but fails mission evaluation while its reference solution succeeds.
-- It verifies the boss solution defeats the dragon, avoids dragon fire, collects the gem and reaches the goal.
-- It verifies entering the dragon fire lane produces a `dragon-fire` trace event and fails the boss mission.
+- It verifies the dragon attacks for four tiles in all four cardinal directions and that blocking geometry stops its line of sight.
+- It verifies moving left once in mission 06 enters the dragon's attack range, produces a `dragon-fire` trace event and fails the mission.
+- It verifies the mission-06 reference solution moves only right, collects the gem, reaches the goal, avoids dragon fire, leaves `bossDefeated` false and produces no `boss-defeated` event.
+- It verifies the preserved dragon/pillar/lever scenario remains available as reference data for future missions.
 - It verifies focused sidebar visibility: 00–01 before mission 00 completion; 00–07 once mission 00 is complete and throughout the first pack; completed missions remain visible permanently; only unfinished missions beyond the next concept boundary are hidden; and 00–27 are visible after admin unlock-all.
 - It verifies invalid direction, invalid parameter, invalid boolean, unknown method, invalid transformation and locked hero-dragon behavior.
 - It verifies the boolean concept mission checks both `true` and `false`, collects its gem and ends on the goal tile after two moves.
