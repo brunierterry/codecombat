@@ -38,6 +38,10 @@ function read (relativePath) {
   return fs.readFileSync(path.join(repositoryPath, relativePath), 'utf8')
 }
 
+function visibleIds (completedIds, adminShowAll) {
+  return Array.from(sidebarUi.visibleMissionIdsFor(allMissions, completedIds, adminShowAll)).sort((a, b) => a - b)
+}
+
 assert.strictEqual(allMissions.length, 28)
 assert.deepStrictEqual(allMissions.map(mission => mission.id), Array.from({ length: 28 }, (_, id) => id))
 assert.strictEqual(allMissions.reduce((sum, mission) => sum + mission.variants.length, 0), 42)
@@ -51,17 +55,6 @@ assert.strictEqual(allMissions[7].title, '曲がり道')
 assert(allMissions.slice(7).every(mission => mission.type === 'concept'))
 assert(allMissions.slice(2, 7).every(mission => mission.practiceOf === 1))
 
-assert.strictEqual(conceptMemoryApi.requiresCardValidation(allMissions[0]), true)
-assert.strictEqual(conceptMemoryApi.requiresCardValidation(allMissions[1]), true)
-for (const mission of allMissions.slice(2, 7)) {
-  assert.strictEqual(
-    conceptMemoryApi.requiresCardValidation(mission),
-    false,
-    'Practice mission ' + mission.id + ' must never be blocked by concept-card validation',
-  )
-}
-assert(allMissions.slice(7).every(mission => conceptMemoryApi.requiresCardValidation(mission)))
-
 for (const mission of allMissions.slice(2, 7)) {
   assert.deepStrictEqual(
     mission.api.filter(item => item.startsWith('hero.')).every(item => item.startsWith('hero.move(')),
@@ -70,6 +63,18 @@ for (const mission of allMissions.slice(2, 7)) {
   )
   assert(!mission.api.some(item => item.includes('transform')), 'Practice mission ' + mission.id + ' exposed transform too early')
 }
+
+assert.strictEqual(conceptMemoryApi.requiresCardValidation(allMissions[0]), true)
+assert.strictEqual(conceptMemoryApi.requiresCardValidation(allMissions[1]), true)
+for (const mission of allMissions.slice(2, 7)) {
+  assert.strictEqual(
+    conceptMemoryApi.requiresCardValidation(mission),
+    false,
+    'Non-concept mission ' + mission.id + ' must never be blocked by concept cards',
+  )
+}
+assert.strictEqual(conceptMemoryApi.requiresCardValidation(allMissions[7]), true)
+assert.strictEqual(conceptMemoryApi.requiresCardValidation(null), false)
 
 assert.strictEqual(curriculum.finalIdForLegacyId(2), 7)
 assert.strictEqual(curriculum.legacyIdForFinalId(2), 1)
@@ -85,16 +90,17 @@ assert(remappedCards.getMissionGuide(7))
 assert.strictEqual(remappedCards.getMissionGuide(7).cardIds.length, 1)
 assert(remappedCards.allCards().every(card => card.missionId < 2 || card.missionId >= 7))
 
-const beforeMissionZero = sidebarUi.visibleRangeFor(allMissions, [], false)
-assert.deepStrictEqual(beforeMissionZero, { start: 0, end: 1 })
-const firstPackRange = sidebarUi.visibleRangeFor(allMissions, [0], false)
-assert.deepStrictEqual(firstPackRange, { start: 1, end: 7 })
-const duringFirstPack = sidebarUi.visibleRangeFor(allMissions, [0, 1, 2, 3], false)
-assert.deepStrictEqual(duringFirstPack, { start: 1, end: 7 })
-const afterFirstPack = sidebarUi.visibleRangeFor(allMissions, [0, 1, 2, 3, 4, 5, 6], false)
-assert.deepStrictEqual(afterFirstPack, { start: 7, end: 8 })
-const adminRange = sidebarUi.visibleRangeFor(allMissions, [], true)
-assert.deepStrictEqual(adminRange, { start: 0, end: 27 })
+assert.deepStrictEqual(visibleIds([], false), [0, 1])
+assert.deepStrictEqual(visibleIds([0], false), [0, 1, 2, 3, 4, 5, 6, 7])
+assert.deepStrictEqual(visibleIds([0, 1], false), [0, 1, 2, 3, 4, 5, 6, 7])
+assert.deepStrictEqual(visibleIds([0, 1, 2, 3], false), [0, 1, 2, 3, 4, 5, 6, 7])
+assert.deepStrictEqual(visibleIds([0, 1, 2, 3, 4, 5, 6], false), [0, 1, 2, 3, 4, 5, 6, 7, 8])
+assert.deepStrictEqual(
+  visibleIds([0, 1, 2, 20], false),
+  [0, 1, 2, 3, 4, 5, 6, 7, 20],
+  'A completed mission outside the active segment must remain visible',
+)
+assert.deepStrictEqual(visibleIds([], true), Array.from({ length: 28 }, (_, id) => id))
 
 const typoMission = allMissions[3]
 const typoStarter = engine.simulate(typoMission.starterCode, typoMission, 0)
@@ -152,10 +158,10 @@ for (const mission of allMissions) {
 }
 
 const conceptMemory = read('app/assets/japanese-js-quest/concept-card-memory.js')
-assert(conceptMemory.includes("mission.type === 'concept'"))
-assert(conceptMemory.includes('if (!currentMissionRequiresCardValidation()) return true'))
-assert(conceptMemory.includes('if (!currentMissionRequiresCardValidation()) return []'))
-assert(conceptMemory.includes('cardIds.length === 0 || cardIds.every(isValidated)'))
+assert(conceptMemory.includes("return mission?.type === 'concept'"))
+assert(conceptMemory.includes("codePanel?.classList.remove('concept-cards-pending')"))
+assert(conceptMemory.includes('activeMission = event.detail?.mission || currentMission()'))
+assert(conceptMemory.includes('if (!currentMissionRequiresCardValidation() || isMissionReady()) return'))
 
 const learningGuide = read('app/assets/japanese-js-quest/learning-guide.js')
 assert(learningGuide.includes('existingSection?.remove()'))
@@ -163,6 +169,9 @@ assert(learningGuide.includes('existingSection?.remove()'))
 const missionTypesUi = read('app/assets/japanese-js-quest/mission-types-ui.js')
 assert(missionTypesUi.includes("event.target?.closest('#admin-unlock-all')"))
 assert(missionTypesUi.includes("button.classList.toggle('mission-hidden-by-focus', !visible)"))
+assert(missionTypesUi.includes('visibleMissionIdsFor'))
+assert(missionTypesUi.includes('visible.add(missions[0].id)'))
+assert(missionTypesUi.includes('completed.forEach(id =>'))
 
 const missionTypeCss = read('app/assets/japanese-js-quest/mission-types.css')
 assert(missionTypeCss.includes('.mission-item.mission-hidden-by-focus'))
@@ -176,6 +185,10 @@ assert(runtime.includes('missions().find(item => item.infiniteLoopDemo)'))
 const worker = read('app/assets/japanese-js-quest/quest-worker.js')
 assert(worker.includes("importScripts('engine.js', 'curriculum-engine.js', 'boss-mechanics.js')"))
 
+const index = read('app/assets/japanese-js-quest/index.html')
+assert(index.includes('concept-card-memory.js?v=3'))
+assert(index.includes('mission-types-ui.js?v=2'))
+
 const productRules = read('docs/PRODUCT_RULES.md')
 for (const text of [
   '`concept`',
@@ -186,12 +199,10 @@ for (const text of [
   'concept → adventure → typo-fix → logic-fix → adventure → boss',
   'Mission 00 is the exception',
   'only concepts already introduced',
-  'non-concept missions must never be blocked by the concept-card execution gate',
-  'every concept card assigned to it has been validated',
   'full-width',
   'dragon',
   'lily',
   'next concept mission',
 ]) assert(productRules.includes(text), 'Missing product rule: ' + text)
 
-console.log('Validated 28 missions / 42 fields, five mission types, concept-only card gating, first reinforcement pack, boss mechanics, remapped cards and focused navigation.')
+console.log('Validated 28 missions / 42 fields, concept-only card gating, permanent completed-history navigation, first reinforcement pack and boss mechanics.')
