@@ -25,6 +25,22 @@ This document is the functional and business source of truth for the local Japan
 - When missions are inserted and later missions are renumbered, saved code, completed mission identifiers and the unlocked position must be migrated so that existing learner work remains attached to the same lesson.
 - The first reinforcement-pack migration inserts missions 02–06 and shifts every previously existing mission from old ID 02 onward by five positions. Old mission 02 therefore becomes mission 07 and old mission 22 becomes mission 27.
 
+## First-launch story introduction
+
+- On the first launch, before MISSION 00 is shown, the learner receives a blocking, full-screen, centered story introduction presented over several short pages.
+- The introduction welcomes the learner as an apprentice god of `JavaScript Fantasy Land`.
+- It explains that an apprentice god can use programming magic to influence the world and help heroes accomplish their destiny, but cannot do anything arbitrarily: magic has rules, and learning those rules little by little allows the learner to influence more of the world.
+- The hero backstory is presented as a legend using different narrative typography from the surrounding introduction.
+- The legend says that there was once a beautiful, curious and courageous young girl who loved dancing, climbing trees and making small things for her father.
+- A witch jealous of the girl's youth curses her and transforms her into an old man.
+- Rather than abandon hope, the girl decides to learn magic while appearing to be an adult and no longer being recognized, so she can recover her normal appearance and stop the witch from hurting other people.
+- After the legend, the interface returns to the normal introduction typography and asks the apprentice god to help the girl through her adventure.
+- Intermediate pages use a centered `次へ` action. The final page uses `冒険をはじめる`, and only then reveals the normal campaign interface beginning with MISSION 00.
+- The underlying campaign must not flash visibly or become interactable before the first-launch introduction is resolved.
+- Completion of the introduction is persisted separately from mission progress under the dedicated `japanese-js-quest-story-intro-seen-v1` key. The key is written only after the final page is completed.
+- Reloading before the final page restarts the introduction cleanly. Once completed, the introduction is not shown again on ordinary launches.
+- Resetting mission progress does not reset the first-launch story flag; the introduction remains a one-time onboarding experience.
+
 ## Mission types and reinforcement architecture
 
 - Every mission has exactly one canonical mission type with a stable code, Japanese label and emoji.
@@ -429,6 +445,7 @@ This document is the functional and business source of truth for the local Japan
 - It verifies consecutive identifiers, unique identifiers, required gems, scripted levels, transformation gates and ordered action traces.
 - It verifies the five canonical mission type codes, labels and emojis and the reinforcement order after concept mission 01.
 - It verifies mission 00 remains a standalone concept mission with no reinforcement pack.
+- It verifies the first-launch story introduction appears before MISSION 00 only until the dedicated story-intro-seen flag is persisted, uses multiple centered pages with different narrative typography for the legend, and does not expose the underlying campaign before completion.
 - It verifies missions 02–06 have no concept-card guides and that mission 03's transform exposure is only the documented explicit debugging exception.
 - It verifies `requiresCardValidation(...)` is true only for missions explicitly typed `concept`; missions 02–06 and a missing/unresolved mission are never card-gated.
 - It verifies switching to a non-concept mission clears stale `concept-cards-pending` state and leaves the run control enabled.
