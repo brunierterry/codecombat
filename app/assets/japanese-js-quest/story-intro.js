@@ -59,7 +59,7 @@
   function hasSeenIntro () {
     try {
       return window.localStorage.getItem(STORAGE_KEY) === '1'
-    } catch (error) {
+    } catch {
       return false
     }
   }
@@ -67,14 +67,23 @@
   function markIntroSeen () {
     try {
       window.localStorage.setItem(STORAGE_KEY, '1')
-    } catch (error) {
+    } catch {
       // The introduction still works when localStorage is unavailable; it may
       // simply be shown again on the next visit.
     }
   }
 
+  function campaignElements () {
+    return Array.from(document.body.children).filter(element => !['SCRIPT', 'STYLE'].includes(element.tagName) && !element.classList.contains('story-intro-overlay'))
+  }
+
+  function setCampaignInert (inert) {
+    for (const element of campaignElements()) element.inert = inert
+  }
+
   function skipIntro () {
     document.body.classList.remove('story-intro-checking')
+    setCampaignInert(false)
   }
 
   function showIntro () {
@@ -108,6 +117,7 @@
     panel.append(eyebrow, title, copy, progress, next)
     overlay.appendChild(panel)
     document.body.appendChild(overlay)
+    setCampaignInert(true)
     document.body.classList.replace('story-intro-checking', 'story-intro-active')
 
     let index = 0
@@ -124,7 +134,7 @@
         copy.appendChild(element)
       }
       progress.innerHTML = ''
-      slides.forEach((item, dotIndex) => {
+      slides.forEach((_, dotIndex) => {
         const dot = document.createElement('span')
         dot.className = 'story-intro-dot' + (dotIndex === index ? ' is-current' : '')
         progress.appendChild(dot)
@@ -140,6 +150,7 @@
         return
       }
       markIntroSeen()
+      setCampaignInert(false)
       overlay.remove()
       document.body.classList.remove('story-intro-active')
     }
