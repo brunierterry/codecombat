@@ -2,6 +2,10 @@
   'use strict'
 
   const STORAGE_KEY = 'japanese-js-quest-story-intro-seen-v1'
+  const HERO_READING = Object.freeze({
+    text: 'hero',
+    tooltip: 'ひーろー',
+  })
   const slides = [
     {
       eyebrow: 'JavaScript Fantasy Land',
@@ -46,10 +50,29 @@
       ],
     },
     {
+      eyebrow: '小さな女の子を助けよう',
+      title: '冒険を手伝おう。',
+      paragraphs: [
+        {
+          parts: [
+            '見習いの神さまとして、この小さなおじいさん……じゃなくて、小さな女の子……いや、この ',
+            HERO_READING,
+            ' の冒険を助けて、もとの姿を取り戻そう！',
+          ],
+        },
+        {
+          parts: [
+            'JavaScript のプログラミング魔法を使って、',
+            HERO_READING,
+            ' の行動を導くことができます。',
+          ],
+        },
+      ],
+    },
+    {
       eyebrow: 'あなたの冒険',
       title: 'さあ、最初の魔法を。',
       paragraphs: [
-        '見習いの神さまとして、この小さな女の子の冒険を助けてください。',
         'あなたの最初の魔法は、MISSION 00 から始まります。',
       ],
       final: true,
@@ -79,6 +102,28 @@
 
   function setCampaignInert (inert) {
     for (const element of campaignElements()) element.inert = inert
+  }
+
+  function appendParagraphPart (element, part) {
+    if (typeof part === 'string') {
+      element.appendChild(document.createTextNode(part))
+      return
+    }
+
+    const token = document.createElement('span')
+    token.className = 'reading-token'
+    token.textContent = part.text
+    token.dataset.tooltip = part.tooltip
+    token.tabIndex = 0
+    token.setAttribute('aria-label', part.text + '：' + part.tooltip)
+    element.appendChild(token)
+  }
+
+  function renderParagraph (copy, paragraph) {
+    const element = document.createElement('p')
+    if (typeof paragraph === 'string') element.textContent = paragraph
+    else for (const part of paragraph.parts) appendParagraphPart(element, part)
+    copy.appendChild(element)
   }
 
   function skipIntro () {
@@ -128,11 +173,7 @@
       title.textContent = slide.title
       copy.classList.toggle('is-legend', Boolean(slide.legend))
       copy.innerHTML = ''
-      for (const paragraph of slide.paragraphs) {
-        const element = document.createElement('p')
-        element.textContent = paragraph
-        copy.appendChild(element)
-      }
+      for (const paragraph of slide.paragraphs) renderParagraph(copy, paragraph)
       progress.innerHTML = ''
       slides.forEach((_, dotIndex) => {
         const dot = document.createElement('span')
