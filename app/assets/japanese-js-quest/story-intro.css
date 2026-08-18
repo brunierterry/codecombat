@@ -145,16 +145,17 @@ body.story-intro-active {
   align-items: center;
   gap: 0.4rem;
   width: fit-content;
-  margin: 0 0 0.9rem;
-  padding: 0.58rem 0.9rem;
-  border: 1px solid rgba(126, 166, 226, 0.65);
+  margin: 0 0 1rem;
+  padding: 0.68rem 1rem;
+  border: 1px solid #315eb7;
   border-radius: 0.7rem;
-  background: rgba(76, 122, 194, 0.18);
-  color: #e5efff;
+  background: #315eb7;
+  color: #fff;
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 750;
   cursor: pointer;
+  box-shadow: 0 3px 10px rgba(49, 94, 183, 0.24);
 }
 
 .story-intro-replay[hidden] {
@@ -163,10 +164,11 @@ body.story-intro-active {
 
 .story-intro-replay:hover,
 .story-intro-replay:focus-visible {
-  background: rgba(76, 122, 194, 0.3);
+  border-color: #24478e;
+  background: #24478e;
   color: #fff;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(126, 166, 226, 0.15);
+  box-shadow: 0 0 0 3px rgba(49, 94, 183, 0.18);
 }
 
 @media (max-height: 820px) and (min-width: 521px) {
