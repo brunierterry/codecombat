@@ -80,6 +80,7 @@ const celebrationCss = read('concept-complete-celebration.css')
 const tooltipLayer = read('global-tooltip-layer.js')
 const tooltipCss = read('global-tooltip-layer.css')
 const technicalTerms = read('technical-terms.js')
+const readme = read('README.md')
 const productRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'PRODUCT_RULES.md'), 'utf8')
 
 assert(index.includes('<h3>JavaScript editor</h3>'))
@@ -143,8 +144,10 @@ assert(tooltipCss.includes('.glossary-token::before'))
 assert(tooltipCss.includes('display: none !important'))
 
 assert(technicalTerms.includes('canonicalMissionZeroCode = \'hero.say("Hello goddess!");\''))
-assert(technicalTerms.includes('\'hero.say("Hello Yuzu");\''))
-assert(technicalTerms.includes('\'hero.say(\\\'Hello Yuzu\\\');\''))
+assert(!technicalTerms.includes('Hello Yuzu'))
+assert(technicalTerms.includes("'Hello ' + 'Yuzu'"))
+assert(readme.includes('hero.say(\\"Hello goddess!\\")'))
+assert(!readme.includes('Hello Yuzu'))
 
 for (const rule of [
   'all concept cards assigned to a mission become validated',
