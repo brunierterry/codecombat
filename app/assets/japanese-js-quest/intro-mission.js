@@ -13,17 +13,17 @@
   return {
     id: 0,
     type: 'concept',
-    title: 'こんにちは、Yuzu！',
+    title: 'こんにちは、女神さま！',
     concept: 'はじめての関数：話す',
-    story: 'まずはヒーローに、Yuzuへあいさつしてもらおう。宝石を集めると、魔法使いは経験値をもらって強くなります。',
+    story: 'まずはヒーローに、女神さまへあいさつしてもらおう。宝石を集めると、魔法使いは経験値をもらって強くなります。',
     instructions: [
       '`hero.say(...)` は、ヒーローに言葉を話してもらう命令です。',
       'コードはもう完成しています。「実行する」を押して、ふきだしを読んだら × で閉じましょう。',
     ],
-    api: ['hero.say("Hello Yuzu")'],
-    starterCode: 'hero.say("Hello Yuzu");',
+    api: ['hero.say("Hello goddess!")'],
+    starterCode: 'hero.say("Hello goddess!");',
     hints: ['このミッションはコードを直さなくてもクリアできます。「実行する」を押しましょう。'],
-    solution: 'hero.say("Hello Yuzu");',
+    solution: 'hero.say("Hello goddess!");',
     variants: [{
       map: [
         '#########',
@@ -35,7 +35,7 @@
       sign: null,
     }],
     requirements: {
-      state: { sayText: 'Hello Yuzu', maxMoves: 0 },
+      state: { sayText: 'Hello goddess!', maxMoves: 0 },
       syntax: [{ type: 'say', message: 'hero.say(...) を使ってあいさつしましょう。' }],
     },
   }
