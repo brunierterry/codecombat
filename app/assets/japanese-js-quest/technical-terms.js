@@ -6,8 +6,9 @@
     '// ' + legacyName + ' にあいさつしよう\nhero.say(\'Hello ' + legacyName + '\');',
     'hero.say(\'Hello ' + legacyName + '\');',
     'hero.say("Hello ' + legacyName + '");',
+    'hero.say("Hello goddess!");',
   ]
-  const canonicalMissionZeroCode = 'hero.say("Hello goddess!");'
+  const canonicalMissionZeroCode = '// goddess は「神さま・女神さま」の意味。ヒーローに自分の名前で呼ばれてもいいなら、「自分の名前 + sama」に変えてもいいよ。\nhero.say("Hello goddess!");'
   const missionZeroStorageKey = 'japanese-js-quest-code-v1-0'
 
   try {
