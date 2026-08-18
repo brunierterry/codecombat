@@ -20,7 +20,7 @@ const version = require(path.join(questPath, 'version.js'))
 const productRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'PRODUCT_RULES.md'), 'utf8')
 const developmentRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'DEVELOPMENT_RULES.md'), 'utf8')
 
-assert.strictEqual(version, '0.3.5')
+assert.strictEqual(version, '0.3.6')
 assert(index.includes('<body class="story-intro-checking">'))
 assert(index.includes('<link rel="stylesheet" href="story-intro.css">'))
 assert(index.includes('<script src="story-intro.js"></script>'))
@@ -81,17 +81,10 @@ assert(intro.includes("Object.keys(INTRO_READINGS).sort((a, b) => b.length - a.l
 
 assert.strictEqual((intro.match(/legend: true/g) || []).length, 3)
 assert.strictEqual((intro.match(/eyebrow:/g) || []).length, 7, 'Story introduction must contain seven pages')
-assert.strictEqual((intro.match(/image: 'story-intro-page-\d\.svg'/g) || []).length, 7, 'Every story page must reference one numbered illustration')
+assert.strictEqual((intro.match(/image: 'story-intro-page-\d\.webp'/g) || []).length, 7, 'Every story page must reference one numbered WebP illustration directly')
 for (let page = 1; page <= 7; page++) {
-  const wrapper = `story-intro-page-${page}.svg`
   const imageAsset = `story-intro-page-${page}.webp`
-  assert(intro.includes(`image: '${wrapper}'`), `Story page ${page} must reference ${wrapper}`)
-
-  const wrapperPath = path.join(questPath, wrapper)
-  assert(fs.existsSync(wrapperPath), `Missing story wrapper: ${wrapper}`)
-  const wrapperSource = fs.readFileSync(wrapperPath, 'utf8')
-  assert(wrapperSource.includes('<svg'), `${wrapper} must be an SVG wrapper`)
-  assert(wrapperSource.includes(`href="${imageAsset}"`), `${wrapper} must use ${imageAsset}`)
+  assert(intro.includes(`image: '${imageAsset}'`), `Story page ${page} must reference ${imageAsset} directly`)
 
   const imagePath = path.join(questPath, imageAsset)
   assert(fs.existsSync(imagePath), `Missing physical story illustration: ${imageAsset}`)
@@ -153,4 +146,4 @@ for (const text of [
 assert(developmentRules.includes('MAJOR.MINOR.REVISION'))
 assert(developmentRules.includes('each new requested change increments `REVISION` by one'))
 
-console.log('Validated seven illustrated story pages, readings, back navigation, MISSION 00 replay behavior and app version 0.3.5.')
+console.log('Validated seven directly loaded WebP story pages, readings, back navigation, MISSION 00 replay behavior and app version 0.3.6.')
