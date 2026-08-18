@@ -14,18 +14,22 @@ function readQuest (file) {
 
 const index = readQuest('index.html')
 const intro = readQuest('story-intro.js')
+const replay = readQuest('story-intro-replay.js')
 const introCss = readQuest('story-intro.css')
 const version = require(path.join(questPath, 'version.js'))
 const productRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'PRODUCT_RULES.md'), 'utf8')
 const developmentRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'DEVELOPMENT_RULES.md'), 'utf8')
 
-assert.strictEqual(version, '0.3.4')
+assert.strictEqual(version, '0.3.5')
 assert(index.includes('<body class="story-intro-checking">'))
 assert(index.includes('<link rel="stylesheet" href="story-intro.css">'))
 assert(index.includes('<script src="story-intro.js"></script>'))
+assert(index.includes('<script src="story-intro-replay.js"></script>'))
 assert(index.indexOf('story-intro.js') < index.indexOf('engine.js'))
 assert(index.includes('id="replay-story-intro"'))
-assert(index.includes('物語をもう一度'))
+assert(index.includes('📖 物語をもう一度'))
+assert(index.indexOf('id="replay-story-intro"') < index.indexOf('id="mission-story"'), 'Replay control must appear before the MISSION 00 story text')
+assert(index.indexOf('id="replay-story-intro"') < index.indexOf('<footer>'), 'Replay control must live in the mission card, not in the footer')
 
 for (const text of [
   'japanese-js-quest-story-intro-seen-v1',
@@ -79,13 +83,22 @@ assert.strictEqual((intro.match(/legend: true/g) || []).length, 3)
 assert.strictEqual((intro.match(/eyebrow:/g) || []).length, 7, 'Story introduction must contain seven pages')
 assert.strictEqual((intro.match(/image: 'story-intro-page-\d\.svg'/g) || []).length, 7, 'Every story page must reference one numbered illustration')
 for (let page = 1; page <= 7; page++) {
-  const asset = `story-intro-page-${page}.svg`
-  assert(intro.includes(`image: '${asset}'`), `Story page ${page} must reference ${asset}`)
-  const assetPath = path.join(questPath, asset)
-  assert(fs.existsSync(assetPath), `Missing physical story illustration: ${asset}`)
-  const image = fs.readFileSync(assetPath, 'utf8')
-  assert(image.includes('<svg'), `${asset} must be an SVG image asset`)
-  assert(image.includes('data:image/webp;base64,'), `${asset} must contain the selected embedded illustration`)
+  const wrapper = `story-intro-page-${page}.svg`
+  const imageAsset = `story-intro-page-${page}.webp`
+  assert(intro.includes(`image: '${wrapper}'`), `Story page ${page} must reference ${wrapper}`)
+
+  const wrapperPath = path.join(questPath, wrapper)
+  assert(fs.existsSync(wrapperPath), `Missing story wrapper: ${wrapper}`)
+  const wrapperSource = fs.readFileSync(wrapperPath, 'utf8')
+  assert(wrapperSource.includes('<svg'), `${wrapper} must be an SVG wrapper`)
+  assert(wrapperSource.includes(`href="${imageAsset}"`), `${wrapper} must use ${imageAsset}`)
+
+  const imagePath = path.join(questPath, imageAsset)
+  assert(fs.existsSync(imagePath), `Missing physical story illustration: ${imageAsset}`)
+  const image = fs.readFileSync(imagePath)
+  assert(image.length > 5000, `${imageAsset} must contain a real illustration, not a placeholder`)
+  assert.strictEqual(image.subarray(0, 4).toString('ascii'), 'RIFF', `${imageAsset} must be a WebP RIFF file`)
+  assert.strictEqual(image.subarray(8, 12).toString('ascii'), 'WEBP', `${imageAsset} must be a WebP image`)
 }
 
 assert(intro.includes("token.className = 'reading-token'"))
@@ -103,6 +116,10 @@ assert(intro.includes('replay: showIntro'))
 assert(intro.indexOf('markIntroSeen()') > intro.indexOf('if (index < slides.length - 1)'))
 assert(!intro.includes('localStorage.removeItem(STORAGE_KEY)'), 'Replaying the story must not reset the first-launch flag')
 
+assert(replay.includes("displayedMissionId() !== 0"), 'Replay control must be visible only on MISSION 00')
+assert(replay.includes("document.addEventListener('jsquest:missionloaded', syncReplayVisibility)"))
+assert(replay.includes('window.setTimeout(syncReplayVisibility, 0)'))
+
 for (const text of [
   '.story-intro-overlay',
   'position: fixed',
@@ -114,6 +131,7 @@ for (const text of [
   '.story-intro-actions',
   '.story-intro-previous',
   '.story-intro-replay',
+  '.story-intro-replay[hidden]',
   'body.story-intro-active',
   'overflow: hidden',
 ]) assert(introCss.includes(text), 'Missing story-intro CSS invariant: ' + text)
@@ -135,4 +153,4 @@ for (const text of [
 assert(developmentRules.includes('MAJOR.MINOR.REVISION'))
 assert(developmentRules.includes('each new requested change increments `REVISION` by one'))
 
-console.log('Validated seven illustrated story pages, readings, back navigation, replay behavior and app version 0.3.4.')
+console.log('Validated seven illustrated story pages, readings, back navigation, MISSION 00 replay behavior and app version 0.3.5.')
