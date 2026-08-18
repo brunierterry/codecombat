@@ -20,7 +20,7 @@ const version = require(path.join(questPath, 'version.js'))
 const productRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'PRODUCT_RULES.md'), 'utf8')
 const developmentRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'DEVELOPMENT_RULES.md'), 'utf8')
 
-assert.strictEqual(version, '0.3.6')
+assert.strictEqual(version, '0.3.7')
 assert(index.includes('<body class="story-intro-checking">'))
 assert(index.includes('<link rel="stylesheet" href="story-intro.css">'))
 assert(index.includes('<script src="story-intro.js"></script>'))
@@ -81,17 +81,23 @@ assert(intro.includes("Object.keys(INTRO_READINGS).sort((a, b) => b.length - a.l
 
 assert.strictEqual((intro.match(/legend: true/g) || []).length, 3)
 assert.strictEqual((intro.match(/eyebrow:/g) || []).length, 7, 'Story introduction must contain seven pages')
-assert.strictEqual((intro.match(/image: 'story-intro-page-\d\.webp'/g) || []).length, 7, 'Every story page must reference one numbered WebP illustration directly')
+assert.strictEqual((intro.match(/image: 'story-intro-page-\d\.png'/g) || []).length, 7, 'Every story page must reference one numbered PNG illustration directly')
 for (let page = 1; page <= 7; page++) {
-  const imageAsset = `story-intro-page-${page}.webp`
+  const imageAsset = `story-intro-page-${page}.png`
   assert(intro.includes(`image: '${imageAsset}'`), `Story page ${page} must reference ${imageAsset} directly`)
 
   const imagePath = path.join(questPath, imageAsset)
   assert(fs.existsSync(imagePath), `Missing physical story illustration: ${imageAsset}`)
   const image = fs.readFileSync(imagePath)
-  assert(image.length > 1000, `${imageAsset} must contain image data, not an empty placeholder`)
-  assert.strictEqual(image.subarray(0, 4).toString('ascii'), 'RIFF', `${imageAsset} must be a WebP RIFF file`)
-  assert.strictEqual(image.subarray(8, 12).toString('ascii'), 'WEBP', `${imageAsset} must be a WebP image`)
+  assert(image.length > 500000, `${imageAsset} must keep the high-quality PNG source, not a compressed placeholder`)
+  assert.deepStrictEqual(
+    Array.from(image.subarray(0, 8)),
+    [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+    `${imageAsset} must be a PNG file`,
+  )
+
+  assert(!fs.existsSync(path.join(questPath, `story-intro-page-${page}.webp`)), `Obsolete WebP must be removed for story page ${page}`)
+  assert(!fs.existsSync(path.join(questPath, `story-intro-page-${page}.svg`)), `Obsolete SVG wrapper must be removed for story page ${page}`)
 }
 
 assert(intro.includes("token.className = 'reading-token'"))
@@ -146,4 +152,4 @@ for (const text of [
 assert(developmentRules.includes('MAJOR.MINOR.REVISION'))
 assert(developmentRules.includes('each new requested change increments `REVISION` by one'))
 
-console.log('Validated seven directly loaded WebP story pages, readings, back navigation, MISSION 00 replay behavior and app version 0.3.6.')
+console.log('Validated seven directly loaded high-quality PNG story pages, readings, back navigation, MISSION 00 replay behavior and app version 0.3.7.')
