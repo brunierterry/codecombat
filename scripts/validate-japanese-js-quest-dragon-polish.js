@@ -155,7 +155,7 @@ assert(index.includes('id="app-version"'))
 assert(index.includes('<script src="version.js"></script>'))
 
 const version = require(path.join(questPath, 'version.js'))
-assert.strictEqual(version, '0.3.6')
+assert.strictEqual(version, '0.3.7')
 
 const developmentRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'DEVELOPMENT_RULES.md'), 'utf8')
 for (const text of ['MAJOR.MINOR.REVISION', 'increments `REVISION`', 'increment `MINOR`', 'user explicitly requests a major']) {
@@ -175,4 +175,4 @@ for (const text of [
   'current application version is displayed discreetly',
 ]) assert(productRules.includes(text), 'Missing product rule: ' + text)
 
-console.log('Validated action-chain death, three-tile dragon fire, creature collision, lethal traps and application version 0.3.6.')
+console.log('Validated action-chain death, three-tile dragon fire, creature collision, lethal traps and application version 0.3.7.')
