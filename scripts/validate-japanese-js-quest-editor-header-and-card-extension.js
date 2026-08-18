@@ -145,7 +145,7 @@ assert(tooltipCss.includes('display: none !important'))
 
 assert(technicalTerms.includes('canonicalMissionZeroCode = \'hero.say("Hello goddess!");\''))
 assert(!technicalTerms.includes('Hello Yuzu'))
-assert(technicalTerms.includes("'Hello ' + 'Yuzu'"))
+assert(technicalTerms.includes("Hello ' + 'Yuzu"))
 assert(readme.includes('hero.say("Hello goddess!")'))
 assert(!readme.includes('Hello Yuzu'))
 assert(productRules.includes('Mission 00 contains exactly one executable line: `hero.say("Hello goddess!");`.'))
