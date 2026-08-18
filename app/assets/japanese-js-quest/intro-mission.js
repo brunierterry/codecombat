@@ -21,9 +21,9 @@
       'コードはもう完成しています。「実行する」を押して、ふきだしを読んだら × で閉じましょう。',
     ],
     api: ['hero.say("Hello goddess!")'],
-    starterCode: 'hero.say("Hello goddess!");',
+    starterCode: '// goddess は「神さま・女神さま」の意味。ヒーローに自分の名前で呼ばれてもいいなら、「自分の名前 + sama」に変えてもいいよ。\nhero.say("Hello goddess!");',
     hints: ['このミッションはコードを直さなくてもクリアできます。「実行する」を押しましょう。'],
-    solution: 'hero.say("Hello goddess!");',
+    solution: '// goddess は「神さま・女神さま」の意味。ヒーローに自分の名前で呼ばれてもいいなら、「自分の名前 + sama」に変えてもいいよ。\nhero.say("Hello goddess!");',
     variants: [{
       map: [
         '#########',
