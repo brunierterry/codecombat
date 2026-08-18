@@ -131,7 +131,7 @@ This document is the functional and business source of truth for the local Japan
 ## Mission pedagogy
 
 - Every genuinely new programming concept must be introduced in a `concept` mission's `新しい考え方` section before the learner is expected to understand and apply it as a concept; explicitly documented debugging drills may expose a command as an opaque typo target without teaching its semantics.
-- Mission 00 contains exactly one executable line: `hero.say("Hello Yuzu");`.
+- Mission 00 contains exactly one executable line: `hero.say("Hello goddess!");`.
 - All learner-facing starter code, reference solutions, partial solutions and code examples use double-quoted string literals. Single-quoted strings are not introduced at this stage.
 - Mission 00 explains object, method, dot access, parameters, string literals and the difference between program words and quoted text in the hero's world.
 - Mission 01 introduces JavaScript as the programming language used to communicate instructions to the computer and the editor as the place where code is read, written and changed.
