@@ -34,7 +34,7 @@
       sign: null,
     }],
     requirements: {
-      state: { sayText: 'Hello goddess!', maxMoves: 0 },
+      state: { maxMoves: 0 },
       syntax: [{ type: 'say', message: 'hero.say(...) を使ってあいさつしましょう。' }],
     },
   }
