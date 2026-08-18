@@ -77,7 +77,7 @@ const expectedReadings = {
 for (const [word, reading] of Object.entries(expectedReadings)) {
   assert(intro.includes(`${word}: '${reading}'`), `Missing intro reading: ${word} → ${reading}`)
 }
-assert(intro.includes("Object.keys(INTRO_READINGS).sort((a, b) => b.length - a.length)"), 'Intro readings must prefer the longest matching word')
+assert(intro.includes('Object.keys(INTRO_READINGS).sort((a, b) => b.length - a.length)'), 'Intro readings must prefer the longest matching word')
 
 assert.strictEqual((intro.match(/legend: true/g) || []).length, 3)
 assert.strictEqual((intro.match(/eyebrow:/g) || []).length, 7, 'Story introduction must contain seven pages')
@@ -115,7 +115,7 @@ assert(intro.includes('replay: showIntro'))
 assert(intro.indexOf('markIntroSeen()') > intro.indexOf('if (index < slides.length - 1)'))
 assert(!intro.includes('localStorage.removeItem(STORAGE_KEY)'), 'Replaying the story must not reset the first-launch flag')
 
-assert(replay.includes("displayedMissionId() !== 0"), 'Replay control must be visible only on MISSION 00')
+assert(replay.includes('displayedMissionId() !== 0'), 'Replay control must be visible only on MISSION 00')
 assert(replay.includes("document.addEventListener('jsquest:missionloaded', syncReplayVisibility)"))
 assert(replay.includes('window.setTimeout(syncReplayVisibility, 0)'))
 
