@@ -103,8 +103,8 @@ for (const text of [
   'どこかにまちがいがあります',
   '先に「新しい考え方」のカードを全部めくって',
   'jsquest:conceptcardschanged',
-  "const value = new URLSearchParams(root.location.search).get('admin')",
-  "value === '1' || value === 'true'",
+  'const value = new URLSearchParams(root.location.search).get(\'admin\')',
+  'value === \'1\' || value === \'true\'',
   'ADMIN：正解を選ぶ',
   '正しい選択肢を選びました',
   'inputs.find(input => input.value === item.answer)',
@@ -113,8 +113,8 @@ for (const text of [
   'concept-card-admin-validate-all',
   'このミッションのカードをすべて確認済みにする',
 ]) assert(memorySource.includes(text))
-assert(memorySource.includes("if (isAdminMode())"))
-assert(memorySource.indexOf('if (isAdminMode())') < memorySource.indexOf("adminFill.textContent = 'ADMIN：正解を選ぶ'"))
+assert(memorySource.includes('if (isAdminMode())'))
+assert(memorySource.indexOf('if (isAdminMode())') < memorySource.indexOf('adminFill.textContent = \'ADMIN：正解を選ぶ\''))
 assert(memorySource.includes("run?.addEventListener('click'"))
 assert(memorySource.includes("document.addEventListener('keydown'"))
 assert(memorySource.indexOf('guide.appendChild(button)') < memorySource.indexOf('function updateExecutionGate'))
