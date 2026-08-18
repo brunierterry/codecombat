@@ -29,7 +29,7 @@
     {
       eyebrow: 'JavaScript Fantasy Land',
       title: 'ようこそ、見習いの神さま。',
-      image: 'story-intro-page-1.svg',
+      image: 'story-intro-page-1.webp',
       imageAlt: 'JavaScript Fantasy Land に現れる見習いの神さま',
       paragraphs: [
         'あなたは、JavaScript Fantasy Land にやってきた見習いの神さまです。',
@@ -38,7 +38,7 @@
     {
       eyebrow: 'プログラミングの魔法',
       title: '世界には、魔法のルールがあります。',
-      image: 'story-intro-page-2.svg',
+      image: 'story-intro-page-2.webp',
       imageAlt: 'プログラミングの魔法で世界に働きかける見習いの神さま',
       paragraphs: [
         '見習いの神さまは、プログラミングの魔法を使って世界に少しずつ影響し、ヒーローたちが運命をかなえるのを助けられます。',
@@ -48,7 +48,7 @@
     {
       eyebrow: 'あるヒーローの伝説',
       title: 'むかしむかし……',
-      image: 'story-intro-page-3.svg',
+      image: 'story-intro-page-3.webp',
       imageAlt: 'お父さんと楽しく過ごす小さな女の子',
       legend: true,
       paragraphs: [
@@ -59,7 +59,7 @@
     {
       eyebrow: 'あるヒーローの伝説',
       title: 'ところが、ある日……',
-      image: 'story-intro-page-4.svg',
+      image: 'story-intro-page-4.webp',
       imageAlt: '魔女の呪いでおじいさんの姿に変えられる女の子',
       legend: true,
       paragraphs: [
@@ -70,7 +70,7 @@
     {
       eyebrow: 'あるヒーローの伝説',
       title: 'それでも、希望は捨てませんでした。',
-      image: 'story-intro-page-5.svg',
+      image: 'story-intro-page-5.webp',
       imageAlt: 'おじいさんの姿で魔法を学び始めるヒーロー',
       legend: true,
       paragraphs: [
@@ -81,7 +81,7 @@
     {
       eyebrow: '小さな女の子を助けよう',
       title: '冒険を手伝おう。',
-      image: 'story-intro-page-6.svg',
+      image: 'story-intro-page-6.webp',
       imageAlt: '見習いの神さまがヒーローの魔法を導く様子',
       paragraphs: [
         {
@@ -103,7 +103,7 @@
     {
       eyebrow: 'あなたの冒険',
       title: 'さあ、最初の魔法を。',
-      image: 'story-intro-page-7.svg',
+      image: 'story-intro-page-7.webp',
       imageAlt: '見習いの神さまとヒーローが冒険へ出発する様子',
       paragraphs: [
         'あなたの最初の魔法は、MISSION 00 から始まります。',
