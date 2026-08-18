@@ -142,7 +142,7 @@ Toutes les zones défilables utilisent le même thème bleu que l'éditeur.
 
 Quelques repères après renumérotation :
 
-- mission 00 : `hero.say("Hello Yuzu")` ;
+- mission 00 : `hero.say("Hello goddess!")` ;
 - mission 01 : JavaScript, Editor, commentaires et `hero.move(direction)` ;
 - missions 02–06 : premier pack de renforcement ;
 - mission 07 : transformation en grenouille ;
