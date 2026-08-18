@@ -42,7 +42,7 @@ assert.strictEqual(postedMessages.length, 1)
 assert(!postedMessages[0].workerError)
 assert(postedMessages[0].result.ok)
 assert(postedMessages[0].evaluation.passed)
-assert(postedMessages[0].result.state.says.includes('Hello Yuzu'))
+assert(postedMessages[0].result.state.says.includes('Hello goddess!'))
 
 const workerSource = readQuest('quest-worker.js')
 assert(workerSource.includes("importScripts('engine.js', 'curriculum-engine.js', 'boss-mechanics.js')"))
@@ -115,6 +115,7 @@ assert(!appSource.includes('localStorage.setItem(codeKeyPrefix + mission.id, mis
 const indexSource = readQuest('index.html')
 assert(indexSource.includes('<script src="progress-access.js"></script>'))
 assert(indexSource.includes('<script src="solution-help.js"></script>'))
+assert(indexSource.includes('<script src="story-intro-replay.js"></script>'))
 assert(indexSource.indexOf('progress-access.js') < indexSource.indexOf('app-v3.js'))
 assert(indexSource.indexOf('solution-help.js') < indexSource.indexOf('app-v3.js'))
 assert(indexSource.includes('id="show-solution"'))
@@ -168,4 +169,4 @@ for (const text of [
   'must remain incomplete',
 ]) assert(productRules.includes(text))
 
-console.log('Validated mission 00 worker execution, browser mission-pack wiring, boss-mechanics worker loading, temporary admin access, normal progress repair and separated solution help.')
+console.log('Validated mission 00 goddess greeting, worker execution, browser mission-pack wiring, boss-mechanics worker loading, temporary admin access, normal progress repair and separated solution help.')
