@@ -148,6 +148,8 @@ assert(!technicalTerms.includes('Hello Yuzu'))
 assert(technicalTerms.includes("'Hello ' + 'Yuzu'"))
 assert(readme.includes('hero.say("Hello goddess!")'))
 assert(!readme.includes('Hello Yuzu'))
+assert(productRules.includes('Mission 00 contains exactly one executable line: `hero.say("Hello goddess!");`.'))
+assert(!productRules.includes('Hello Yuzu'))
 
 for (const rule of [
   'all concept cards assigned to a mission become validated',
