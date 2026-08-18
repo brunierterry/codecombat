@@ -27,19 +27,29 @@ This document is the functional and business source of truth for the local Japan
 
 ## First-launch story introduction
 
-- On the first launch, before MISSION 00 is shown, the learner receives a blocking, full-screen, centered story introduction presented over several short pages.
+- On the first launch, before MISSION 00 is shown, the learner receives a blocking, full-screen, centered seven-page story introduction.
 - The introduction welcomes the learner as an apprentice god of `JavaScript Fantasy Land`.
 - It explains that an apprentice god can use programming magic to influence the world and help heroes accomplish their destiny, but cannot do anything arbitrarily: magic has rules, and learning those rules little by little allows the learner to influence more of the world.
 - The hero backstory is presented as a legend using different narrative typography from the surrounding introduction.
 - The legend says that there was once a beautiful, curious and courageous young girl who loved dancing, climbing trees and making small things for her father.
 - A witch jealous of the girl's youth curses her and transforms her into an old man.
 - Rather than abandon hope, the girl decides to learn magic while appearing to be an adult and no longer being recognized, so she can recover her normal appearance and stop the witch from hurting other people.
-- After the legend, the interface returns to the normal introduction typography and asks the apprentice god to help the girl through her adventure.
+- After the legend, page 6 returns to the normal introduction typography, asks the apprentice god to help the `hero` recover her original appearance, and explains that JavaScript programming magic can guide the hero's actions.
+- Page 7 contains the final invitation to cast the first spell in MISSION 00.
+- Every introduction page has exactly one numbered illustration asset, `story-intro-page-1.svg` through `story-intro-page-7.svg`, and the displayed image is associated with the matching page number.
+- The introduction layout keeps the illustration and text readable together by reducing image and typography sizes responsively when the viewport is shorter or narrower.
+- Pages 2 through 7 provide a previous-page control; page 1 does not expose a back action because there is no earlier page.
 - Intermediate pages use a centered `次へ` action. The final page uses `冒険をはじめる`, and only then reveals the normal campaign interface beginning with MISSION 00.
 - The underlying campaign must not flash visibly or become interactable before the first-launch introduction is resolved.
 - Completion of the introduction is persisted separately from mission progress under the dedicated `japanese-js-quest-story-intro-seen-v1` key. The key is written only after the final page is completed.
-- Reloading before the final page restarts the introduction cleanly. Once completed, the introduction is not shown again on ordinary launches.
+- Reloading before the final page restarts the introduction cleanly. Once completed, the introduction is not shown again on ordinary launches, including page reloads and later local-server restarts.
 - Resetting mission progress does not reset the first-launch story flag; the introduction remains a one-time onboarding experience.
+- After the campaign is visible, a discreet `物語をもう一度` control lets the learner replay the introduction on demand.
+- Replaying the introduction is view-only: it does not clear or rewrite the first-launch story flag and does not alter mission progress, saved code, unlock state or completion state. Closing the replay at the final page returns to the same campaign state.
+- The introduction applies reading assistance with the same light-blue interactive reading-token treatment used by the adventure for words above the expected early-elementary reading level.
+- The introduction explicitly provides readings for `見習い`（みならい）, `魔法`（まほう）, `運命`（うんめい）, `好奇心`（こうきしん）, `踊る`（おどる）, `魔女`（まじょ）, `恐ろしい`（おそろしい）, `呪い`（のろい）, `姿なら`（すがたなら）, `姿`（すがた）, `希望`（きぼう）, `捨て`（すて）, `傷つけ`（きずつけ）, `冒険`（ぼうけん）, `導く`（みちびく） and `手伝おう`（てつだおう） wherever those words appear in the story.
+- Longer reading targets are matched before shorter contained words so `姿なら` receives its complete reading rather than being split as `姿` plus unannotated text.
+- The Latin technical word `hero` is highlighted as a reading token and its tooltip gives both its hiragana pronunciation and meaning: `ひーろー → 主人公（しゅじんこう）`.
 
 ## Mission types and reinforcement architecture
 
@@ -445,7 +455,10 @@ This document is the functional and business source of truth for the local Japan
 - It verifies consecutive identifiers, unique identifiers, required gems, scripted levels, transformation gates and ordered action traces.
 - It verifies the five canonical mission type codes, labels and emojis and the reinforcement order after concept mission 01.
 - It verifies mission 00 remains a standalone concept mission with no reinforcement pack.
-- It verifies the first-launch story introduction appears before MISSION 00 only until the dedicated story-intro-seen flag is persisted, uses multiple centered pages with different narrative typography for the legend, and does not expose the underlying campaign before completion.
+- It verifies the first-launch story introduction appears before MISSION 00 only until the dedicated story-intro-seen flag is persisted, uses seven centered pages with different narrative typography for the legend, and does not expose the underlying campaign before completion.
+- It verifies that one illustration per introduction page exists physically in the codebase, that pages 1 through 7 reference their matching numbered assets, and that responsive styling keeps image and copy usable together.
+- It verifies the requested introduction reading tooltips, longest-word matching for `姿なら`, and the `hero` tooltip `ひーろー → 主人公（しゅじんこう）`.
+- It verifies pages 2 through 7 provide a previous-page control, page 1 hides that control, and replaying the introduction through `物語をもう一度` does not alter mission progress or clear the persisted first-launch flag.
 - It verifies missions 02–06 have no concept-card guides and that mission 03's transform exposure is only the documented explicit debugging exception.
 - It verifies `requiresCardValidation(...)` is true only for missions explicitly typed `concept`; missions 02–06 and a missing/unresolved mission are never card-gated.
 - It verifies switching to a non-concept mission clears stale `concept-cards-pending` state and leaves the run control enabled.
