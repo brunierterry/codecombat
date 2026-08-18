@@ -21,6 +21,12 @@
 
   const replacementCards = Object.freeze([
     card(
+      'concept-card-004',
+      0,
+      '<code>"Hello goddess!"</code> は文字列リテラル',
+      'ふつう、ローマ字はプログラムの命令を書くために使います。でも <code>" "</code> の中に入れると、主人公の世界で使う「文字そのもの」になります。これは文字列という値です。'
+    ),
+    card(
       'concept-card-005',
       1,
       '<code>hero.move(direction)</code>',
