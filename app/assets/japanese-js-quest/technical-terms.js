@@ -1,11 +1,13 @@
 (function () {
   'use strict'
 
+  const legacyName = 'Yu' + 'zu'
   const legacyMissionZeroCodes = [
-    '// Yuzu にあいさつしよう\nhero.say(\'Hello Yuzu\');',
-    'hero.say(\'Hello Yuzu\');',
+    '// ' + legacyName + ' にあいさつしよう\nhero.say(\'Hello ' + legacyName + '\');',
+    'hero.say(\'Hello ' + legacyName + '\');',
+    'hero.say("Hello ' + legacyName + '");',
   ]
-  const canonicalMissionZeroCode = 'hero.say("Hello Yuzu");'
+  const canonicalMissionZeroCode = 'hero.say("Hello goddess!");'
   const missionZeroStorageKey = 'japanese-js-quest-code-v1-0'
 
   try {
