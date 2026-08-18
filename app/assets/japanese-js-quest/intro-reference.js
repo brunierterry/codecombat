@@ -41,7 +41,7 @@
         tooltip('message', 'メッセージ：話してほしい言葉'), ')</div>',
         '<p>ヒーローの頭の上に、言葉のふきだしを表示します。</p>',
         '<p class="word-breakdown">hero＝主人公 / say＝言う / message＝言葉</p>',
-        '<div class="example-line"><span>例</span><code>hero.say("Hello Yuzu")</code></div>',
+        '<div class="example-line"><span>例</span><code>hero.say("Hello goddess!")</code></div>',
       ].join('')
       functions.prepend(item)
       bind(item)
@@ -62,7 +62,7 @@
       const concept = document.createElement('article')
       concept.id = 'reference-intro-concept'
       concept.className = 'reference-item concept-reference intro-reference-item'
-      concept.innerHTML = '<div><strong>関数を呼ぶ</strong><code class="concept-code glossary-token" tabindex="0" data-tooltip="名前のあとに ( ) を書くと、その命令を実行します。">hero.say("Hello Yuzu")</code></div><p>say という命令に、話す言葉を渡しています。</p>'
+      concept.innerHTML = '<div><strong>関数を呼ぶ</strong><code class="concept-code glossary-token" tabindex="0" data-tooltip="名前のあとに ( ) を書くと、その命令を実行します。">hero.say("Hello goddess!")</code></div><p>say という命令に、話す言葉を渡しています。</p>'
       concepts.prepend(concept)
       bind(concept)
     }
