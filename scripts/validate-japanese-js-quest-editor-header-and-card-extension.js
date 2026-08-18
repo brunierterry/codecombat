@@ -61,10 +61,11 @@ const runtimeRoot = { JSQuestMissions: [introMission, ...missions] }
 applyMissionContentPolish(runtimeRoot)
 const runtimeMissionOne = runtimeRoot.JSQuestMissions.find(mission => mission.id === 1)
 assert(runtimeMissionOne.instructions.includes('ヒーローを光るゴールのマスまで進めるとクリアです。'))
+const personalizedIntroCode = '// goddess は「神さま・女神さま」の意味。ヒーローに自分の名前で呼ばれてもいいなら、「自分の名前 + sama」に変えてもいいよ。\nhero.say("Hello goddess!");'
 assert.strictEqual(introMission.title, 'こんにちは、女神さま！')
-assert.strictEqual(introMission.starterCode, 'hero.say("Hello goddess!");')
-assert.strictEqual(introMission.solution, 'hero.say("Hello goddess!");')
-assert.strictEqual(introMission.requirements.state.sayText, 'Hello goddess!')
+assert.strictEqual(introMission.starterCode, personalizedIntroCode)
+assert.strictEqual(introMission.solution, personalizedIntroCode)
+assert.strictEqual(introMission.requirements.state.sayText, undefined)
 
 const singleQuotedLiteral = /(^|[^\w])'(?:\\.|[^'\\])*'/m
 for (const mission of runtimeRoot.JSQuestMissions) {
@@ -143,7 +144,8 @@ assert(tooltipCss.includes('pointer-events: none'))
 assert(tooltipCss.includes('.glossary-token::before'))
 assert(tooltipCss.includes('display: none !important'))
 
-assert(technicalTerms.includes('canonicalMissionZeroCode = \'hero.say("Hello goddess!");\''))
+assert(technicalTerms.includes('goddess は「神さま・女神さま」の意味'))
+assert(technicalTerms.includes('hero.say("Hello goddess!");'))
 assert(!technicalTerms.includes('Hello Yuzu'))
 assert(technicalTerms.includes("Hello ' + 'Yuzu"))
 assert(readme.includes('hero.say("Hello goddess!")'))
@@ -160,4 +162,4 @@ for (const rule of [
   'wrap onto additional centered lines',
 ]) assert(productRules.includes(rule))
 
-console.log('Validated the final editor, concept-card, mission-copy, celebration, goddess greeting migration, responsive shortcut and tooltip UX rules.')
+console.log('Validated the final editor, concept-card, mission-copy, celebration, personalized goddess greeting migration, responsive shortcut and tooltip UX rules.')
