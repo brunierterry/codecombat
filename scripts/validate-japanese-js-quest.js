@@ -47,7 +47,14 @@ assert.strictEqual(mission(missions, 0).wizardLevel, 0)
 assert.strictEqual(mission(missions, 1).wizardLevel, 0)
 for (const id of [2, 3, 4, 5]) assert.strictEqual(mission(missions, id).wizardLevel, 1)
 assert.deepStrictEqual([1, 2, 3].map(progression.thresholdForLevel), [1, 5, 12])
-assert.strictEqual(introMission.starterCode, 'hero.say("Hello goddess!");')
+const personalizedIntroCode = '// goddess は「神さま・女神さま」の意味。ヒーローに自分の名前で呼ばれてもいいなら、「自分の名前 + sama」に変えてもいいよ。\nhero.say("Hello goddess!");'
+assert.strictEqual(introMission.starterCode, personalizedIntroCode)
+assert.strictEqual(introMission.solution, personalizedIntroCode)
+assert.strictEqual(introMission.requirements.state.sayText, undefined)
+const personalizedIntroSource = 'hero.say("Hello Aoi sama!");'
+const personalizedIntroResult = engine.simulate(personalizedIntroSource, introMission, 0)
+assert(personalizedIntroResult.ok)
+assert(engine.evaluate(introMission, personalizedIntroResult, personalizedIntroSource).passed)
 
 for (const item of missions) {
   assert(item.title && item.starterCode && item.solution)
