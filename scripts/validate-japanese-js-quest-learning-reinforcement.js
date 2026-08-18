@@ -103,7 +103,8 @@ for (const text of [
   'どこかにまちがいがあります',
   '先に「新しい考え方」のカードを全部めくって',
   'jsquest:conceptcardschanged',
-  "new URLSearchParams(root.location.search).get('admin') === '1'",
+  'const value = new URLSearchParams(root.location.search).get(\'admin\')',
+  'value === \'1\' || value === \'true\'',
   'ADMIN：正解を選ぶ',
   '正しい選択肢を選びました',
   'inputs.find(input => input.value === item.answer)',
@@ -112,6 +113,8 @@ for (const text of [
   'concept-card-admin-validate-all',
   'このミッションのカードをすべて確認済みにする',
 ]) assert(memorySource.includes(text))
+assert(memorySource.includes('if (isAdminMode())'))
+assert(memorySource.indexOf('if (isAdminMode())') < memorySource.indexOf('adminFill.textContent = \'ADMIN：正解を選ぶ\''))
 assert(memorySource.includes("run?.addEventListener('click'"))
 assert(memorySource.includes("document.addEventListener('keydown'"))
 assert(memorySource.indexOf('guide.appendChild(button)') < memorySource.indexOf('function updateExecutionGate'))
@@ -201,7 +204,9 @@ for (const text of [
   '## Simplified pedagogical syntax preview',
   'CSS custom properties',
   'String quote characters remain in the default syntax color',
-  'cannot open the editable code view or execute the mission',
+  'cannot open the editable code view or execute a concept mission',
+  'Every non-concept mission is card-ready by mission type',
+  'only an explicitly resolved `concept` mission may be card-gated',
   'Whenever a mission or concept card is added or changed',
   'Admin mode provides a quiz-review control',
   'cursor placed at the corresponding source-code offset',
@@ -223,4 +228,4 @@ for (const text of [
 ]) assert(readme.includes(text))
 assert(!fs.existsSync(path.join(repositoryPath, 'docs', 'LEARNING_REINFORCEMENT_PLAN.md')))
 
-console.log(`Validated ${allCards.length} concept-card quizzes, admin bulk validation, reading help, restored blue scrollbar styling and exact 11px execution reminder.`)
+console.log(`Validated ${allCards.length} core concept-card quizzes, admin=true/1 per-quiz autofill, admin bulk validation, reading help, restored blue scrollbar styling and exact editor reminder behavior.`)

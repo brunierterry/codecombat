@@ -11,6 +11,16 @@ These rules apply to every contribution to Chiritsumo.
 - When a repository does not contain these files, create them before making functional changes.
 - In DEVELOPMENT_RULES.md add only generic rules for development, not specific to the product, and ask confirmation to the user for modifications.
 
+## Versioning
+
+- Every user-visible or functional change must update the application version displayed by the product.
+- Versions use exactly three numeric parts: `MAJOR.MINOR.REVISION`.
+- While working on the same pull request, each new requested change increments `REVISION` by one and keeps `MAJOR` and `MINOR` unchanged.
+- When starting a new pull request, increment `MINOR` by one and reset `REVISION` to `0`.
+- Increment `MAJOR` only when the user explicitly requests a major version change; when `MAJOR` changes, reset `MINOR` and `REVISION` to `0` unless the user specifies otherwise.
+- The product must display the current version discreetly at the very bottom of its main page.
+- Keep one canonical version value that the UI reads rather than duplicating independently maintained version strings.
+
 ## Change discipline
 
 - Do not remove or weaken an existing feature, validation, confirmation, navigation route, backup field, or setting without explicit approval.
@@ -32,3 +42,4 @@ Before declaring work complete:
 - Compare the changed behavior with `docs/PRODUCT_RULES.md`.
 - Review the diff for accidental feature deletion, especially dialogs, validation, navigation state, and backup fields.
 - Verify every UI restriction also has a persistence-side guard when it represents a business invariant.
+- Verify the application version follows the versioning rules for the current pull request and is visible at the bottom of the main page.

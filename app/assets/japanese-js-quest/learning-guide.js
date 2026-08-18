@@ -25,6 +25,7 @@
     方法: 'ほうほう',
     指定: 'してい',
     情報: 'じょうほう',
+    入力: 'にゅうりょく',
     言葉: 'ことば',
     表示: 'ひょうじ',
     表す: 'あらわす',
@@ -51,6 +52,7 @@
     経験値: 'けいけんち',
     宝石: 'ほうせき',
     看板: 'かんばん',
+    上下左右: 'じょうげさゆう',
     方向: 'ほうこう',
     履歴: 'りれき',
     順番: 'じゅんばん',
@@ -179,9 +181,15 @@
     const library = window.JSQuestConceptCards
     const guide = library?.getMissionGuide(displayedMissionId())
     const story = document.getElementById('mission-story')
-    if (!story || !guide) return
+    const existingSection = document.getElementById('mission-learning-guide')
+    if (!story) return
+    if (!guide) {
+      existingSection?.remove()
+      scheduleAnnotations()
+      return
+    }
 
-    let section = document.getElementById('mission-learning-guide')
+    let section = existingSection
     if (!section) {
       section = document.createElement('section')
       section.id = 'mission-learning-guide'

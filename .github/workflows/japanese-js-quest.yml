@@ -5,6 +5,7 @@ on:
     branches:
       - feature/japanese-js-quest-20-missions
       - feature/japanese-js-quest-learning-reinforcement
+      - feature/japanese-js-quest-mission-types-first-pack
     paths:
       - 'app/assets/japanese-js-quest/**'
       - 'scripts/validate-japanese-js-quest.js'
@@ -12,6 +13,9 @@ on:
       - 'scripts/validate-japanese-js-quest-loop-rules.js'
       - 'scripts/validate-japanese-js-quest-learning-reinforcement.js'
       - 'scripts/validate-japanese-js-quest-editor-header-and-card-extension.js'
+      - 'scripts/validate-japanese-js-quest-mission-pack-v1.js'
+      - 'scripts/validate-japanese-js-quest-dragon-polish.js'
+      - 'scripts/validate-japanese-js-quest-story-intro.js'
       - 'docs/PRODUCT_RULES.md'
       - 'docs/DEVELOPMENT_RULES.md'
       - '.github/workflows/japanese-js-quest.yml'
@@ -23,6 +27,9 @@ on:
       - 'scripts/validate-japanese-js-quest-loop-rules.js'
       - 'scripts/validate-japanese-js-quest-learning-reinforcement.js'
       - 'scripts/validate-japanese-js-quest-editor-header-and-card-extension.js'
+      - 'scripts/validate-japanese-js-quest-mission-pack-v1.js'
+      - 'scripts/validate-japanese-js-quest-dragon-polish.js'
+      - 'scripts/validate-japanese-js-quest-story-intro.js'
       - 'docs/PRODUCT_RULES.md'
       - 'docs/DEVELOPMENT_RULES.md'
       - '.github/workflows/japanese-js-quest.yml'
@@ -46,3 +53,9 @@ jobs:
         run: node scripts/validate-japanese-js-quest-learning-reinforcement.js
       - name: Validate editor header and mission 01 concept additions
         run: node scripts/validate-japanese-js-quest-editor-header-and-card-extension.js
+      - name: Validate mission types and first reinforcement pack
+        run: node scripts/validate-japanese-js-quest-mission-pack-v1.js
+      - name: Validate polished dragon encounter
+        run: node scripts/validate-japanese-js-quest-dragon-polish.js
+      - name: Validate first-launch story introduction
+        run: node scripts/validate-japanese-js-quest-story-intro.js

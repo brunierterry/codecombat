@@ -41,7 +41,7 @@
         tooltip('message', 'メッセージ：話してほしい言葉'), ')</div>',
         '<p>ヒーローの頭の上に、言葉のふきだしを表示します。</p>',
         '<p class="word-breakdown">hero＝主人公 / say＝言う / message＝言葉</p>',
-        '<div class="example-line"><span>例</span><code>hero.say("Hello goddess!")</code></div>'
+        '<div class="example-line"><span>例</span><code>hero.say("Hello goddess!")</code></div>',
       ].join('')
       functions.prepend(item)
       bind(item)
@@ -52,7 +52,7 @@
       chip.id = 'reference-message-parameter'
       chip.className = 'reference-chip glossary-token intro-reference-item'
       chip.type = 'button'
-      chip.dataset.tooltip = 'ヒーローに話してほしい言葉です。文字は " " または \' \' で囲みます。'
+      chip.dataset.tooltip = 'ヒーローに話してほしい言葉です。文字は " " で囲みます。'
       chip.innerHTML = '<code>message</code><span>メッセージ：言葉</span>'
       parameters.prepend(chip)
       bind(chip)

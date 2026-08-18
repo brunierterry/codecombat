@@ -19,6 +19,13 @@
     return level
   }
 
+  function sourceMissionId (mission) {
+    if (!mission) return 0
+    if (Number.isInteger(mission.prePracticeId)) return mission.prePracticeId
+    if (Number.isInteger(mission.practiceOf)) return mission.practiceOf
+    return mission.id
+  }
+
   function replaceChar (row, index, char) {
     return row.slice(0, index) + char + row.slice(index + 1)
   }
@@ -73,7 +80,7 @@
       mission.nextLevelXp = thresholdForLevel(mission.wizardLevel + 1)
       mission.currentLevelXp = thresholdForLevel(mission.wizardLevel)
 
-      if (mission.wizardLevel >= 1) {
+      if (mission.wizardLevel >= 1 && sourceMissionId(mission) >= 2) {
         if (!mission.api.includes('hero.transform("frog")')) mission.api.push('hero.transform("frog")')
         if (!mission.api.includes('hero.transform("hero")')) mission.api.push('hero.transform("hero")')
       }
@@ -84,5 +91,5 @@
     return missions
   }
 
-  return { apply, levelForXp, thresholdForLevel }
+  return { apply, levelForXp, thresholdForLevel, sourceMissionId }
 })

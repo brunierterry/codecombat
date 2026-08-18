@@ -66,6 +66,8 @@
       grid,
       hero,
       form: 'hero',
+      alive: true,
+      deathCause: null,
       wizardLevel: Number(mission.wizardLevel) || 0,
       moves: 0,
       operations: 0,
@@ -105,6 +107,10 @@
       y: state.hero.y,
       grid: state.grid.map(row => row.join('')),
       form: state.form,
+      alive: state.alive !== false,
+      deathCause: state.deathCause || null,
+      bossDefeated: Boolean(state.bossDefeated),
+      dragonHit: Boolean(state.dragonHit),
       wizardLevel: state.wizardLevel,
       moves: state.moves,
       gems: state.gems,
@@ -113,6 +119,58 @@
       goalReached: state.goalReached,
       says: state.says.slice()
     }, extra || {})
+  }
+
+  function stopExecution (state, reason) {
+    const error = new Error(reason || 'ヒーローが倒れたため、実行を停止しました。')
+    error.jsQuestExecutionStopped = true
+    error.code = 'hero-dead'
+    throw error
+  }
+
+  function ensureHeroAlive (state) {
+    if (state.alive === false) stopExecution(state)
+  }
+
+  function applyActionOutcome (state, outcome) {
+    if (!outcome) return
+    if (outcome.state && typeof outcome.state === 'object') Object.assign(state, outcome.state)
+    if (outcome.killHero) {
+      state.alive = false
+      state.deathCause = outcome.deathCause || state.deathCause || 'hazard'
+      state.goalReached = false
+    }
+    if (outcome.trace) state.trace.push(snapshot(state, outcome.trace))
+    if (outcome.stopExecution || state.alive === false) stopExecution(state, outcome.message)
+  }
+
+  function resolveCoreHazard (state) {
+    if (tileAt(state, state.hero.x, state.hero.y) !== 'T') return null
+    return {
+      killHero: true,
+      deathCause: 'trap',
+      trace: {
+        type: 'hazard-death',
+        hazard: 'trap'
+      },
+      message: 'ワナにかかって、ヒーローが倒れました。'
+    }
+  }
+
+  function resolveActionPhase (state, phase, action) {
+    applyActionOutcome(state, resolveCoreHazard(state))
+    const hook = state.variant && state.variant.runtimeActionHook
+    if (typeof hook !== 'function') return
+    applyActionOutcome(state, hook({ state, phase, action }))
+  }
+
+  function performAction (state, action, callback) {
+    ensureHeroAlive(state)
+    resolveActionPhase(state, 'before', action)
+    ensureHeroAlive(state)
+    const result = callback()
+    resolveActionPhase(state, 'after', action)
+    return result
   }
 
   function speak (state, message, extra) {
@@ -244,51 +302,92 @@
   function unknownMethod (state, property) {
     const name = String(property)
     return function () {
-      failWithSpeech(
-        state,
-        '「hero.' + name + '」という命令はわからないよ。つづりを確認してね。',
-        'unknown-method'
-      )
+      return performAction(state, { type: 'unknown-method', method: name }, function () {
+        failWithSpeech(
+          state,
+          '「hero.' + name + '」という命令はわからないよ。つづりを確認してね。',
+          'unknown-method'
+        )
+      })
     }
   }
 
   function createHeroApi (state) {
     const methods = Object.freeze({
-      move: function () { return move(state, requireDirectionArgument(state, arguments)) },
-      canMove: function () { return canMove(state, requireDirectionArgument(state, arguments)) },
-      look: function () { return inspect(state, requireDirectionArgument(state, arguments)) },
+      move: function () {
+        const args = arguments
+        return performAction(state, { type: 'move' }, function () {
+          return move(state, requireDirectionArgument(state, args))
+        })
+      },
+      canMove: function () {
+        const args = arguments
+        return performAction(state, { type: 'canMove' }, function () {
+          return canMove(state, requireDirectionArgument(state, args))
+        })
+      },
+      look: function () {
+        const args = arguments
+        return performAction(state, { type: 'look' }, function () {
+          return inspect(state, requireDirectionArgument(state, args))
+        })
+      },
       readSign: function () {
-        requireNoArguments(state, 'readSign', arguments)
-        touch(state)
-        return state.variant.sign
+        const args = arguments
+        return performAction(state, { type: 'readSign' }, function () {
+          requireNoArguments(state, 'readSign', args)
+          touch(state)
+          return state.variant.sign
+        })
       },
       hasKey: function () {
-        requireNoArguments(state, 'hasKey', arguments)
-        touch(state)
-        return state.hasKey
+        const args = arguments
+        return performAction(state, { type: 'hasKey' }, function () {
+          requireNoArguments(state, 'hasKey', args)
+          touch(state)
+          return state.hasKey
+        })
       },
       gemCount: function () {
-        requireNoArguments(state, 'gemCount', arguments)
-        touch(state)
-        return state.gems
+        const args = arguments
+        return performAction(state, { type: 'gemCount' }, function () {
+          requireNoArguments(state, 'gemCount', args)
+          touch(state)
+          return state.gems
+        })
       },
       isAtGoal: function () {
-        requireNoArguments(state, 'isAtGoal', arguments)
-        touch(state)
-        return state.goalReached
+        const args = arguments
+        return performAction(state, { type: 'isAtGoal' }, function () {
+          requireNoArguments(state, 'isAtGoal', args)
+          touch(state)
+          return state.goalReached
+        })
       },
       x: function () {
-        requireNoArguments(state, 'x', arguments)
-        touch(state)
-        return state.hero.x
+        const args = arguments
+        return performAction(state, { type: 'x' }, function () {
+          requireNoArguments(state, 'x', args)
+          touch(state)
+          return state.hero.x
+        })
       },
       y: function () {
-        requireNoArguments(state, 'y', arguments)
-        touch(state)
-        return state.hero.y
+        const args = arguments
+        return performAction(state, { type: 'y' }, function () {
+          requireNoArguments(state, 'y', args)
+          touch(state)
+          return state.hero.y
+        })
       },
-      say: function () { return say(state, Array.from(arguments)) },
-      transform: function () { return transform(state, Array.from(arguments)) }
+      say: function () {
+        const args = Array.from(arguments)
+        return performAction(state, { type: 'say' }, function () { return say(state, args) })
+      },
+      transform: function () {
+        const args = Array.from(arguments)
+        return performAction(state, { type: 'transform' }, function () { return transform(state, args) })
+      }
     })
 
     return new Proxy(methods, {
@@ -317,6 +416,15 @@
       runner(hero, safeConsole, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined)
       return { ok: true, state: snapshot(state), trace: state.trace, logs: state.logs }
     } catch (error) {
+      if (error.jsQuestExecutionStopped) {
+        return {
+          ok: true,
+          stopped: true,
+          state: snapshot(state),
+          trace: state.trace,
+          logs: state.logs
+        }
+      }
       return {
         ok: false,
         state: snapshot(state),
@@ -369,6 +477,7 @@
     const stateRules = rules.state || {}
     const state = result.state
 
+    if (state.alive === false) messages.push('ヒーローが倒れました。安全な方法を考えよう。')
     if (stateRules.goal && !state.goalReached) messages.push('まだゴールに着いていません。')
     if (stateRules.minGems != null && state.gems < stateRules.minGems) {
       messages.push('宝石をあと ' + (stateRules.minGems - state.gems) + ' 個集めましょう。')

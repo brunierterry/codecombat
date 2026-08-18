@@ -1,11 +1,10 @@
 (function () {
   'use strict'
 
-  const legacyName = 'Yu' + 'zu'
   const legacyMissionZeroCodes = [
-    '// ' + legacyName + ' にあいさつしよう\nhero.say(\'Hello ' + legacyName + '\');',
-    'hero.say(\'Hello ' + legacyName + '\');',
-    'hero.say("Hello ' + legacyName + '");',
+    '// Yuzu にあいさつしよう\nhero.say(\'Hello ' + 'Yuzu\');',
+    'hero.say(\'Hello ' + 'Yuzu\');',
+    'hero.say("Hello ' + 'Yuzu");',
     'hero.say("Hello goddess!");',
   ]
   const canonicalMissionZeroCode = '// goddess は「神さま・女神さま」の意味。ヒーローに自分の名前で呼ばれてもいいなら、「自分の名前 + sama」に変えてもいいよ。\nhero.say("Hello goddess!");'

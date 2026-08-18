@@ -13,6 +13,7 @@
   let validatedCards = new Set()
   let previewCardId = null
   let activeModalCardId = null
+  let activeMission = null
 
   function storage () {
     return root && root.localStorage ? root.localStorage : null
@@ -30,7 +31,7 @@
 
   function save () {
     storage()?.setItem(STORAGE_KEY, JSON.stringify({
-      validatedCardIds: Array.from(validatedCards).sort()
+      validatedCardIds: Array.from(validatedCards).sort(),
     }))
   }
 
@@ -40,11 +41,29 @@
     return match ? Number(match[1]) : 0
   }
 
+  function currentMission () {
+    const missionId = currentMissionId()
+    if (activeMission && Number(activeMission.id) === missionId) return activeMission
+    const missions = root && Array.isArray(root.JSQuestMissions) ? root.JSQuestMissions : []
+    return missions.find(mission => Number(mission.id) === missionId) || null
+  }
+
+  function requiresCardValidation (mission) {
+    return mission?.type === 'concept'
+  }
+
+  function currentMissionRequiresCardValidation () {
+    return requiresCardValidation(currentMission())
+  }
+
   function isAdminMode () {
-    return Boolean(root && root.location && new URLSearchParams(root.location.search).get('admin') === '1')
+    if (!root || !root.location) return false
+    const value = new URLSearchParams(root.location.search).get('admin')
+    return value === '1' || value === 'true'
   }
 
   function missionCardIds () {
+    if (!currentMissionRequiresCardValidation()) return []
     const guide = root.JSQuestConceptCards?.getMissionGuide(currentMissionId())
     return guide ? guide.cardIds.slice() : []
   }
@@ -66,7 +85,7 @@
   }
 
   function validateCurrentMissionCardsForAdmin () {
-    if (!isAdminMode()) return false
+    if (!isAdminMode() || !currentMissionRequiresCardValidation()) return false
     const cardIds = missionCardIds()
     if (cardIds.length === 0) return false
 
@@ -79,12 +98,13 @@
   }
 
   function isMissionReady () {
+    if (!currentMissionRequiresCardValidation()) return true
     const cardIds = missionCardIds()
-    return cardIds.length > 0 && cardIds.every(isValidated)
+    return cardIds.length === 0 || cardIds.every(isValidated)
   }
 
   function explainBlockedExecution () {
-    if (typeof document === 'undefined') return
+    if (typeof document === 'undefined' || !currentMissionRequiresCardValidation()) return
     const feedback = document.getElementById('feedback')
     if (feedback) {
       feedback.className = 'feedback neutral'
@@ -95,7 +115,7 @@
 
   const executionGate = Object.freeze({
     canRun: isMissionReady,
-    explainBlockedExecution
+    explainBlockedExecution,
   })
 
   function shuffle (values) {
@@ -130,7 +150,7 @@
       '  <h3 id="concept-card-quiz-title">ミニクイズ</h3>',
       '  <form id="concept-card-quiz-form"></form>',
       '  <p id="concept-card-quiz-feedback" class="concept-card-quiz-feedback" aria-live="polite"></p>',
-      '</div>'
+      '</div>',
     ].join('')
     document.body.appendChild(modal)
 
@@ -291,7 +311,7 @@
   function renderProgress () {
     const guide = document.getElementById('mission-learning-guide')
     const heading = guide?.querySelector('.learning-guide-heading')
-    if (!guide || !heading) return
+    if (!guide || !heading || !currentMissionRequiresCardValidation()) return
 
     let progress = guide.querySelector('.concept-card-memory-progress')
     if (!progress) {
@@ -311,7 +331,7 @@
     if (!guide) return
 
     let button = guide.querySelector('.concept-card-admin-validate-all')
-    if (!isAdminMode()) {
+    if (!isAdminMode() || !currentMissionRequiresCardValidation()) {
       button?.remove()
       return
     }
@@ -334,10 +354,24 @@
   }
 
   function updateExecutionGate () {
-    const ready = isMissionReady()
+    const mission = currentMission()
+    const requiresValidation = requiresCardValidation(mission)
+    const ready = !requiresValidation || isMissionReady()
     const run = document.getElementById('run-code')
     const codePanel = document.querySelector('.code-panel')
     const guide = document.getElementById('mission-learning-guide')
+
+    if (!requiresValidation) {
+      if (run) {
+        run.disabled = false
+        run.setAttribute('aria-disabled', 'false')
+        run.title = ''
+      }
+      codePanel?.classList.remove('concept-cards-pending')
+      guide?.classList.remove('all-concept-cards-validated')
+      return
+    }
+
     if (run) {
       run.disabled = !ready
       run.setAttribute('aria-disabled', String(!ready))
@@ -358,14 +392,15 @@
   function installGuards () {
     const run = document.getElementById('run-code')
     run?.addEventListener('click', event => {
-      if (isMissionReady()) return
+      if (!currentMissionRequiresCardValidation() || isMissionReady()) return
       event.preventDefault()
       event.stopImmediatePropagation()
       explainBlockedExecution()
     }, true)
 
     document.addEventListener('keydown', event => {
-      if (!(event.ctrlKey || event.metaKey) || event.key !== 'Enter' || isMissionReady()) return
+      if (!(event.ctrlKey || event.metaKey) || event.key !== 'Enter') return
+      if (!currentMissionRequiresCardValidation() || isMissionReady()) return
       event.preventDefault()
       event.stopImmediatePropagation()
       explainBlockedExecution()
@@ -376,12 +411,15 @@
     if (typeof document === 'undefined') return
     const init = () => {
       load()
+      activeMission = currentMission()
       ensureModal()
       installGuards()
       refreshCards()
-      document.addEventListener('jsquest:missionloaded', () => {
+      document.addEventListener('jsquest:missionloaded', event => {
+        activeMission = event.detail?.mission || currentMission()
         previewCardId = null
         activeModalCardId = null
+        refreshCards()
         window.setTimeout(refreshCards, 0)
       })
       document.addEventListener('click', event => {
@@ -402,8 +440,9 @@
     isValidated,
     validateCard,
     validateCurrentMissionCardsForAdmin,
+    requiresCardValidation,
     isMissionReady,
     executionGate,
-    install
+    install,
   })
 })
