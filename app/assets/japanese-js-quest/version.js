@@ -8,5 +8,5 @@
   }
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict'
-  return '0.3.9'
+  return '0.3.10'
 })
