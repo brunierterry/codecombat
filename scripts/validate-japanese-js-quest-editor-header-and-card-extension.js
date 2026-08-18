@@ -54,13 +54,17 @@ assert(cards.getCard('concept-card-038').bodyHtml.includes('コードを読ん�
 assert(cards.getCard('concept-card-005').bodyHtml.includes('1マスだけ進みます'))
 assert(cards.getCard('concept-card-005').bodyHtml.includes('進む回数だけこのメソッドを呼びます'))
 assert(quizzes.getQuiz('concept-card-005').some(item => item.answer === '1マス'))
+assert(cards.getCard('concept-card-004').titleHtml.includes('"Hello goddess!"'))
+assert(quizzes.getQuiz('concept-card-004').some(item => item.prompt.includes('Hello goddess!')))
 
 const runtimeRoot = { JSQuestMissions: [introMission, ...missions] }
 applyMissionContentPolish(runtimeRoot)
 const runtimeMissionOne = runtimeRoot.JSQuestMissions.find(mission => mission.id === 1)
 assert(runtimeMissionOne.instructions.includes('ヒーローを光るゴールのマスまで進めるとクリアです。'))
-assert.strictEqual(introMission.starterCode, 'hero.say("Hello Yuzu");')
-assert.strictEqual(introMission.solution, 'hero.say("Hello Yuzu");')
+assert.strictEqual(introMission.title, 'こんにちは、女神さま！')
+assert.strictEqual(introMission.starterCode, 'hero.say("Hello goddess!");')
+assert.strictEqual(introMission.solution, 'hero.say("Hello goddess!");')
+assert.strictEqual(introMission.requirements.state.sayText, 'Hello goddess!')
 
 const singleQuotedLiteral = /(^|[^\w])'(?:\\.|[^'\\])*'/m
 for (const mission of runtimeRoot.JSQuestMissions) {
@@ -138,7 +142,8 @@ assert(tooltipCss.includes('pointer-events: none'))
 assert(tooltipCss.includes('.glossary-token::before'))
 assert(tooltipCss.includes('display: none !important'))
 
-assert(technicalTerms.includes('canonicalMissionZeroCode = \'hero.say("Hello Yuzu");\''))
+assert(technicalTerms.includes('canonicalMissionZeroCode = \'hero.say("Hello goddess!");\''))
+assert(technicalTerms.includes('\'hero.say("Hello Yuzu");\''))
 assert(technicalTerms.includes('\'hero.say(\\\'Hello Yuzu\\\');\''))
 
 for (const rule of [
@@ -150,4 +155,4 @@ for (const rule of [
   'wrap onto additional centered lines',
 ]) assert(productRules.includes(rule))
 
-console.log('Validated the final editor, concept-card, mission-copy, celebration, quote, responsive shortcut and tooltip UX rules.')
+console.log('Validated the final editor, concept-card, mission-copy, celebration, goddess greeting migration, responsive shortcut and tooltip UX rules.')
