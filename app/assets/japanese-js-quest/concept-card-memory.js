@@ -57,7 +57,9 @@
   }
 
   function isAdminMode () {
-    return Boolean(root && root.location && new URLSearchParams(root.location.search).get('admin') === '1')
+    if (!root || !root.location) return false
+    const value = new URLSearchParams(root.location.search).get('admin')
+    return value === '1' || value === 'true'
   }
 
   function missionCardIds () {
