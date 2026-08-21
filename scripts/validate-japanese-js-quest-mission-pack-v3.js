@@ -94,9 +94,9 @@ assert.strictEqual(bossMission.bossEncounter, true)
 assert.strictEqual(bossMission.bossResolution, 'escape')
 assert.strictEqual(bossMission.variants.length, 2)
 assert.deepStrictEqual(bossMission.variants.map(variant => variant.sign), ['right', 'left'])
-assert.strictEqual(bossMission.requirements.state.maxMoves, 13)
+assert.strictEqual(bossMission.requirements.state.maxMoves, 10)
 assert.strictEqual(bossMission.requirements.state.minGems, 1)
-assert(bossMission.victoryConditions.some(item => item.id === 'max-moves' && item.label === '移動：最大 13 回'))
+assert(bossMission.victoryConditions.some(item => item.id === 'max-moves' && item.label === '移動：最大 10 回'))
 assert(bossMission.solution.includes('hero.readSign()'))
 assert(bossMission.solution.includes('if (direction === "right")'))
 assert(bossMission.solution.includes('if (direction === "left")'))
@@ -111,10 +111,10 @@ assert.strictEqual(leftField.map[4][4], '#')
 assert.strictEqual(leftField.map[4][8], '.')
 assert.strictEqual(rightField.map[8][6], 'H')
 assert.strictEqual(leftField.map[8][6], 'H')
-assert.strictEqual(rightField.map[1][7], '*')
-assert.strictEqual(leftField.map[1][5], '*')
-assert.strictEqual(rightField.map[1][6], 'G')
-assert.strictEqual(leftField.map[1][6], 'G')
+assert.strictEqual(rightField.map[2][9], '*')
+assert.strictEqual(leftField.map[2][3], '*')
+assert.strictEqual(rightField.map[1][9], 'G')
+assert.strictEqual(leftField.map[1][3], 'G')
 
 assert.deepStrictEqual(
   bossMechanics.dragonRayCells(rightField, rightField.boss, 'right'),
@@ -177,7 +177,7 @@ for (let variantIndex = 0; variantIndex < bossMission.variants.length; variantIn
   assert.strictEqual(solutionResult.ok, true)
   assert.strictEqual(solutionResult.state.alive, true)
   assert.strictEqual(solutionResult.state.dragonHit, false)
-  assert.strictEqual(solutionResult.state.moves, 13)
+  assert.strictEqual(solutionResult.state.moves, 10)
   assert.strictEqual(solutionResult.state.gems, 1)
   assert.strictEqual(solutionResult.state.goalReached, true)
   assert.strictEqual(solutionEvaluation.passed, true, solutionEvaluation.messages.join('\n'))
@@ -223,6 +223,17 @@ for (const text of [
   'FINAL_MISSION_COUNT = 32',
   "label: '移動：最大 21 回'",
 ]) assert(packSource.includes(text))
+
+const productRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'PRODUCT_RULES.md'), 'utf8')
+for (const text of [
+  'MISSION 09',
+  '21 moves',
+  'MISSION 12',
+  'logic-fix',
+  'MISSION 13',
+  '看板：right',
+  '看板：left',
+]) assert(productRules.includes(text), 'Missing v3 product rule: ' + text)
 
 const version = require(path.join(questPath, 'version.js'))
 assert.strictEqual(version, '0.4.1')
