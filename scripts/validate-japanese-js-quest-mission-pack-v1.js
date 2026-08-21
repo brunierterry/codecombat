@@ -285,7 +285,7 @@ for (const text of [
   'occupied by a creature',
   'three leftward moves',
   'introductory escape-boss exception',
-  'dragon must remain alive',
+  'dragon remains alive',
   'lily',
   'next concept mission',
 ]) assert(productRules.includes(text), 'Missing product rule: ' + text)
