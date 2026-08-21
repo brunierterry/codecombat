@@ -20,7 +20,7 @@ const version = require(path.join(questPath, 'version.js'))
 const productRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'PRODUCT_RULES.md'), 'utf8')
 const developmentRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'DEVELOPMENT_RULES.md'), 'utf8')
 
-assert.strictEqual(version, '0.4.0')
+assert.strictEqual(version, '0.4.1')
 assert(index.includes('<body class="story-intro-checking">'))
 assert(index.includes('<link rel="stylesheet" href="story-intro.css">'))
 assert(index.includes('<script src="story-intro.js"></script>'))
@@ -152,4 +152,4 @@ for (const text of [
 assert(developmentRules.includes('MAJOR.MINOR.REVISION'))
 assert(developmentRules.includes('each new requested change increments `REVISION` by one'))
 
-console.log('Validated seven directly loaded high-quality PNG story pages, 姿-only reading, back navigation, MISSION 00 replay behavior and app version 0.4.0.')
+console.log('Validated seven directly loaded high-quality PNG story pages, 姿-only reading, back navigation, MISSION 00 replay behavior and app version 0.4.1.')
