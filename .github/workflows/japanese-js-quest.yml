@@ -16,6 +16,7 @@ on:
       - 'scripts/validate-japanese-js-quest-editor-header-and-card-extension.js'
       - 'scripts/validate-japanese-js-quest-mission-pack-v1.js'
       - 'scripts/validate-japanese-js-quest-mission-pack-v2.js'
+      - 'scripts/validate-japanese-js-quest-mission-pack-v3.js'
       - 'scripts/validate-japanese-js-quest-dragon-polish.js'
       - 'scripts/validate-japanese-js-quest-story-intro.js'
       - 'docs/PRODUCT_RULES.md'
@@ -31,6 +32,7 @@ on:
       - 'scripts/validate-japanese-js-quest-editor-header-and-card-extension.js'
       - 'scripts/validate-japanese-js-quest-mission-pack-v1.js'
       - 'scripts/validate-japanese-js-quest-mission-pack-v2.js'
+      - 'scripts/validate-japanese-js-quest-mission-pack-v3.js'
       - 'scripts/validate-japanese-js-quest-dragon-polish.js'
       - 'scripts/validate-japanese-js-quest-story-intro.js'
       - 'docs/PRODUCT_RULES.md'
@@ -60,6 +62,8 @@ jobs:
         run: node scripts/validate-japanese-js-quest-mission-pack-v1.js
       - name: Validate mission 7 reinforcement pack
         run: node scripts/validate-japanese-js-quest-mission-pack-v2.js
+      - name: Validate if reinforcement and conditional dragon boss
+        run: node scripts/validate-japanese-js-quest-mission-pack-v3.js
       - name: Validate polished dragon encounter
         run: node scripts/validate-japanese-js-quest-dragon-polish.js
       - name: Validate first-launch story introduction
