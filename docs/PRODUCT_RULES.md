@@ -12,7 +12,7 @@ This document is the functional and business source of truth for the local Japan
 
 ## Campaign and persistence
 
-- The current campaign contains 28 missions numbered 00 through 27.
+- The current campaign contains 32 missions numbered 00 through 31.
 - Missions unlock linearly unless admin mode explicitly unlocks them for the current loaded page.
 - Completion state and edited code are stored in browser `localStorage`.
 - Normal mission access is derived from the consecutive completed mission prefix: mission 00 is initially available, and each following mission becomes available only after every preceding mission has been completed.
@@ -24,6 +24,8 @@ This document is the functional and business source of truth for the local Japan
 - A legacy saved starter may be migrated only when it exactly matches the replaced canonical starter; personally edited code must not be overwritten automatically.
 - When missions are inserted and later missions are renumbered, saved code, completed mission identifiers and the unlocked position must be migrated so that existing learner work remains attached to the same lesson.
 - The first reinforcement-pack migration inserts missions 02–06 and shifts every previously existing mission from old ID 02 onward by five positions. Old mission 02 therefore becomes mission 07 and old mission 22 becomes mission 27.
+- The second reinforcement insertion adds missions 08–09 after mission 07 and shifts the then-existing missions 08–27 to 10–29.
+- The third reinforcement insertion adds missions 12–13 after mission 11 and shifts the then-existing missions 12–29 to 14–31.
 
 ## First-launch story introduction
 
@@ -36,7 +38,8 @@ This document is the functional and business source of truth for the local Japan
 - Rather than abandon hope, the girl decides to learn magic while appearing to be an adult and no longer being recognized, so she can recover her normal appearance and stop the witch from hurting other people.
 - After the legend, page 6 returns to the normal introduction typography, asks the apprentice god to help the `hero` recover her original appearance, and explains that JavaScript programming magic can guide the hero's actions.
 - Page 7 contains the final invitation to cast the first spell in MISSION 00.
-- Every introduction page has exactly one numbered illustration asset, `story-intro-page-1.svg` through `story-intro-page-7.svg`, and the displayed image is associated with the matching page number.
+- Every introduction page has exactly one numbered high-quality PNG illustration asset, `story-intro-page-1.png` through `story-intro-page-7.png`, and the displayed image is associated with the matching page number.
+- The introduction loads those PNG files directly; obsolete WebP copies and SVG wrappers are not part of the active story asset set.
 - The introduction layout keeps the illustration and text readable together by reducing image and typography sizes responsively when the viewport is shorter or narrower.
 - Pages 2 through 7 provide a previous-page control; page 1 does not expose a back action because there is no earlier page.
 - Intermediate pages use a centered `次へ` action. The final page uses `冒険をはじめる`, and only then reveals the normal campaign interface beginning with MISSION 00.
@@ -44,11 +47,11 @@ This document is the functional and business source of truth for the local Japan
 - Completion of the introduction is persisted separately from mission progress under the dedicated `japanese-js-quest-story-intro-seen-v1` key. The key is written only after the final page is completed.
 - Reloading before the final page restarts the introduction cleanly. Once completed, the introduction is not shown again on ordinary launches, including page reloads and later local-server restarts.
 - Resetting mission progress does not reset the first-launch story flag; the introduction remains a one-time onboarding experience.
-- After the campaign is visible, a discreet `物語をもう一度` control lets the learner replay the introduction on demand.
+- After the campaign is visible, a discreet `物語をもう一度` control lets the learner replay the introduction on demand from MISSION 00.
 - Replaying the introduction is view-only: it does not clear or rewrite the first-launch story flag and does not alter mission progress, saved code, unlock state or completion state. Closing the replay at the final page returns to the same campaign state.
 - The introduction applies reading assistance with the same light-blue interactive reading-token treatment used by the adventure for words above the expected early-elementary reading level.
-- The introduction explicitly provides readings for `見習い`（みならい）, `魔法`（まほう）, `運命`（うんめい）, `好奇心`（こうきしん）, `踊る`（おどる）, `魔女`（まじょ）, `恐ろしい`（おそろしい）, `呪い`（のろい）, `姿なら`（すがたなら）, `姿`（すがた）, `希望`（きぼう）, `捨て`（すて）, `傷つけ`（きずつけ）, `冒険`（ぼうけん）, `導く`（みちびく） and `手伝おう`（てつだおう） wherever those words appear in the story.
-- Longer reading targets are matched before shorter contained words so `姿なら` receives its complete reading rather than being split as `姿` plus unannotated text.
+- The introduction explicitly provides readings for `見習い`（みならい）, `魔法`（まほう）, `運命`（うんめい）, `好奇心`（こうきしん）, `踊る`（おどる）, `魔女`（まじょ）, `恐ろしい`（おそろしい）, `呪い`（のろい）, `姿`（すがた）, `希望`（きぼう）, `捨て`（すて）, `傷つけ`（きずつけ）, `冒険`（ぼうけん）, `導く`（みちびく） and `手伝おう`（てつだおう） wherever those words appear in the story.
+- The tooltip target is `姿` itself, not the longer text `姿なら`.
 - The Latin technical word `hero` is highlighted as a reading token and its tooltip gives both its hiragana pronunciation and meaning: `ひーろー → 主人公（しゅじんこう）`.
 
 ## Mission types and reinforcement architecture
@@ -64,6 +67,7 @@ This document is the functional and business source of truth for the local Japan
 - Mission 00 is the exception to reinforcement packs: it is a standalone `concept` mission for discovering the development environment and is not followed by five reinforcement missions.
 - Starting with concept mission 01, a complete reinforcement pack follows this canonical order: `concept → adventure → typo-fix → logic-fix → adventure → boss`.
 - The first implemented pack is missions 01–06: mission 01 remains the unchanged concept mission, followed by missions 02 adventure, 03 typo-fix, 04 logic-fix, 05 adventure and 06 boss. The next concept mission is mission 07.
+- Reinforcement can be introduced incrementally after later concept missions. Partial packs keep the requested mission types and ordering without inventing unrequested missions merely to fill the six-mission pattern.
 - Non-concept missions normally use only concepts already introduced by an earlier `concept` mission and must not silently teach new syntax, operators or language rules through practice alone.
 - Mission 03 is an explicit debugging exception: it exposes `hero.transform("frog")` only as the correct spelling target for a typo-fix exercise before the formal transformation concept mission. The transformation is not introduced with a concept card in mission 03, and the correct spelling is available through the mission API/hints. Outside an explicitly documented debugging exception, non-concept missions use only previously introduced programming concepts.
 - Concept-card validation is a `concept`-mission rule only. `adventure`, `typo-fix`, `logic-fix` and `boss` missions never use concept-card memory to decide whether their editor or execution controls are available.
@@ -78,7 +82,7 @@ This document is the functional and business source of truth for the local Japan
 - Debugging missions must be unique missions built from previously learned material, not recycled concept missions with an arbitrary error inserted.
 - A `boss` mission may introduce new world mechanics without treating those mechanics as new JavaScript concepts. The programming solution must still respect the concepts that the learner is expected to know at that point, except for an explicitly documented debugging exception such as mission 03.
 - Boss missions normally cannot complete until the boss has been explicitly resolved by defeating, capturing, trapping or otherwise neutralizing it.
-- Mission 06 is the introductory escape-boss exception: its approved objective is to escape the dragon and reach the goal while the dragon is still alive. Reaching the goal is the boss resolution for this one introductory mission; the dragon must remain alive and must not turn into a skull merely because the mission succeeds or fails.
+- Mission 06, MISSION 09 and MISSION 13 are approved escape-boss exercises: their objective is to avoid the dragon, collect the required gem and reach the goal while the dragon remains alive.
 - A dragon has a default attack range of three tiles in the four cardinal directions. If the hero is on the same row or column and enters one of those three tiles while visible to the dragon, the dragon breathes fire in that direction and the run fails.
 - An active dragon ray displays one flame per reachable attack tile from the dragon toward the hero. If the ray reaches the hero, the hero tile first displays a flame and then the hero becomes a skeleton to show that the fire defeated the hero.
 - Dragon line of sight is blocked by impassable world geometry such as a wall or pillar. A dragon does not attack through those blockers.
@@ -140,15 +144,15 @@ This document is the functional and business source of truth for the local Japan
 - Mission 01 displays four canonical cards in this exact order: `JavaScript`, `Editor`, `// はコメント（Comment）`, then `hero.move(direction)`.
 - The `hero.move(direction)` card explains that one method call moves the hero one tile in the requested direction and that moving several tiles requires calling the method several times.
 - Missions 02–06 are reinforcement missions for mission 01 and introduce no new concept cards. Mission 03's transformation call is a spelling/debugging target only; the formal transformation concept remains later.
-- Mission 08 introduces booleans, `true`, `false`, `const`, assignment with `=`, reuse of a named value, constant naming in romaji, the common use of meaningful English names, and `hero.isTrue(boolean)`.
-- Mission 08 has completed starter code. The learner validates it by executing it without needing to edit it.
-- Mission 08 includes a Japanese explanatory comment directly above `const alwaysTrue = true;` and another directly above `const alwaysFalse = false;`.
-- Mission 08 collects its gem and then continues to the flag. Successful execution must finish on the goal tile rather than on the gem tile.
-- Mission 09 is the first `if` mission. It introduces `hero.readSign()`, return values, `if`, braces and comparison, while referring back to constants and assignment learned in mission 08.
-- Mission 09 must not repeat dedicated concept cards for `const`, constants or assignment. Its learning guide contains one card for the `hero.readSign()` return value, one card for `if`, and one card for comparison with `===`.
-- Mission 16 is titled `初めてのループ`, using the standard kanji spelling rather than `はじめてのループ`.
-- Mission 19 is an intentional infinite-loop demonstration using `while (true)`.
-- Mission 20 is the first later mission using `while (!hero.isAtGoal())`.
+- Mission 10 introduces booleans, `true`, `false`, `const`, assignment with `=`, reuse of a named value, constant naming in romaji, the common use of meaningful English names, and `hero.isTrue(boolean)`.
+- Mission 10 has completed starter code. The learner validates it by executing it without needing to edit it.
+- Mission 10 includes a Japanese explanatory comment directly above `const alwaysTrue = true;` and another directly above `const alwaysFalse = false;`.
+- Mission 10 collects its gem and then continues to the flag. Successful execution must finish on the goal tile rather than on the gem tile.
+- Mission 11 is the first `if` concept mission. It introduces `hero.readSign()`, return values, `if`, braces and comparison, while referring back to constants and assignment learned in mission 10.
+- Mission 11 must not repeat dedicated concept cards for `const`, constants or assignment. Its learning guide contains one card for the `hero.readSign()` return value, one card for `if`, and one card for comparison with `===`.
+- Mission 20 is titled `初めてのループ`, using the standard kanji spelling rather than `はじめてのループ`.
+- Mission 23 is an intentional infinite-loop demonstration using `while (true)`.
+- Mission 24 is the first later mission using `while (!hero.isAtGoal())`.
 - Later concept missions introduce `else`, `else if`, logical operators, loops, mutable variables, remainder and nested loops when first used.
 - Branch starter code in relevant concept missions contains Japanese `hero.say(...)` thinking prompts inside each branch. `else` prompts begin with `その他` rather than pretending to have a named condition.
 
@@ -166,7 +170,20 @@ This document is the functional and business source of truth for the local Japan
 - The safe mission-06 solution uses only horizontal movement: moving right four times collects the gem and reaches the goal without entering the dragon's attack range.
 - Mission 06 has no active pillar, lever or boss-defeat mechanism. Completing it leaves the dragon alive. Failing by dragon fire changes only the hero into a skeleton; it must not display the dragon as defeated or as a skull.
 - The previously designed dragon/pillar/lever field is retained in the mission-pack reference data for a future boss mission, but it is not the active mission 06 field.
-- Mission 06 is the introductory escape-boss exception to the normal boss-resolution rule. Later boss missions must require explicit defeat, capture, trapping or equivalent neutralization before completion.
+- Mission 06 is the introductory escape-boss exception to the normal boss-resolution rule.
+
+## Reinforcement after mission 07 and mission 11
+
+- MISSION 08 is a `typo-fix` mission following mission 07. Its route is already correct except for the single transposed direction `dwon`, which must be repaired to `down`.
+- MISSION 09 is a two-dimensional dragon escape boss following mission 07. Its safe reference route takes exactly 21 moves, and the mission enforces and displays a maximum of 21 moves (`21 moves`). The hero must collect its gem and reach the goal without entering dragon fire.
+- MISSION 11 is the first `if` concept mission after the second insertion.
+- MISSION 12 is a simple `logic-fix` reinforcement of MISSION 11. The starter code is valid JavaScript and uses `hero.readSign()` plus `if`, but the movement inside the `right` and `left` branches is reversed. The same corrected code must pass both a `right` and a `left` field.
+- MISSION 13 is a two-field conditional dragon boss reinforcing the `if` concept from MISSION 11. Both fields use the same code and the same dragon position; the sign tells the learner which protected side to choose.
+- In the `看板：right` field, a pillar is two tiles to the right of the dragon with one empty tile between them. The pillar blocks the rightward fire ray, so the hero must first move to the right side and then travel from bottom to top outside that pillar.
+- In the `看板：left` field, the symmetric pillar is two tiles to the left of the dragon with one empty tile between them. The pillar blocks the leftward fire ray, so the hero must first move to the left side and then travel from bottom to top outside that pillar.
+- Choosing the unprotected side in either MISSION 13 field brings the hero into a three-tile horizontal dragon ray and causes the existing flame-and-skeleton death sequence.
+- The intended MISSION 13 route is ten moves in either field: three horizontal moves to the protected side and seven upward moves through the protected column, collecting the gem immediately before the goal. The mission displays and enforces a ten-move maximum so the sign and `if` branch cannot be bypassed by an unnecessarily wide detour.
+- MISSION 12 and MISSION 13 introduce no new concept cards. Existing concept-card mappings after MISSION 11 move with their concept missions when later mission IDs shift.
 
 ## Concept card reference base
 
@@ -178,7 +195,7 @@ This document is the functional and business source of truth for the local Japan
 - Concept-card IDs must never be reassigned to a different meaning or silently reused after publication.
 - Future flashcards, quizzes and review activities must reuse the same reference records rather than copying card content into a second data source.
 - Refactoring storage or rendering must preserve the approved visual appearance, code markup, tooltip behavior and mission card order.
-- The mission 08 naming card explains that constants can receive meaningful romaji names without spaces, that English names are commonly used, and that `alwaysTrue` means “always true”.
+- The mission 10 naming card explains that constants can receive meaningful romaji names without spaces, that English names are commonly used, and that `alwaysTrue` means “always true”.
 - A new-concept card must never be implemented only as ad-hoc mission HTML or an interface-only exception. It must be a record in the canonical concept-card database and be referenced by stable ID from its mission guide.
 - Every canonical concept card must be referenced by exactly one concept mission guide, and every mission-guide card ID must resolve to a card whose `missionId` matches that mission.
 - Non-concept missions must not be given artificial concept cards merely to satisfy the card system.
@@ -208,13 +225,13 @@ This document is the functional and business source of truth for the local Japan
 - Every non-concept mission is card-ready by mission type, regardless of concept-card history or any pedagogical association with an earlier concept mission.
 - A missing or temporarily unresolved mission must fail open rather than trap the learner behind a card gate; only an explicitly resolved `concept` mission may be card-gated.
 - Clicking the colored code preview, the run button, or the execution keyboard shortcut before all cards of a concept mission are validated redirects attention to the concept cards and explains the requirement in Japanese.
-- The execution restriction applies equally to the normal run path and the special mission-19 preparation path.
+- The execution restriction applies equally to the normal run path and the special infinite-loop preparation path.
 - When all concept cards assigned to a mission become validated, a short celebratory modal appears with a validation or festive icon, says that the mission is unlocked, and asks the learner to finish reading the explanations and scroll down.
 - The concept-card completion modal reuses the approved level-up visual language without reusing the level-up stars or power iconography.
 - In admin mode, every quiz provides a review-only control that selects all correct choices automatically.
 - The admin quiz-review control must not submit the quiz or validate the card by itself; the administrator can inspect the selected choices and submit normally.
 - Admin mode also displays an admin-only control at the end of the section that validates every canonical card assigned to the current concept mission in one action.
-- The admin validate-all control is absent outside `?admin=1`, persists through the same stable-card-ID memory store, and does not complete the mission or alter mission progression.
+- The admin validate-all control is absent outside admin mode, persists through the same stable-card-ID memory store, and does not complete the mission or alter mission progression.
 - Whenever a mission or concept card is added or changed, the same change must verify the canonical card record, stable mission-to-card mapping, face-down default, quiz data, card-memory validation, and the edit/execution gate for all cards in that mission.
 
 ## Boolean lesson and `hero.isTrue`
@@ -224,8 +241,8 @@ This document is the functional and business source of truth for the local Japan
 - Passing `true` makes the hero say `正しいです。`.
 - Passing `false` makes the hero say `違いますよ。`.
 - A missing, extra or non-boolean parameter produces a blocking Japanese hero explanation that only `true` or `false` is accepted.
-- Mission 08 defines `const alwaysTrue = true` and `const alwaysFalse = false`, calls `hero.isTrue(...)` for both values, collects its required gem, and reaches the goal flag with two rightward moves.
-- Mission 08 validates only after the existing program has been executed, both boolean cases have been checked, the gem has been collected and the goal has been reached.
+- Mission 10 defines `const alwaysTrue = true` and `const alwaysFalse = false`, calls `hero.isTrue(...)` for both values, collects its required gem, and reaches the goal flag with two rightward moves.
+- Mission 10 validates only after the existing program has been executed, both boolean cases have been checked, the gem has been collected and the goal has been reached.
 
 ## Standalone loading and stable curriculum rendering
 
@@ -249,7 +266,7 @@ This document is the functional and business source of truth for the local Japan
 - Adding or changing an explanation, concept card, quiz question or quiz choice requires reviewing and updating difficult-word readings in the same change.
 - Reading help in mission explanations, cards and mini-quizzes uses a light-blue visual treatment.
 - Reading help inside the glossary uses a quieter gray treatment and must not interfere with existing code-component tooltips.
-- `無限` receives the reading `むげん` in the mission title, concept cards, explanations and the duplicated mission heading inside the field panel.
+- `無限` receives the reading `むげん` in the infinite-loop mission title, concept cards, explanations and the duplicated mission heading inside the field panel.
 - `値` uses `あたい`, `魔法` uses `まほう`, and `実行` uses `じっこう` wherever those words are annotated.
 - `初めて` receives the reading `はじめて` when used in the first loop mission title or explanatory text.
 - `プログラミング言語` receives the reading `ぷろぐらみんぐげんご` in its concept card.
@@ -269,8 +286,8 @@ This document is the functional and business source of truth for the local Japan
 - English code components can be hovered, focused or clicked to display Japanese meaning and pronunciation.
 - `gem` explains that gems give experience, increase wizard level and unlock powers.
 - The formal `transform`, `form` and `frog` reference entries remain hidden before concept mission 07. Mission 03 may display the exact `hero.transform("frog")` command as an explicit typo-fix target without unlocking the full transformation reference lesson.
-- `boolean`, `true`, `false`, `always`, constants, assignment and `hero.isTrue(boolean)` appear from concept mission 08.
-- `while (true)` and the infinite-loop warning appear from concept mission 19.
+- `boolean`, `true`, `false`, `always`, constants, assignment and `hero.isTrue(boolean)` appear from concept mission 10.
+- `while (true)` and the infinite-loop warning appear from concept mission 23.
 
 ## Field and editor presentation
 
@@ -287,7 +304,7 @@ This document is the functional and business source of truth for the local Japan
 - Scrollbar track, thumb, hover color and size are centralized through shared CSS custom properties.
 - In Chromium/WebKit, the detailed track, rounded thumb, inset border and hover styling must remain authoritative; standardized scrollbar properties must not override them with a native gray scrollbar.
 - Browsers without WebKit scrollbar pseudo-elements use the centralized standard scrollbar colors as a fallback.
-- Loop victory conditions appear inside the field-progress block before the progress track.
+- Victory conditions with explicit movement limits appear inside the field-progress block before the progress track.
 
 ## Simplified pedagogical syntax preview
 
@@ -331,7 +348,7 @@ This document is the functional and business source of truth for the local Japan
 ## Loop victory conditions
 
 - Every mission whose intended solution teaches a loop has canonical loop victory metadata.
-- The field panel displays the execution limit as `移動：最大 N 回` when the mission has a maximum movement count.
+- The field panel displays the execution limit as `移動：最大 N 回` when the mission has a maximum movement count and corresponding victory metadata.
 - The field panel displays each source-code call limit in Japanese, for example `コードに hero.move(...)：最大 1 回`.
 - A source-code call limit counts how many times the learner writes a named `hero` method in source code, not how many times the loop executes it.
 - Exceeding a source-code call limit fails the field and produces a Japanese result-console message showing the maximum, the current count and the instruction to place the command inside a loop.
@@ -366,7 +383,7 @@ This document is the functional and business source of truth for the local Japan
 - A recognized transformation used below its required level makes the hero say `この技はまだ使えないよ。` and leaves the current form unchanged.
 - Unknown transformation values are different from locked recognized powers and use the invalid-transformation explanation.
 - Frog and hero-dragon forms use original local sprites.
-- The enemy dragon introduced by the boss mission is a world creature and is distinct from the future `hero.transform("dragon")` power.
+- The enemy dragon introduced by the boss missions is a world creature and is distinct from the future `hero.transform("dragon")` power.
 - A power or API must not normally be exposed in a practice mission merely because accumulated gem experience satisfies its technical level gate. Mission 03 is the explicit typo-fix exception for `hero.transform("frog")`; the full learner-facing transformation concept and reference remain reserved for concept mission 07.
 - The future hero dragon transformation must not be exposed in normal instructions, glossary or transformation legend before its future concept/story introduction.
 
@@ -394,11 +411,11 @@ This document is the functional and business source of truth for the local Japan
 
 ## Intentional infinite-loop mission
 
-- Mission 19 teaches conditional loops and the danger of a condition that stays `true` forever.
+- Mission 23 teaches conditional loops and the danger of a condition that stays `true` forever.
 - Its canonical code collects the required gem and then runs `while (true)` with a Japanese `hero.say(...)` inside every iteration.
 - The explanation clearly states that an always-true loop cannot reach later instructions and may continuously consume computer resources.
-- Mission 19 uses a two-step reload preparation before the actual infinite-loop execution.
-- On the first normal display of an incomplete mission 19, the editor is read-only and visually grayed out.
+- Mission 23 uses a two-step reload preparation before the actual infinite-loop execution.
+- On the first normal display of an incomplete mission 23, the editor is read-only and visually grayed out.
 - On that first display, the normal yellow `▶ 実行する` button is replaced by a harmonious green preparation button.
 - Clicking the preparation button does not start the learner code and does not complete the mission. It makes the hero explain in Japanese that the learner must reload with `Ctrl+F5` so the hero can enter the infinite loop.
 - Preparation is recorded for the browser tab, but it becomes executable only after a real page reload. Navigating away and back on the same loaded page must not bypass the reload step.
@@ -406,8 +423,8 @@ This document is the functional and business source of truth for the local Japan
 - Clicking the normal run button after preparation persists mission completion and the next-mission unlock before the infinite demonstration starts.
 - During the demonstration, closing the speech bubble starts the next loop iteration and shows the same speech again.
 - Adventure controls remain unavailable during the demonstration. Reloading the page is the intended exit.
-- After the post-execution reload, the persisted completion allows the learner to continue to mission 20 when missions 00 through 18 were completed normally.
-- Completing mission 19 through temporary admin access does not bypass unfinished earlier missions after reload.
+- After the post-execution reload, the persisted completion allows the learner to continue to mission 24 when missions 00 through 22 were completed normally.
+- Completing the infinite-loop mission through temporary admin access does not bypass unfinished earlier missions after reload.
 - Runtime logic identifies this lesson by its `infiniteLoopDemo` behavior rather than assuming a permanently fixed numeric ID, so future mission-pack insertions remain possible.
 - Automated validation must not execute the truly infinite canonical solution directly; it validates the staged preparation and runtime mechanism instead.
 
@@ -419,16 +436,16 @@ This document is the functional and business source of truth for the local Japan
 - Gem and goal are visible from mission 01.
 - Frog first appears as a visible typo-fix result in mission 03 and therefore appears exactly once in the legend from mission 03 onward, even though its formal concept lesson remains mission 07.
 - Enemy dragon and dragon fire first appear in mission 06 and are added to the legend from mission 06 onward.
-- Pillar and lever are not active mission-06 elements anymore. They remain reserved for the preserved future dragon/pillar/lever scenario and enter the legend only when a future active mission first uses them.
-- Trap appears from mission 12.
-- Key and door appear from mission 14.
-- Enemy appears from mission 20.
+- A pillar becomes an active route-protection element in MISSION 09 and is used again in MISSION 13. A lever remains reserved until an active mission actually uses one.
+- Trap appears from mission 16.
+- Key and door appear from mission 18.
+- Enemy appears from mission 24.
 - Future world elements such as water and lily pads follow the same first-appearance rule.
-- The enemy dragon in mission 06 does not reveal the future hero dragon transformation.
+- The enemy dragon in boss missions does not reveal the future hero dragon transformation.
 
 ## Admin mode
 
-- Admin mode is enabled by adding `?admin=1` to the local URL, for example `http://localhost:8000/?admin=1`.
+- Admin mode is enabled by adding `?admin=1` or `?admin=true` to the local URL, for example `http://localhost:8000/?admin=true`.
 - Admin mode is intentionally not protected.
 - Merely opening an admin URL must not unlock missions before the admin button is activated.
 - Admin mode adds a visible button that unlocks all missions for manual verification.
@@ -451,16 +468,16 @@ This document is the functional and business source of truth for the local Japan
 ## Validation and regression protection
 
 - The expanded-campaign validator must execute every finite reference solution on every field.
-- The current expanded campaign contains 28 missions and 42 fields; the original concept-only validators may continue to protect the underlying 23-mission/37-field core separately.
+- The current expanded campaign contains 32 missions and 48 fields; the original concept-only validators may continue to protect the underlying 23-mission/37-field core separately.
 - It verifies consecutive identifiers, unique identifiers, required gems, scripted levels, transformation gates and ordered action traces.
 - It verifies the five canonical mission type codes, labels and emojis and the reinforcement order after concept mission 01.
 - It verifies mission 00 remains a standalone concept mission with no reinforcement pack.
 - It verifies the first-launch story introduction appears before MISSION 00 only until the dedicated story-intro-seen flag is persisted, uses seven centered pages with different narrative typography for the legend, and does not expose the underlying campaign before completion.
-- It verifies that one illustration per introduction page exists physically in the codebase, that pages 1 through 7 reference their matching numbered assets, and that responsive styling keeps image and copy usable together.
-- It verifies the requested introduction reading tooltips, longest-word matching for `姿なら`, and the `hero` tooltip `ひーろー → 主人公（しゅじんこう）`.
+- It verifies that one high-quality PNG illustration per introduction page exists physically in the codebase, that pages 1 through 7 reference their matching numbered assets directly, and that responsive styling keeps image and copy usable together.
+- It verifies the requested introduction reading tooltips, including the `姿`-only target, and the `hero` tooltip `ひーろー → 主人公（しゅじんこう）`.
 - It verifies pages 2 through 7 provide a previous-page control, page 1 hides that control, and replaying the introduction through `物語をもう一度` does not alter mission progress or clear the persisted first-launch flag.
 - It verifies missions 02–06 have no concept-card guides and that mission 03's transform exposure is only the documented explicit debugging exception.
-- It verifies `requiresCardValidation(...)` is true only for missions explicitly typed `concept`; missions 02–06 and a missing/unresolved mission are never card-gated.
+- It verifies `requiresCardValidation(...)` is true only for missions explicitly typed `concept`; practice missions and a missing/unresolved mission are never card-gated.
 - It verifies switching to a non-concept mission clears stale `concept-cards-pending` state and leaves the run control enabled.
 - It verifies mission 03 explains what a typo is, contains exactly the intended bracket typo and `forg`/`frog` typo, fails before correction, and cannot be completed by deleting the transformation line.
 - It verifies logic-fix starter code executes successfully but fails mission evaluation while its reference solution succeeds.
@@ -473,7 +490,10 @@ This document is the functional and business source of truth for the local Japan
 - It verifies a hero cannot move onto a tile occupied by a creature, independently of whether that creature attacks.
 - It verifies the mission-06 reference solution moves only right, collects the gem, reaches the goal, avoids dragon fire, leaves `bossDefeated` false and produces no `boss-defeated` event.
 - It verifies the preserved dragon/pillar/lever scenario remains available as reference data for future missions.
-- It verifies focused sidebar visibility: 00–01 before mission 00 completion; 00–07 once mission 00 is complete and throughout the first pack; completed missions remain visible permanently; only unfinished missions beyond the next concept boundary are hidden; and 00–27 are visible after admin unlock-all.
+- It verifies MISSION 09 enforces and displays its 21-move maximum and that its reference route succeeds in exactly 21 moves.
+- It verifies MISSION 12's reversed-branch starter runs but fails both fields by logic, while the corrected `if` code succeeds on both signs.
+- It verifies MISSION 13 uses `hero.readSign()` and `if`, contains both `看板：right` and `看板：left` fields, places the pillar on the indicated side, kills a hero choosing the unprotected side, and lets the same ten-move conditional solution pass both fields safely.
+- It verifies focused sidebar visibility: 00–01 before mission 00 completion; completed missions remain visible permanently; only unfinished missions beyond the next concept boundary are hidden; and 00–31 are visible after admin unlock-all.
 - It verifies invalid direction, invalid parameter, invalid boolean, unknown method, invalid transformation and locked hero-dragon behavior.
 - It verifies the boolean concept mission checks both `true` and `false`, collects its gem and ends on the goal tile after two moves.
 - It verifies the infinite-loop mission uses the two-step reload preparation, persists completion before the actual infinite execution and requires a second page reload to leave it.
@@ -481,7 +501,7 @@ This document is the functional and business source of truth for the local Japan
 - It verifies commented-out loop keywords do not satisfy loop syntax requirements.
 - It verifies manually unrolled commands exceeding a source-code call limit fail with a Japanese result message.
 - It verifies multi-field ordering, field-progress source rules, admin URL behavior and progressive legend thresholds.
-- It verifies saved curriculum and mission-pack migrations preserve existing code and progress semantics while inserting new mandatory practice missions after mission 01.
+- It verifies saved curriculum and all mission-pack migrations preserve existing code and progress semantics while inserting new mandatory practice missions.
 - It verifies the first loop concept mission uses the exact title `初めてのループ`.
 - It verifies all 38 canonical cards, including the JavaScript and Editor cards, and the exact four-card order for mission 01.
 - It verifies every concept mission guide resolves its ordered concept-card IDs from the canonical reference base, all IDs are unique and every rendered card exposes its ID.
