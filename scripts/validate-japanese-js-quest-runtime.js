@@ -42,10 +42,10 @@ assert.strictEqual(postedMessages.length, 1)
 assert(!postedMessages[0].workerError)
 assert(postedMessages[0].result.ok)
 assert(postedMessages[0].evaluation.passed)
-assert(postedMessages[0].result.state.says.includes('Hello Yuzu'))
+assert(postedMessages[0].result.state.says.includes('Hello goddess!'))
 
 const workerSource = readQuest('quest-worker.js')
-assert(workerSource.includes("importScripts('engine.js', 'curriculum-engine.js')"))
+assert(workerSource.includes("importScripts('engine.js', 'curriculum-engine.js', 'boss-mechanics.js')"))
 assert(workerSource.includes('workerError'))
 
 const progressAccess = require(path.join(questRoot, 'progress-access.js'))
@@ -115,10 +115,36 @@ assert(!appSource.includes('localStorage.setItem(codeKeyPrefix + mission.id, mis
 const indexSource = readQuest('index.html')
 assert(indexSource.includes('<script src="progress-access.js"></script>'))
 assert(indexSource.includes('<script src="solution-help.js"></script>'))
+assert(indexSource.includes('<script src="story-intro-replay.js"></script>'))
 assert(indexSource.indexOf('progress-access.js') < indexSource.indexOf('app-v3.js'))
 assert(indexSource.indexOf('solution-help.js') < indexSource.indexOf('app-v3.js'))
 assert(indexSource.includes('id="show-solution"'))
 assert(indexSource.includes('disabled hidden>ヘルプ</button>'))
+
+for (const file of [
+  'boss-mechanics.js',
+  'mission-types.js',
+  'mission-pack-v1.js',
+  'concept-card-mission-remap-v1.js',
+  'mission-types-ui.js',
+  'boss-ui.js',
+]) {
+  assert(indexSource.includes(`<script src="${file}`), `${file} must be loaded by index.html`)
+}
+assert(indexSource.includes('<link rel="stylesheet" href="mission-types.css">'))
+assert(!indexSource.includes('23のミッション'))
+assert(!indexSource.includes('0 / 23'))
+assert(indexSource.includes('いろいろなミッションで、JavaScriptを少しずつ身につけよう'))
+assert(indexSource.includes('id="progress-label">0 / 2'))
+assert(indexSource.indexOf('curriculum-engine.js') < indexSource.indexOf('boss-mechanics.js'))
+assert(indexSource.indexOf('curriculum-v3.js') < indexSource.indexOf('mission-pack-v1.js'))
+assert(indexSource.indexOf('mission-types.js') < indexSource.indexOf('mission-pack-v1.js'))
+assert(indexSource.indexOf('mission-pack-v1.js') < indexSource.indexOf('progress-access.js'))
+assert(indexSource.indexOf('mission-pack-v1.js') < indexSource.indexOf('app-v3.js'))
+assert(indexSource.indexOf('concept-card-library-extension.js') < indexSource.indexOf('concept-card-mission-remap-v1.js'))
+assert(indexSource.indexOf('concept-card-mission-remap-v1.js') < indexSource.indexOf('learning-guide.js'))
+assert(indexSource.indexOf('app-v3.js') < indexSource.indexOf('mission-types-ui.js'))
+assert(indexSource.indexOf('app-v3.js') < indexSource.indexOf('boss-ui.js'))
 
 const curriculumEngineSource = readQuest('curriculum-engine.js')
 assert(!curriculumEngineSource.includes('installWorkerAdapter(window'))
@@ -143,4 +169,4 @@ for (const text of [
   'must remain incomplete',
 ]) assert(productRules.includes(text))
 
-console.log('Validated mission 00 worker execution, temporary admin access, normal progress repair and separated solution help.')
+console.log('Validated mission 00 goddess greeting, worker execution, browser mission-pack wiring, boss-mechanics worker loading, temporary admin access, normal progress repair and separated solution help.')

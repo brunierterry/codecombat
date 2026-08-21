@@ -6,6 +6,17 @@
     return match ? Number(match[1]) : 0
   }
 
+  function currentMission () {
+    return (window.JSQuestMissions || []).find(item => item.id === currentMissionId()) || null
+  }
+
+  function sourceMissionId (mission) {
+    if (!mission) return 0
+    if (Number.isInteger(mission.prePracticeId)) return mission.prePracticeId
+    if (Number.isInteger(mission.practiceOf)) return mission.practiceOf
+    return mission.id
+  }
+
   function tooltip (text, reading, extraClass) {
     return '<span class="glossary-token ' + (extraClass || '') + '" tabindex="0" role="button" data-tooltip="' +
       text + '（' + reading + '）">' + text + '</span>'
@@ -21,8 +32,8 @@
     })
   }
 
-  function addBooleanReference (finalId) {
-    if (finalId < 3) return
+  function addBooleanReference (sourceId) {
+    if (sourceId < 3) return
     const functions = document.getElementById('reference-functions')
     const parameters = document.getElementById('reference-parameters')
     const concepts = document.getElementById('reference-concepts')
@@ -71,8 +82,8 @@
     bindCustomTokens(document.getElementById('reference-panel'))
   }
 
-  function addInfiniteReference (finalId) {
-    if (finalId < 14) return
+  function addInfiniteReference (sourceId) {
+    if (sourceId < 14) return
     const concepts = document.getElementById('reference-concepts')
     if (!concepts || concepts.querySelector('[data-curriculum-concept="infinite-loop"]')) return
     concepts.insertAdjacentHTML('beforeend', '<article class="reference-item concept-reference" data-curriculum-concept="infinite-loop"><div><strong>無限ループ</strong><code class="concept-code glossary-token" tabindex="0" data-tooltip="条件が永遠に true なので、自分では終われないループです。">while (true) { ... }</code></div><p>止める条件がないため、外側からシステムやページを再起動する必要があります。</p></article>')
@@ -80,11 +91,13 @@
   }
 
   function adaptCurriculumUi () {
-    const finalId = currentMissionId()
-    addBooleanReference(finalId)
-    addInfiniteReference(finalId)
+    const mission = currentMission()
+    if (!mission) return
+    const sourceId = sourceMissionId(mission)
+    addBooleanReference(sourceId)
+    addInfiniteReference(sourceId)
     const range = document.getElementById('reference-range')
-    if (range) range.textContent = 'MISSION ' + String(finalId).padStart(2, '0') + ' までに出てきた英語と記号'
+    if (range) range.textContent = 'MISSION ' + String(mission.id).padStart(2, '0') + ' までに出てきた英語と記号'
   }
 
   function init () {

@@ -1,0 +1,4 @@
+.tile.hero.trap::after,
+.tile.hero.boss-hero-dead::after {
+  content: "💀";
+}

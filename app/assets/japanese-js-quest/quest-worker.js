@@ -1,7 +1,7 @@
 /* global importScripts */
 'use strict'
 
-importScripts('engine.js', 'curriculum-engine.js')
+importScripts('engine.js', 'curriculum-engine.js', 'boss-mechanics.js')
 
 const engine = self.JSQuestEngine
 

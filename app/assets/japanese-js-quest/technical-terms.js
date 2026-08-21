@@ -1,13 +1,18 @@
 (function () {
   'use strict'
 
-  const oldMissionZeroCode = '// Yuzu にあいさつしよう\nhero.say(\'Hello Yuzu\');'
-  const newMissionZeroCode = 'hero.say(\'Hello Yuzu\');'
+  const legacyMissionZeroCodes = [
+    '// Yuzu にあいさつしよう\nhero.say(\'Hello ' + 'Yuzu\');',
+    'hero.say(\'Hello ' + 'Yuzu\');',
+    'hero.say("Hello ' + 'Yuzu");',
+    'hero.say("Hello goddess!");',
+  ]
+  const canonicalMissionZeroCode = '// goddess は「神さま・女神さま」の意味。ヒーローに自分の名前で呼ばれてもいいなら、「自分の名前 + sama」に変えてもいいよ。\nhero.say("Hello goddess!");'
   const missionZeroStorageKey = 'japanese-js-quest-code-v1-0'
 
   try {
-    if (localStorage.getItem(missionZeroStorageKey) === oldMissionZeroCode) {
-      localStorage.setItem(missionZeroStorageKey, newMissionZeroCode)
+    if (legacyMissionZeroCodes.includes(localStorage.getItem(missionZeroStorageKey))) {
+      localStorage.setItem(missionZeroStorageKey, canonicalMissionZeroCode)
     }
   } catch (_) {}
 
@@ -86,20 +91,6 @@
     }
   }
 
-  function addCommentExplanation (section, missionId) {
-    if (missionId !== 1 || section.querySelector('#comment-concept-card')) return
-    const grid = section.querySelector('.learning-guide-grid')
-    if (!grid) return
-
-    const article = document.createElement('article')
-    article.id = 'comment-concept-card'
-    article.innerHTML = [
-      '<h4><code>//</code> はコメント</h4>',
-      '<p><code>//</code> から右側は、人が読むためのメモです。プログラムはコメントを命令として実行しません。何をする場所なのか、自分やほかの人に説明できます。</p>',
-    ].join('')
-    grid.appendChild(article)
-  }
-
   function addTerminologyNote (section, missionId) {
     const text = terminologyNotes[missionId]
     if (!text || section.querySelector('.technical-terminology-note')) return
@@ -114,10 +105,10 @@
 
   function enhanceGuide () {
     const section = document.getElementById('mission-learning-guide')
-    if (!section || section.querySelector('.tech-term')) return
+    if (!section || section.dataset.technicalTermsEnhanced === 'true') return
+    section.dataset.technicalTermsEnhanced = 'true'
 
     const missionId = currentMissionId()
-    addCommentExplanation(section, missionId)
     addTerminologyNote(section, missionId)
 
     for (const term of terms) {
