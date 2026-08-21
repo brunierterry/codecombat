@@ -256,7 +256,7 @@ assert(runtimeSource.indexOf('persistInfiniteCompletion()') < runtimeSource.inde
 const productRules = read('docs/PRODUCT_RULES.md')
 const developmentRules = read('docs/DEVELOPMENT_RULES.md')
 for (const text of [
-  '28 missions numbered 00 through 27',
+  '32 missions numbered 00 through 31',
   '## Mission types and reinforcement architecture',
   '## Boolean lesson and `hero.isTrue`',
   '## Intentional infinite-loop mission',
