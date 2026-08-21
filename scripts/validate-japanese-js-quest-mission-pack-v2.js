@@ -167,6 +167,6 @@ for (const text of [
 ]) assert(packSource.includes(text))
 
 const version = require(path.join(questPath, 'version.js'))
-assert.strictEqual(version, '0.4.0')
+assert.strictEqual(version, '0.4.1')
 
-console.log('Validated MISSION 07 four-direction help, MISSION 08 one-typo repair, MISSION 09 two-dimensional dragon detour, ID migration and version 0.4.0.')
+console.log('Validated MISSION 07 four-direction help, MISSION 08 one-typo repair, MISSION 09 two-dimensional dragon detour, ID migration and current application version.')
