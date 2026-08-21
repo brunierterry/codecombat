@@ -142,7 +142,7 @@ for (const text of [
   'story-intro-seen',
   'different narrative typography',
   'MISSION 00',
-  'one illustration per introduction page',
+  'one high-quality PNG illustration per introduction page',
   'previous-page control',
   'replay the introduction',
   'does not alter mission progress',
