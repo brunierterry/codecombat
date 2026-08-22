@@ -72,6 +72,37 @@
   transition: width 260ms ease;
 }
 
+.field-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 0.8rem;
+}
+
+.field-run-button {
+  min-width: 7.6rem;
+}
+
+.tile.water {
+  color: #d8f2ff;
+  background: linear-gradient(160deg, #1e5d86, #19496f);
+}
+
+.tile.water:nth-child(even) {
+  background: linear-gradient(160deg, #24698f, #1b5277);
+}
+
+.tile.lily-pad {
+  background: #1f5e59;
+}
+
+.tile.lily-pad:nth-child(even) {
+  background: #256a62;
+}
+
+.tile.goal-door {
+  background: #294f3f;
+}
+
 .admin-unlock-button {
   border-color: #8c65d6;
   color: #eadfff;
