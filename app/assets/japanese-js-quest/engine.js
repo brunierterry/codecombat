@@ -20,6 +20,9 @@
     '*': 'gem',
     K: 'key',
     D: 'door',
+    X: 'door',
+    W: 'water',
+    O: 'lily',
     T: 'trap',
     E: 'enemy'
   }
@@ -27,6 +30,8 @@
   const LOCKED_POWER_MESSAGE = 'この技はまだ使えないよ。'
   const INVALID_DIRECTION_MESSAGE = 'どの方向へ進めばいいのか、わからないよ。direction は "right"、"left"、"up"、"down" のどれかにしてね。'
   const INVALID_TRANSFORM_MESSAGE = '何に変身すればいいのか、わからないよ。'
+  const LILY_BLOCKED_MESSAGE = 'この葉っぱに乗ったら水に落ちちゃう。ぼくは泳げないんだ。でも、このスイレンの葉は小さな動物なら渡れそうなくらい丈夫そう。今のぼくは重すぎるよ。'
+  const GOAL_DOOR_FROG_MESSAGE = 'カエルの姿だと、ドアの取っ手をつかめないよ。手のある人の姿に戻らないと。'
   const FORM_LEVELS = Object.freeze({ hero: 1, frog: 1, dragon: 99 })
   const ALLOWED_FORMS = Object.freeze(Object.keys(FORM_LEVELS))
 
@@ -89,7 +94,9 @@
   }
 
   function isBlocked (state, tile) {
-    if (tile === '#' || tile === 'E') return true
+    if (tile === '#' || tile === 'E' || tile === 'W') return true
+    if (tile === 'O' && state.form !== 'frog') return true
+    if (tile === 'X' && state.form === 'frog') return true
     if (tile === 'D' && !state.hasKey) return true
     return false
   }
@@ -212,6 +219,18 @@
     return delta
   }
 
+  function blockedTerrainSpeech (state, tile) {
+    if (tile === 'O' && state.form !== 'frog') {
+      speak(state, LILY_BLOCKED_MESSAGE, { blockedTerrain: 'lily' })
+      return true
+    }
+    if (tile === 'X' && state.form === 'frog') {
+      speak(state, GOAL_DOOR_FROG_MESSAGE, { blockedTerrain: 'goal-door' })
+      return true
+    }
+    return false
+  }
+
   function move (state, direction) {
     const [dx, dy] = directionDelta(state, direction)
     touch(state)
@@ -221,6 +240,7 @@
 
     if (isBlocked(state, tile)) {
       state.failedMoves++
+      blockedTerrainSpeech(state, tile)
       state.trace.push(snapshot(state, { type: 'blocked', direction, tile: TILE_NAMES[tile] || tile }))
       return false
     }
@@ -243,6 +263,9 @@
     } else if (tile === 'T') {
       state.trapHits++
     } else if (tile === 'G') {
+      state.goalReached = true
+    } else if (tile === 'X') {
+      state.doorOpened = true
       state.goalReached = true
     }
 
@@ -507,6 +530,8 @@
     LOCKED_POWER_MESSAGE,
     INVALID_DIRECTION_MESSAGE,
     INVALID_TRANSFORM_MESSAGE,
+    LILY_BLOCKED_MESSAGE,
+    GOAL_DOOR_FROG_MESSAGE,
     FORM_LEVELS,
     ALLOWED_FORMS,
     createState,
