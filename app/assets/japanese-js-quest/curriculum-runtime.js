@@ -331,8 +331,9 @@
 
   function installRunInterception () {
     const run = document.getElementById('run-code')
+    const fieldRun = document.getElementById('run-code-field')
     if (!run) return
-    run.addEventListener('click', interceptRun, true)
+    ;[run, fieldRun].filter(Boolean).forEach(button => button.addEventListener('click', interceptRun, true))
 
     const fallback = document.getElementById('editor-fallback')
     fallback?.addEventListener('keydown', event => {
