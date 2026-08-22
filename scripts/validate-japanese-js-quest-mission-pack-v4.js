@@ -46,8 +46,7 @@ assert.strictEqual(packV4.INSERT_COUNT, 3)
 assert.strictEqual(packV4.shiftedExistingId(16), 16)
 assert.strictEqual(packV4.shiftedExistingId(17), 20)
 assert.strictEqual(packV4.shiftedExistingId(31), 34)
-
-assert.strictEqual(allMissions[16].title, '二つの合言葉')
+assert.strictEqual(allMissions[16].title, '安全な道')
 
 const syntaxMission = allMissions[17]
 assert.strictEqual(syntaxMission.type, missionTypes.TYPES.typoFix.code)
