@@ -510,11 +510,13 @@
     els.fieldRun.hidden = els.run.hidden
     els.fieldRun.textContent = els.run.textContent
     els.fieldRun.className = els.run.className + ' field-run-button'
+    els.fieldRun.title = els.run.title
+    els.fieldRun.setAttribute('aria-disabled', els.run.getAttribute('aria-disabled') || String(els.run.disabled))
   }
 
   function installMirroredRunButton () {
     if (!els.run || !els.fieldRun) return
-    els.fieldRun.addEventListener('click', () => els.run.click())
+    els.fieldRun.addEventListener('click', runCurrentCode)
     new MutationObserver(syncRunButtons).observe(els.run, {
       attributes: true,
       childList: true,
