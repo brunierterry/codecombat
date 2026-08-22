@@ -114,6 +114,7 @@ assert(bossMission.solution.includes('||'))
 assert(bossMission.solution.includes('&&'))
 assert(bossMission.solution.includes('hero.transform("frog")'))
 assert(bossMission.solution.includes('hero.transform("hero")'))
+assert(bossMission.variants.every(variant => variant.map.filter(row => row.includes('O')).every(row => row.includes('W'))))
 
 for (let variantIndex = 0; variantIndex < bossMission.variants.length; variantIndex++) {
   const result = engine.simulate(bossMission.solution, bossMission, variantIndex)
@@ -202,17 +203,28 @@ assert(index.indexOf('concept-card-mission-remap-v3.js') < index.indexOf('concep
 
 const app = readQuest('app-v3.js')
 assert(app.includes("fieldRun: document.getElementById('run-code-field')"))
-assert(app.includes('els.fieldRun.addEventListener(\'click\', () => els.run.click())'))
+assert(app.includes("els.fieldRun.addEventListener('click', runCurrentCode)"))
+assert(!app.includes("els.fieldRun.addEventListener('click', () => els.run.click())"))
 assert(app.includes('new MutationObserver(syncRunButtons)'))
 assert(app.includes("W: { text: '≈', className: 'water'"))
 assert(app.includes("O: { text: '🪷', className: 'lily-pad'"))
 assert(app.includes("X: { text: '🚪', className: 'goal-door'"))
 assert(app.includes('els.grid.dataset.variantIndex = String(currentVariant)'))
 
+const runtime = readQuest('curriculum-runtime.js')
+assert(runtime.includes("const fieldRun = document.getElementById('run-code-field')"))
+assert(runtime.includes('[run, fieldRun].filter(Boolean).forEach'))
+
+const styles = readQuest('styles.css')
+for (const selector of ['.tile.water', '.tile.lily-pad', '.tile.goal-door', '.field-actions']) {
+  assert(styles.includes(selector), 'Missing visible river/field control styling: ' + selector)
+}
+assert(styles.includes('margin-top: 1rem'))
+
 const bossUi = readQuest('boss-ui.js')
 assert(bossUi.includes('grid?.dataset.variantIndex'))
 
 const version = require(path.join(questPath, 'version.js'))
-assert.strictEqual(version, '0.4.2')
+assert.strictEqual(version, '0.4.3')
 
-console.log('Validated mirrored field execution, 1/21/51 wizard thresholds, MISSION 17 syntax repair, MISSION 18 frog river, MISSION 19 two-field frog dragon boss and ID migration.')
+console.log('Validated working mirrored field execution, visible water/lily/door terrain, 1/21/51 wizard thresholds, MISSION 17 syntax repair, MISSION 18 frog river, MISSION 19 two-field frog dragon boss and ID migration.')
