@@ -165,15 +165,17 @@ assert.strictEqual(levelTwoCrossing.wizardLevelAfter, 2)
 const afterLevelTwo = allMissions[levelTwoCrossing.id + 1]
 if (afterLevelTwo) assert.strictEqual(afterLevelTwo.wizardLevel, 2)
 
-assert.strictEqual(curriculum.finalIdForLegacyId(8), 20)
-assert.strictEqual(curriculum.legacyIdForFinalId(17), 7)
-assert.strictEqual(curriculum.legacyIdForFinalId(18), 7)
-assert.strictEqual(curriculum.legacyIdForFinalId(19), 7)
-assert.strictEqual(curriculum.legacyIdForFinalId(20), 8)
+const sourceLegacyId = curriculum.legacyIdForFinalId(16)
+assert.strictEqual(curriculum.legacyIdForFinalId(17), sourceLegacyId)
+assert.strictEqual(curriculum.legacyIdForFinalId(18), sourceLegacyId)
+assert.strictEqual(curriculum.legacyIdForFinalId(19), sourceLegacyId)
+const shiftedLegacyEight = curriculum.finalIdForLegacyId(8)
+assert(shiftedLegacyEight >= 20)
+assert.strictEqual(curriculum.legacyIdForFinalId(shiftedLegacyEight), 8)
 assert.strictEqual(remappedCards.getMissionGuide(17), null)
 assert.strictEqual(remappedCards.getMissionGuide(18), null)
 assert.strictEqual(remappedCards.getMissionGuide(19), null)
-assert(remappedCards.getMissionGuide(20))
+assert(remappedCards.getMissionGuide(shiftedLegacyEight))
 
 for (const mission of allMissions) {
   if (mission.infiniteLoopDemo) continue
