@@ -46,7 +46,7 @@ assert.deepStrictEqual(missions.map(item => item.id), Array.from({ length: 23 },
 assert.strictEqual(mission(missions, 0).wizardLevel, 0)
 assert.strictEqual(mission(missions, 1).wizardLevel, 0)
 for (const id of [2, 3, 4, 5]) assert.strictEqual(mission(missions, id).wizardLevel, 1)
-assert.deepStrictEqual([1, 2, 3].map(progression.thresholdForLevel), [1, 5, 12])
+assert.deepStrictEqual([1, 2, 3].map(progression.thresholdForLevel), [1, 21, 51])
 const personalizedIntroCode = '// goddess は「神さま・女神さま」の意味。ヒーローに自分の名前で呼ばれてもいいなら、「自分の名前 + sama」に変えてもいいよ。\nhero.say("Hello goddess!");'
 assert.strictEqual(introMission.starterCode, personalizedIntroCode)
 assert.strictEqual(introMission.solution, personalizedIntroCode)
@@ -256,7 +256,7 @@ assert(runtimeSource.indexOf('persistInfiniteCompletion()') < runtimeSource.inde
 const productRules = read('docs/PRODUCT_RULES.md')
 const developmentRules = read('docs/DEVELOPMENT_RULES.md')
 for (const text of [
-  '32 missions numbered 00 through 31',
+  '35 missions numbered 00 through 34',
   '## Mission types and reinforcement architecture',
   '## Boolean lesson and `hero.isTrue`',
   '## Intentional infinite-loop mission',
