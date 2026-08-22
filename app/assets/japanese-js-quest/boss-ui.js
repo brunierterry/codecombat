@@ -25,9 +25,10 @@
 
   function decorateBossGrid () {
     const mission = currentMission()
-    const variant = mission?.variants?.[0]
-    const boss = variant?.boss
     const grid = document.getElementById('game-grid')
+    const variantIndex = Number(grid?.dataset.variantIndex) || 0
+    const variant = mission?.variants?.[variantIndex] || mission?.variants?.[0]
+    const boss = variant?.boss
     if (!grid || !boss || !variant.map?.length) return
 
     const width = variant.map[0].length
@@ -56,9 +57,6 @@
       lever.setAttribute('aria-label', 'レバー')
     }
 
-    // The engine renders every active dragon-ray cell as T/trap. Convert each
-    // one to a flame. If the ray reaches the hero, the hero is first covered
-    // by the flame and then becomes a skeleton after the fire animation.
     Array.from(grid.children).forEach((tile, index) => {
       if (!tile.classList.contains('trap')) return
       const x = index % width
