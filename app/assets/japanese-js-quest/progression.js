@@ -10,7 +10,13 @@
 
   function thresholdForLevel (level) {
     if (level <= 0) return 0
-    return 1 + ((level - 1) * (3 * level + 2)) / 2
+    if (level === 1) return 1
+
+    let threshold = 1
+    for (let targetLevel = 2; targetLevel <= level; targetLevel++) {
+      threshold += targetLevel * 10
+    }
+    return threshold
   }
 
   function levelForXp (xp) {
