@@ -116,10 +116,10 @@ This document is the functional and business source of truth for the local Japan
 - The editor visibly reminds the learner of `Ctrl+C`, `Ctrl+V`, `Ctrl+Z` and `Ctrl+F5`.
 - `Ctrl+Enter` and `Command+Enter` execute the mission with the same behavior as clicking `実行する`.
 - `Ctrl+F5` is identified as the full-page reload shortcut used by the intentional infinite-loop lesson.
-- The `フィールド` panel and the `JavaScript editor` panel both display an execution button. The field-side button is a mirrored control for the same canonical execution action: it delegates to the editor-side run button rather than maintaining a second execution path.
-- The two execution controls always represent the same state. Disabled state and temporary labels such as infinite-loop preparation are mirrored from the canonical editor-side run button to the field-side button.
+- The `フィールド` panel and the `JavaScript editor` panel both display an execution button. They are two controls for one canonical execution action: both invoke the same `runCurrentCode` execution handler rather than maintaining separate execution implementations or routing one button through a synthetic click on the other.
+- The two execution controls always represent the same state. Disabled state, visibility, accessible state, title and temporary labels such as infinite-loop preparation are mirrored from the editor-side run control to the field-side control.
 - Only the execution button is duplicated in the field panel. Code reset, hints and admin answer controls remain only with the JavaScript editor controls.
-- The field-side execution button remains available in responsive layouts where the field and editor panels stack vertically, so the learner can inspect the field and run the same program without scrolling back to the editor controls.
+- The field-side execution button has clear vertical spacing after the field legend and remains available in responsive layouts where the field and editor panels stack vertically, so the learner can inspect the field and run the same program without scrolling back to the editor controls.
 - Mission code is saved automatically in the browser.
 - Hints can be revealed progressively.
 - The next-mission button appears only after the current mission succeeds on every field, except for the intentional infinite-loop demonstration described below.
@@ -195,13 +195,15 @@ This document is the functional and business source of truth for the local Japan
 
 - MISSION 17 is a syntax-repair `typo-fix` mission using only already introduced `if`, `else`, comparison and `hero.readSign()`. Its starter deliberately omits the closing `}` before `else`, so the code has a JavaScript syntax error until the learner repairs the `if / else` structure. The same corrected code must pass both `up` and `right` fields.
 - MISSION 18 is the single-field `adventure` mission `スイレンの川`. The hero starts on the lower river bank, the river occupies the width of the field, a vertical path of lily pads crosses it, and the goal is represented by a door on the upper bank rather than a flag.
+- The MISSION 18 field must make the geography immediately visible: ordinary bank/floor tiles appear above and below the river, water tiles have a clearly blue water treatment, lily-pad tiles are visibly rendered as lily pads on water, and the upper-bank goal tile visibly renders a door.
 - Water tiles are impassable. A lily-pad tile is passable only in frog form. If the human hero tries to step onto a lily pad, the move is refused and a blocking speech bubble explains that the hero cannot swim, is too heavy for the lily pad, and that the pad looks strong enough for a small animal.
 - The first MISSION 18 hint suggests changing to a smaller form. A later hint explicitly tells the learner to use `hero.transform("frog")` to cross the lily pads.
 - The MISSION 18 goal door is usable only in the human hero form. If the frog tries to enter it, the move is refused and a speech bubble explains that the frog cannot use the door handle. A later hint explicitly tells the learner to use `hero.transform("hero")` before entering the door.
 - The MISSION 18 reference solution approaches the river, transforms to frog, crosses the lily pads, collects the gem on the upper bank, transforms back to the human hero, and enters the goal door in six moves.
-- MISSION 19 is the two-field boss `カエルと封印のドラゴン`. It combines the concepts learned through MISSION 16: named values, comparisons and booleans, `if / else`, `||`, `&&`, `hero.readSign()`, `hero.canMove()`, `hero.look()`, movement and frog/human transformations.
-- Both MISSION 19 fields use the same source program. The sign chooses the left or right lily-pad route; the pillar, lever, gem and goal are mirrored between the two fields.
-- The intended MISSION 19 program uses `side === "left" || side === "west"` to derive the left-side boolean, uses `if / else` to move three cells to the selected river crossing, transforms into a frog, and checks `hero.canMove("up") && hero.look("up") === "lily"` before crossing four lily pads.
+- MISSION 19 is the two-field boss `カエルと封印のドラゴン`. It combines the JavaScript concepts learned through MISSION 16: named values, comparisons and booleans, `if / else`, `||`, `&&`, sign reading, movement and frog/human transformations.
+- Both MISSION 19 fields use the same source program. The sign chooses the left or right lily-pad route; the pillar, lever, gem and goal are mirrored between the two fields. The river is visually represented as water with only the two lily-pad crossing lanes traversable by the frog.
+- The intended MISSION 19 program uses `side === "left" || side === "west"` to derive the left-side boolean, combines that value with another comparison through `&&`, uses `if / else` to move three cells to the selected river crossing, transforms into a frog, crosses four cells upward, then transforms back to human form.
+- The reference solution must not conditionally omit the river-crossing movement based on an auxiliary inspection check. Once the safe left/right route is selected and the hero is in frog form, the canonical solution explicitly performs the four upward crossing moves so the admin `答えを見る` code deterministically reaches the upper bank in both fields.
 - After reaching the upper bank, the hero transforms back to human form and moves upward behind the protected pillar. Choosing the wrong side enters the dragon's three-cell horizontal fire ray and fails. Choosing the indicated side lets the pillar block the ray.
 - The correct route steps on a lever that explicitly seals/defeats the dragon before the hero collects the gem and reaches the goal. MISSION 19 therefore uses normal boss neutralization rather than the earlier escape-boss exception.
 - The MISSION 19 reference route is eleven moves in either field, and the same unchanged code must pass both fields.
@@ -247,7 +249,7 @@ This document is the functional and business source of truth for the local Japan
 - Every non-concept mission is card-ready by mission type, regardless of concept-card history or any pedagogical association with an earlier concept mission.
 - A missing or temporarily unresolved mission must fail open rather than trap the learner behind a card gate; only an explicitly resolved `concept` mission may be card-gated.
 - Clicking the colored code preview, either execution button, or the execution keyboard shortcut before all cards of a concept mission are validated redirects attention to the concept cards and explains the requirement in Japanese.
-- The execution restriction applies equally to the normal run path and the special infinite-loop preparation path because the field-side run control delegates to the same canonical run button.
+- The execution restriction applies equally to the normal run path and the special infinite-loop preparation path because both visible execution controls share the same execution state and special-run interception rules.
 - When all concept cards assigned to a mission become validated, a short celebratory modal appears with a validation or festive icon, says that the mission is unlocked, and asks the learner to finish reading the explanations and scroll down.
 - The concept-card completion modal reuses the approved level-up visual language without reusing the level-up stars or power iconography.
 - In admin mode, every quiz provides a review-only control that selects all correct choices automatically.
@@ -421,7 +423,7 @@ This document is the functional and business source of truth for the local Japan
 - Going from wizard level 1 to level 2 requires 20 additional gems, so level 2 begins at 21 accumulated gems in total.
 - Going from wizard level 2 to level 3 requires 30 additional gems, so level 3 begins at 51 accumulated gems in total.
 - Higher thresholds continue the same increasing-step progression: the next level requires 40 additional gems, so level 4 begins at 91 total gems, then subsequent level costs continue increasing by ten gems per level.
-- Reinforcement missions also award their required gems, so wizard XP and every mission's before/after progress are derived from the complete expanded mission sequence. With one required reward gem per current mission, MISSION 21 is the mission whose completion reaches 21 total gems and wizard level 2; MISSION 22 therefore starts at level 2.
+- Reinforcement missions also award their required gems, so wizard XP and every mission's before/after progress are derived from the complete expanded mission sequence. The specific mission that crosses a level boundary is determined from the cumulative scripted rewards and must not be hard-coded from its numeric ID.
 - The mission interface displays current wizard level and an experience progress bar using these accumulated-gem thresholds rather than a mission-number shortcut.
 - Crossing a threshold displays a blocking level-up modal distinct from hero speech.
 - Level progression must not cause a JavaScript concept or power to appear in practice missions before its concept mission introduces it, except for a specifically documented debugging target such as mission 03.
@@ -444,10 +446,10 @@ This document is the functional and business source of truth for the local Japan
 - Mission 26 uses a two-step reload preparation before the actual infinite-loop execution.
 - On the first normal display of an incomplete mission 26, the editor is read-only and visually grayed out.
 - On that first display, the normal yellow `▶ 実行する` button is replaced by a harmonious green preparation button; the field-side mirrored button shows the same preparation state and label.
-- Clicking either preparation control does not start the learner code and does not complete the mission. It delegates to the same canonical preparation behavior and makes the hero explain in Japanese that the learner must reload with `Ctrl+F5` so the hero can enter the infinite loop.
+- Clicking either preparation control does not start the learner code and does not complete the mission. Both visible execution controls are intercepted by the same infinite-loop preparation behavior, which makes the hero explain in Japanese that the learner must reload with `Ctrl+F5` so the hero can enter the infinite loop.
 - Preparation is recorded for the browser tab, but it becomes executable only after a real page reload. Navigating away and back on the same loaded page must not bypass the reload step.
 - After the prepared page is reloaded, the editor becomes editable and both normal yellow execution controls return.
-- Clicking the normal run button after preparation persists mission completion and the next-mission unlock before the infinite demonstration starts.
+- Clicking either normal execution control after preparation persists mission completion and the next-mission unlock before the infinite demonstration starts.
 - During the demonstration, closing the speech bubble starts the next loop iteration and shows the same speech again.
 - Adventure controls remain unavailable during the demonstration. Reloading the page is the intended exit.
 - After the post-execution reload, the persisted completion allows the learner to continue to mission 27 when missions 00 through 25 were completed normally.
@@ -507,7 +509,7 @@ This document is the functional and business source of truth for the local Japan
 - It verifies missions 02–06 have no concept-card guides and that mission 03's transform exposure is only the documented explicit debugging exception.
 - It verifies `requiresCardValidation(...)` is true only for missions explicitly typed `concept`; practice missions and a missing/unresolved mission are never card-gated.
 - It verifies switching to a non-concept mission clears stale `concept-cards-pending` state and leaves the canonical run control enabled.
-- It verifies the field-side execution button delegates to the canonical editor-side run button, mirrors its disabled state and temporary labels, and therefore cannot bypass concept-card gates, infinite-loop preparation or normal run-state locking.
+- It verifies the field-side execution button invokes the same canonical execution handler as the editor-side button, mirrors its disabled/visible/accessibility/temporary-label state, and receives the same infinite-loop special-run interception rather than maintaining an independent execution path.
 - It verifies mission 03 explains what a typo is, contains exactly the intended bracket typo and `forg`/`frog` typo, fails before correction, and cannot be completed by deleting the transformation line.
 - It verifies logic-fix starter code executes successfully but fails mission evaluation while its reference solution succeeds.
 - It verifies the dragon attacks for three tiles in all four cardinal directions and that blocking geometry stops its line of sight.
@@ -523,10 +525,10 @@ This document is the functional and business source of truth for the local Japan
 - It verifies MISSION 12's reversed-branch starter runs but fails by logic, while the corrected `if` code succeeds on both signs.
 - It verifies MISSION 13 uses `hero.readSign()` and `if`, contains both `看板：right` and `看板：left` fields, places the pillar on the indicated side, kills a hero choosing the unprotected side, and lets the same ten-move conditional solution pass both fields safely.
 - It verifies MISSION 17's syntax-broken starter does not execute, while its corrected `if / else` solution passes both fields.
-- It verifies MISSION 18 has exactly one field with water, lily pads and a goal door; the human hero is refused on a lily pad with the requested swimming/weight speech, frog form crosses lily pads, frog form is refused at the goal door with the handle speech, and the human form can enter the goal door to finish.
-- It verifies MISSION 19 uses two fields and one unchanged program, requires `||`, `&&`, `if / else`, sign reading, inspection, movement and both transformations, kills the hero on the unprotected side, and explicitly neutralizes the dragon through the lever on the protected side before success.
+- It verifies MISSION 18 has exactly one field with visibly styled water, lily pads and a goal door; the human hero is refused on a lily pad with the requested swimming/weight speech, frog form crosses lily pads, frog form is refused at the goal door with the handle speech, and the human form can enter the goal door to finish.
+- It verifies MISSION 19 uses two fields and one unchanged program, requires `||`, `&&`, `if / else`, sign reading, movement and both transformations, kills the hero on the unprotected side, explicitly crosses the selected lily route in the canonical solution, and explicitly neutralizes the dragon through the lever on the protected side before success.
 - It verifies wizard progression thresholds are exactly 1 total gem for level 1, 21 total gems for level 2 and 51 total gems for level 3, with level 4 at 91 under the continuing +10-per-level-cost pattern.
-- It verifies mission progression metadata reflects accumulated gems: MISSION 21 goes from 20 to 21 XP and crosses into level 2, while MISSION 22 starts at level 2.
+- It verifies progression metadata identifies the level-2 crossing from cumulative scripted XP rather than assuming a fixed mission number, and that the mission immediately after that crossing starts at level 2.
 - It verifies focused sidebar visibility: 00–01 before mission 00 completion; completed missions remain visible permanently; only unfinished missions beyond the next concept boundary are hidden; and 00–34 are visible after admin unlock-all.
 - It verifies invalid direction, invalid parameter, invalid boolean, unknown method, invalid transformation and locked hero-dragon behavior.
 - It verifies the boolean concept mission checks both `true` and `false`, collects its gem and ends on the goal tile after two moves.
