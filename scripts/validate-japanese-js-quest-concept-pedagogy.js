@@ -27,6 +27,8 @@ const packV4 = require(path.join(questPath, 'mission-pack-v4.js'))
 packV4.apply(missions, curriculum)
 const packV4Pedagogy = require(path.join(questPath, 'mission-pack-v4-pedagogy.js'))
 packV4Pedagogy.apply(missions)
+const packV5 = require(path.join(questPath, 'mission-pack-v5-order.js'))
+packV5.apply(missions, curriculum)
 const introMission = require(path.join(questPath, 'intro-mission.js'))
 const allMissions = [introMission, ...missions]
 
@@ -125,15 +127,16 @@ for (const card of sourceCards.allCards()) {
 assert.deepStrictEqual(finalCards.getMissionGuide(10).cardIds, expectedSourceGuides[3])
 assert.deepStrictEqual(finalCards.getMissionGuide(11).cardIds, expectedSourceGuides[4])
 assert.deepStrictEqual(finalCards.getMissionGuide(14).cardIds, expectedSourceGuides[5])
-assert.deepStrictEqual(finalCards.getMissionGuide(15).cardIds, expectedSourceGuides[6])
-assert.deepStrictEqual(finalCards.getMissionGuide(16).cardIds, expectedSourceGuides[7])
+assert.strictEqual(finalCards.getMissionGuide(15), null)
+assert.deepStrictEqual(finalCards.getMissionGuide(16).cardIds, expectedSourceGuides[6])
+assert.deepStrictEqual(finalCards.getMissionGuide(17).cardIds, expectedSourceGuides[7])
 assert.deepStrictEqual(finalCards.getMissionGuide(18).cardIds, expectedSemanticGuides['hero-transform-form'])
 assert.deepStrictEqual(finalCards.getMissionGuide(20).cardIds, expectedSourceGuides[8])
 assert.deepStrictEqual(finalCards.getMissionGuide(21).cardIds, expectedSourceGuides[9])
 assert.deepStrictEqual(finalCards.getMissionGuide(22).cardIds, expectedSourceGuides[10])
 assert.deepStrictEqual(finalCards.getMissionGuide(23).cardIds, expectedSourceGuides[11])
 
-for (const missionId of [2, 3, 4, 5, 6, 8, 9, 12, 13, 17, 19]) {
+for (const missionId of [2, 3, 4, 5, 6, 8, 9, 12, 13, 15, 19]) {
   assert.strictEqual(finalCards.getMissionGuide(missionId), null, `Practice MISSION ${missionId} must not receive new-concept cards`)
 }
 
@@ -146,14 +149,18 @@ const returnValueCard = sourceCards.getCard('concept-card-016')
 assert(returnValueCard.titleHtml.includes('戻り値'))
 assert(returnValueCard.titleHtml.includes('Return value'))
 assert(returnValueCard.titleHtml.includes('hero.look(direction)'))
-assert.strictEqual(finalCards.getCard('concept-card-016').missionId, 15, 'Return value must be formally introduced with hero.look in MISSION 15')
+assert.strictEqual(finalCards.getCard('concept-card-016').missionId, 16, 'Return value must be formally introduced with hero.look in MISSION 16')
 
 assert.strictEqual(finalCards.getCard('concept-card-015').missionId, 14, 'else must be introduced in MISSION 14')
-assert.strictEqual(finalCards.getCard('concept-card-039').missionId, 16, 'hero.canMove must be introduced when first used in MISSION 16')
+assert.strictEqual(finalCards.getCard('concept-card-039').missionId, 17, 'hero.canMove must follow its lesson to MISSION 17')
 assert.strictEqual(finalCards.getCard('concept-card-040').missionId, 18, 'hero.transform must be introduced at its first meaningful use in MISSION 18')
 assert.strictEqual(finalCards.getCard('concept-card-020').missionId, 22, 'else if must be introduced in MISSION 22')
 assert.strictEqual(finalCards.getCard('concept-card-021').missionId, 23, 'for must be introduced in MISSION 23')
 
+assert.strictEqual(allMissions[15].title, 'if と else の修理')
+assert.strictEqual(allMissions[15].type, missionTypes.TYPES.typoFix.code)
+assert.strictEqual(allMissions[16].title, 'となりを調べる')
+assert.strictEqual(allMissions[17].title, '安全な道')
 assert.strictEqual(allMissions[18].title, 'スイレンの川')
 assert.strictEqual(allMissions[18].type, missionTypes.TYPES.concept.code)
 assert(allMissions[18].solution.includes('hero.transform("frog")'))
@@ -167,6 +174,7 @@ const browser = vm.createContext({
     JSQuestMissionPackV3: packV3,
     JSQuestMissionPackV4: packV4,
     JSQuestMissionPackV4Pedagogy: packV4Pedagogy,
+    JSQuestMissionPackV5Order: packV5,
   },
 })
 for (const file of [
@@ -180,7 +188,9 @@ const browserCards = browser.self.JSQuestConceptCards
 assert.deepStrictEqual(Array.from(browserCards.getMissionGuide(10).cardIds), expectedSourceGuides[3])
 assert.deepStrictEqual(Array.from(browserCards.getMissionGuide(11).cardIds), expectedSourceGuides[4])
 assert.deepStrictEqual(Array.from(browserCards.getMissionGuide(14).cardIds), expectedSourceGuides[5])
-assert.deepStrictEqual(Array.from(browserCards.getMissionGuide(15).cardIds), expectedSourceGuides[6])
+assert.strictEqual(browserCards.getMissionGuide(15), null)
+assert.deepStrictEqual(Array.from(browserCards.getMissionGuide(16).cardIds), expectedSourceGuides[6])
+assert.deepStrictEqual(Array.from(browserCards.getMissionGuide(17).cardIds), expectedSourceGuides[7])
 assert.deepStrictEqual(Array.from(browserCards.getMissionGuide(18).cardIds), expectedSemanticGuides['hero-transform-form'])
 assert.deepStrictEqual(Array.from(browserCards.getMissionGuide(23).cardIds), expectedSourceGuides[11])
 assert.strictEqual(browserCards.getMissionGuide(20).cardIds.includes('concept-card-007'), false)
@@ -188,6 +198,7 @@ assert.strictEqual(browserCards.getMissionGuide(21).cardIds.includes('concept-ca
 
 const index = readQuest('index.html')
 assert(index.includes('<script src="mission-pack-v4-pedagogy.js"></script>'))
+assert(index.includes('<script src="mission-pack-v5-order.js"></script>'))
 assert(index.includes('<script src="concept-card-curriculum-source.js"></script>'))
 assert(index.includes('<script src="concept-card-curriculum-final.js"></script>'))
 assert(!index.includes('<script src="concept-card-library-extension.js"></script>'))
@@ -200,7 +211,8 @@ for (const remapFile of [
   assert(!index.includes(`<script src="${remapFile}"></script>`), `${remapFile} must not run in the browser anymore`)
 }
 assert(index.indexOf('mission-pack-v4.js') < index.indexOf('mission-pack-v4-pedagogy.js'))
-assert(index.indexOf('mission-pack-v4-pedagogy.js') < index.indexOf('concept-card-curriculum-final.js'))
+assert(index.indexOf('mission-pack-v4-pedagogy.js') < index.indexOf('mission-pack-v5-order.js'))
+assert(index.indexOf('mission-pack-v5-order.js') < index.indexOf('concept-card-curriculum-final.js'))
 assert(index.indexOf('concept-card-curriculum-source.js') < index.indexOf('concept-card-curriculum-final.js'))
 
-console.log('Validated all 23 core source concept missions plus the inserted transformation concept, all 40 stable cards, browser mapping, and first-use pedagogy through the final 35-mission curriculum.')
+console.log('Validated all 23 core source concept missions plus the inserted transformation concept, all 40 stable cards, browser mapping, reordered MISSION 15-17 ownership, and first-use pedagogy through the final 35-mission curriculum.')
