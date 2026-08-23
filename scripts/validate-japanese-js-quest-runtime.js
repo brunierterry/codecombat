@@ -103,6 +103,7 @@ for (const text of [
   'if (!isUnlocked(index) || running) return',
   'adminUnlockedAll = true',
   "new URL('quest-worker.js', window.location.href)",
+  "workerUrl.searchParams.set('v', String(window.JSQuestVersion || Date.now()))",
   '}, 5000)',
   'let failedAttempts = {}',
   'function recordFailedAttempt (mission)',
@@ -173,4 +174,4 @@ for (const text of [
   'must remain incomplete',
 ]) assert(productRules.includes(text))
 
-console.log('Validated mission 00 goddess greeting, cache-busted worker execution, browser mission-pack wiring, boss-mechanics worker loading, temporary admin access, normal progress repair and separated solution help.')
+console.log('Validated mission 00 goddess greeting, cache-busted worker URL/import execution, browser mission-pack wiring, boss-mechanics worker loading, temporary admin access, normal progress repair and separated solution help.')
