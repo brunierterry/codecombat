@@ -18,6 +18,7 @@ on:
       - 'scripts/validate-japanese-js-quest-mission-pack-v2.js'
       - 'scripts/validate-japanese-js-quest-mission-pack-v3.js'
       - 'scripts/validate-japanese-js-quest-mission-pack-v4.js'
+      - 'scripts/validate-japanese-js-quest-concept-pedagogy.js'
       - 'scripts/validate-japanese-js-quest-dragon-polish.js'
       - 'scripts/validate-japanese-js-quest-story-intro.js'
       - 'docs/PRODUCT_RULES.md'
@@ -35,6 +36,7 @@ on:
       - 'scripts/validate-japanese-js-quest-mission-pack-v2.js'
       - 'scripts/validate-japanese-js-quest-mission-pack-v3.js'
       - 'scripts/validate-japanese-js-quest-mission-pack-v4.js'
+      - 'scripts/validate-japanese-js-quest-concept-pedagogy.js'
       - 'scripts/validate-japanese-js-quest-dragon-polish.js'
       - 'scripts/validate-japanese-js-quest-story-intro.js'
       - 'docs/PRODUCT_RULES.md'
@@ -68,6 +70,8 @@ jobs:
         run: node scripts/validate-japanese-js-quest-mission-pack-v3.js
       - name: Validate river reinforcement and wizard progression
         run: node scripts/validate-japanese-js-quest-mission-pack-v4.js
+      - name: Validate concept pedagogy and semantic ownership
+        run: node scripts/validate-japanese-js-quest-concept-pedagogy.js
       - name: Validate polished dragon encounter
         run: node scripts/validate-japanese-js-quest-dragon-polish.js
       - name: Validate first-launch story introduction
