@@ -26,6 +26,9 @@ These rules apply to every contribution to Chiritsumo.
 - Do not remove or weaken an existing feature, validation, confirmation, navigation route, backup field, or setting without explicit approval.
 - Keep unrelated behavior unchanged.
 - Prefer one canonical implementation for shared domain logic instead of duplicating slightly different rules in UI and persistence layers.
+- When records must stay attached to the same meaning across renumbering, insertion, reordering or migration, anchor their relationship to a stable semantic or source identity rather than to a mutable display position.
+- A renumbering, insertion, reordering or migration is incomplete until automated regression checks verify every dependent relationship still resolves from its stable semantic or source identity to the correct current record.
+- Do not apply the same remapping or migration implicitly and explicitly in the same runtime. A transformation that is not deliberately idempotent must have one authoritative loading/execution path and must run exactly once.
 - UI validation improves feedback; repository validation is authoritative.
 - Cross-record validation and the write it protects must execute in one database transaction.
 - Editing validation must exclude the record being edited.
@@ -41,5 +44,6 @@ Before declaring work complete:
 
 - Compare the changed behavior with `docs/PRODUCT_RULES.md`.
 - Review the diff for accidental feature deletion, especially dialogs, validation, navigation state, and backup fields.
+- After any renumbering, insertion, reordering or migration, verify semantic relationships against their stable source identities rather than checking only the new numeric positions.
 - Verify every UI restriction also has a persistence-side guard when it represents a business invariant.
 - Verify the application version follows the versioning rules for the current pull request and is visible at the bottom of the main page.
