@@ -85,12 +85,25 @@
     return null
   }
 
+  function distanceToHero (boss, frame) {
+    if (!boss?.dragon || !frame) return Infinity
+    const dx = Math.abs(Number(frame.x) - Number(boss.dragon.x))
+    const dy = Math.abs(Number(frame.y) - Number(boss.dragon.y))
+    if (dx !== 0 && dy !== 0) return Infinity
+    return dx + dy
+  }
+
   function dragonThreat (variant, boss, frame, state) {
     const direction = directionTowardHero(boss, frame)
-    if (!direction) return { hit: false, direction: null, fireCells: [] }
+    if (!direction) return { hit: false, blocked: false, inRange: false, direction: null, fireCells: [] }
     const fireCells = dragonRayCells(variant, boss, direction, state)
+    const distance = distanceToHero(boss, frame)
+    const inRange = distance > 0 && distance <= dragonRange(boss)
+    const hit = inRange && fireCells.some(cell => sameCell(cell, frame))
     return {
-      hit: fireCells.some(cell => sameCell(cell, frame)),
+      hit,
+      blocked: inRange && !hit,
+      inRange,
       direction,
       fireCells,
     }
@@ -149,6 +162,18 @@
     }
   }
 
+  function fireTrace (state, boss, threat, type) {
+    return {
+      type,
+      dragonHit: type === 'dragon-fire',
+      fireDirection: threat.direction,
+      fireCells: threat.fireCells.map(cell => Object.assign({}, cell)),
+      dragon: Object.assign({}, boss.dragon),
+      attackRange: dragonRange(boss),
+      grid: visualGrid(currentGridRows(state), boss, false, threat.fireCells, state.protectiveStatueRaised),
+    }
+  }
+
   function bossActionHook (variant) {
     const boss = variant.boss
     return function ({ state, phase, action }) {
@@ -177,23 +202,23 @@
 
       if (state.bossDefeated) return null
       const threat = dragonThreat(variant, boss, state.hero, state)
-      if (!threat.hit) return null
-
-      state.dragonHit = true
-      return {
-        killHero: true,
-        deathCause: 'dragon-fire',
-        message: 'ドラゴンの炎に当たって、ヒーローが倒れました。',
-        trace: {
-          type: 'dragon-fire',
-          dragonHit: true,
-          fireDirection: threat.direction,
-          fireCells: threat.fireCells.map(cell => Object.assign({}, cell)),
-          dragon: Object.assign({}, boss.dragon),
-          attackRange: dragonRange(boss),
-          grid: visualGrid(currentGridRows(state), boss, false, threat.fireCells, state.protectiveStatueRaised),
-        },
+      if (threat.hit) {
+        state.dragonHit = true
+        return {
+          killHero: true,
+          deathCause: 'dragon-fire',
+          message: 'ドラゴンの炎に当たって、ヒーローが倒れました。',
+          trace: fireTrace(state, boss, threat, 'dragon-fire'),
+        }
       }
+
+      if (phase === 'after' && threat.blocked) {
+        return {
+          trace: fireTrace(state, boss, threat, 'dragon-fire-blocked'),
+        }
+      }
+
+      return null
     }
   }
 
@@ -223,7 +248,7 @@
     const boss = variant?.boss
 
     if (stateRules.noDragonFire && state.dragonHit) {
-      messages.push('ドラゴンの火は上下左右に' + dragonRange(boss) + 'マスまで届きます。ドラゴンから離れる方向へ進みましょう。')
+      messages.push('ドラゴンの火は上下左右に' + dragonRange(boss) + 'マスまで届きます。ただし、像があると炎はそこで止まります。像の向こう側に隠れるか、安全な方向へ進みましょう。')
     }
     if (stateRules.bossDefeated && !state.bossDefeated) {
       messages.push(boss?.lever
