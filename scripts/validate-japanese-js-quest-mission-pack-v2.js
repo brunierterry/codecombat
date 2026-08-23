@@ -95,7 +95,8 @@ assert.strictEqual(remappedCards.getMissionGuide(9), null)
 
 const index = readQuest('index.html')
 assert(index.includes('<script src="mission-pack-v2.js"></script>'))
-assert(index.includes('<script src="concept-card-mission-remap-v2.js"></script>'))
+assert(index.includes('<script src="concept-card-curriculum-final.js"></script>'))
+assert(!index.includes('<script src="concept-card-mission-remap-v2.js"></script>'))
 assert(index.indexOf('mission-pack-v1-dragon-polish.js') < index.indexOf('mission-pack-v2.js'))
 assert(index.indexOf('mission-pack-v2.js') < index.indexOf('intro-mission.js'))
 
