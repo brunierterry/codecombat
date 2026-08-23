@@ -447,6 +447,6 @@ assert(developmentRules.includes('stable semantic or source identity'))
 assert(developmentRules.includes('renumbering, insertion, reordering or migration'))
 
 const version = require(path.join(questPath, 'version.js'))
-assert.strictEqual(version, '0.4.7')
+assert.strictEqual(version, '0.4.8')
 
 console.log('Validated semantic concept-card ownership across all renumbering, exact mission 10/11 concept guides, no double remapping, and the complete MISSION 17-19 reinforcement pack.')
