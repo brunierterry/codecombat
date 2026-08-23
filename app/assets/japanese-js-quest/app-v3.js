@@ -207,8 +207,9 @@
       { from: 8, text: '🚪 ドア' },
       { from: 13, text: '👹 敵' },
       { from: 18, text: '🌊 水' },
-      { from: 18, text: '🪷 スイレンの葉' },
-      { from: 18, text: '🚪 ゴールのドア' }
+      { from: 18, text: '🍃 スイレンの葉' },
+      { from: 18, text: '🚪 ゴールのドア' },
+      { from: 19, text: '🗿 像' }
     ]
     els.legend.innerHTML = entries
       .filter(entry => entry.from <= missionId)
@@ -313,7 +314,8 @@
     D: { text: '🚪', className: 'door', label: 'ドア' },
     X: { text: '🚪', className: 'goal-door', label: 'ゴールのドア' },
     W: { text: '≈', className: 'water', label: '水' },
-    O: { text: '🪷', className: 'lily-pad', label: 'スイレンの葉' },
+    O: { text: '🍃', className: 'lily-pad', label: 'スイレンの葉' },
+    S: { text: '🗿', className: 'statue', label: '像' },
     T: { text: '⚠️', className: 'trap', label: 'ワナ' },
     E: { text: '👹', className: 'enemy', label: '敵' }
   }
