@@ -19,6 +19,7 @@ on:
       - 'scripts/validate-japanese-js-quest-mission-pack-v3.js'
       - 'scripts/validate-japanese-js-quest-mission-pack-v4.js'
       - 'scripts/validate-japanese-js-quest-concept-pedagogy.js'
+      - 'scripts/validate-japanese-js-quest-mission-order-responsive-field.js'
       - 'scripts/validate-japanese-js-quest-dragon-polish.js'
       - 'scripts/validate-japanese-js-quest-story-intro.js'
       - 'docs/PRODUCT_RULES.md'
@@ -37,6 +38,7 @@ on:
       - 'scripts/validate-japanese-js-quest-mission-pack-v3.js'
       - 'scripts/validate-japanese-js-quest-mission-pack-v4.js'
       - 'scripts/validate-japanese-js-quest-concept-pedagogy.js'
+      - 'scripts/validate-japanese-js-quest-mission-order-responsive-field.js'
       - 'scripts/validate-japanese-js-quest-dragon-polish.js'
       - 'scripts/validate-japanese-js-quest-story-intro.js'
       - 'docs/PRODUCT_RULES.md'
@@ -72,6 +74,8 @@ jobs:
         run: node scripts/validate-japanese-js-quest-mission-pack-v4.js
       - name: Validate concept pedagogy and semantic ownership
         run: node scripts/validate-japanese-js-quest-concept-pedagogy.js
+      - name: Validate mission ordering and responsive field sizing
+        run: node scripts/validate-japanese-js-quest-mission-order-responsive-field.js
       - name: Validate polished dragon encounter
         run: node scripts/validate-japanese-js-quest-dragon-polish.js
       - name: Validate first-launch story introduction
