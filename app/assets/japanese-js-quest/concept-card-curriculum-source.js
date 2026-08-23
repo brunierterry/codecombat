@@ -22,6 +22,10 @@
     return Object.freeze({ id, missionId, titleHtml, bodyHtml })
   }
 
+  function semanticCard (id, ownerKey, titleHtml, bodyHtml) {
+    return Object.freeze({ id, ownerKey, titleHtml, bodyHtml })
+  }
+
   function guide (title, cardIds) {
     return Object.freeze({ title, cardIds: Object.freeze(cardIds) })
   }
@@ -95,13 +99,26 @@
     ),
   ])
 
+  const semanticCards = Object.freeze([
+    semanticCard(
+      'concept-card-040',
+      'hero-transform-form',
+      '<code>hero.transform(form)</code> で' + tooltip('姿', 'すがた') + 'を変える',
+      '<code>hero.transform("frog")</code> でカエルの' + tooltip('姿', 'すがた') + 'に変わり、<code>hero.transform("hero")</code> で人の' + tooltip('姿', 'すがた') + 'に戻ります。' +
+        'パラメーター <code>form</code> に、なりたい' + tooltip('姿', 'すがた') + 'を文字列で渡します。カエルなら軽いのでスイレンの葉を渡れますが、ドアを使うには人の' + tooltip('姿', 'すがた') + 'に戻る必要があります。'
+    ),
+  ])
+
   const replacementById = Object.freeze(Object.fromEntries(
     replacementCards.map(item => [item.id, item]),
   ))
   const additionalById = Object.freeze(Object.fromEntries(
     additionalCards.map(item => [item.id, item]),
   ))
-  const cardsById = Object.freeze(Object.assign({}, base.cardsById, replacementById, additionalById))
+  const semanticById = Object.freeze(Object.fromEntries(
+    semanticCards.map(item => [item.id, item]),
+  ))
+  const cardsById = Object.freeze(Object.assign({}, base.cardsById, replacementById, additionalById, semanticById))
 
   const guideOverrides = Object.freeze({
     1: guide('JavaScript editor とコメント、新しいメソッド：動く', [
@@ -125,6 +142,9 @@
     17: guide('二重ループと条件で値を選ぶ書き方', ['concept-card-030']),
   })
   const missionGuides = Object.freeze(Object.assign({}, base.missionGuides, guideOverrides))
+  const semanticGuides = Object.freeze({
+    'hero-transform-form': guide('姿を変えて、できることを変える', ['concept-card-040']),
+  })
 
   function getCard (id) {
     return cardsById[id] || null
@@ -140,17 +160,29 @@
     }
   }
 
+  function getSemanticGuide (ownerKey) {
+    const guideRecord = semanticGuides[ownerKey]
+    if (!guideRecord) return null
+    return {
+      title: guideRecord.title,
+      cardIds: guideRecord.cardIds.slice(),
+      cards: guideRecord.cardIds.map(getCard),
+    }
+  }
+
   function allCards () {
     return base.allCards()
       .map(item => replacementById[item.id] || item)
-      .concat(additionalCards)
+      .concat(additionalCards, semanticCards)
   }
 
   return Object.freeze({
     cardsById,
     missionGuides,
+    semanticGuides,
     getCard,
     getMissionGuide,
+    getSemanticGuide,
     allCards,
   })
 })
