@@ -92,12 +92,12 @@ assert(finalCards.getMissionGuide(20), 'MISSION 20 and later must keep their exi
 
 const packSource = readQuest('mission-pack-v5-order.js')
 for (const text of [
-  "15: 16",
-  "16: 17",
-  "17: 15",
-  "CODE_KEY_PREFIX + shiftedExistingId(oldId)",
-  "saved.completed.map(Number).map(id => shiftedExistingId(id))",
-  "unlocked: deriveUnlocked(completed, FINAL_MISSION_COUNT)",
+  '15: 16',
+  '16: 17',
+  '17: 15',
+  'CODE_KEY_PREFIX + shiftedExistingId(oldId)',
+  'saved.completed.map(Number).map(id => shiftedExistingId(id))',
+  'unlocked: deriveUnlocked(completed, FINAL_MISSION_COUNT)',
 ]) assert(packSource.includes(text), 'Missing mission-order persistence invariant: ' + text)
 
 const responsiveCss = readQuest('field-responsive.css')
@@ -117,9 +117,9 @@ const responsiveJs = readQuest('field-responsive.js')
 for (const text of [
   'new ResizeObserver',
   'getBoundingClientRect()',
-  "--field-icon-size",
-  "--field-lily-size",
-  "--field-statue-size",
+  '--field-icon-size',
+  '--field-lily-size',
+  '--field-statue-size',
   'cellWidth * 0.62',
   'cellWidth * 0.72',
 ]) assert(responsiveJs.includes(text), 'Missing actual-field-width icon scaling: ' + text)
