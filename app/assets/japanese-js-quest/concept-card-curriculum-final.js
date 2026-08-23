@@ -8,12 +8,14 @@
         require('./mission-pack-v2.js'),
         require('./mission-pack-v3.js'),
         require('./mission-pack-v4.js'),
+        require('./mission-pack-v5-order.js'),
       ]
     : [
         root.JSQuestMissionPackV1,
         root.JSQuestMissionPackV2,
         root.JSQuestMissionPackV3,
         root.JSQuestMissionPackV4,
+        root.JSQuestMissionPackV5Order,
       ]
   const v4Pedagogy = typeof module === 'object' && module.exports
     ? require('./mission-pack-v4-pedagogy.js')
