@@ -109,6 +109,12 @@
     return state.grid.map(row => Array.isArray(row) ? row.join('') : String(row))
   }
 
+  function raiseProtectiveStatue (state, boss) {
+    const cell = boss.protectiveStatue
+    if (!cell || !state.grid[cell.y] || state.grid[cell.y][cell.x] == null) return
+    state.grid[cell.y][cell.x] = 'S'
+  }
+
   function protectiveStatueOutcome (state, phase, action, boss) {
     if (state.form !== 'hero') {
       if (phase !== 'after' || action?.type !== 'move' || state.leverRefusalShown) return null
@@ -125,6 +131,7 @@
 
     if (state.protectiveStatueRaised) return null
     state.protectiveStatueRaised = true
+    raiseProtectiveStatue(state, boss)
     if (phase !== 'after') return null
     return {
       trace: {
