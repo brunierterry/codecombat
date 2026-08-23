@@ -15,14 +15,18 @@
         root.JSQuestMissionPackV3,
         root.JSQuestMissionPackV4,
       ]
-  const api = factory(source, packs)
+  const v4Pedagogy = typeof module === 'object' && module.exports
+    ? require('./mission-pack-v4-pedagogy.js')
+    : root.JSQuestMissionPackV4Pedagogy
+  const api = factory(source, packs, v4Pedagogy)
   if (typeof module === 'object' && module.exports) module.exports = api
   else root.JSQuestConceptCards = api
-})(typeof self !== 'undefined' ? self : this, function (source, packs) {
+})(typeof self !== 'undefined' ? self : this, function (source, packs, v4Pedagogy) {
   'use strict'
 
   if (!source) throw new Error('Stable concept-card source is missing')
   if (!packs.every(Boolean)) throw new Error('Concept-card curriculum mapping dependencies are missing')
+  if (!v4Pedagogy) throw new Error('Mission-pack v4 pedagogy mapping is missing')
 
   function finalMissionIdForSource (sourceMissionId) {
     return packs.reduce(
@@ -31,20 +35,41 @@
     )
   }
 
+  function finalMissionIdForOwner (ownerKey) {
+    const owner = v4Pedagogy.semanticOwner(ownerKey)
+    if (!owner) throw new Error('Unknown semantic concept owner: ' + ownerKey)
+    return packs.slice(owner.packIndex + 1).reduce(
+      (missionId, pack) => pack.shiftedExistingId(missionId),
+      Number(owner.missionId),
+    )
+  }
+
+  function finalMissionIdForCard (card) {
+    return card.ownerKey
+      ? finalMissionIdForOwner(card.ownerKey)
+      : finalMissionIdForSource(card.missionId)
+  }
+
   const cards = source.allCards().map(card => Object.freeze(Object.assign({}, card, {
-    missionId: finalMissionIdForSource(card.missionId),
+    missionId: finalMissionIdForCard(card),
   })))
   const cardsById = Object.freeze(Object.fromEntries(cards.map(card => [card.id, card])))
 
-  const missionGuides = Object.freeze(Object.fromEntries(
-    Object.entries(source.missionGuides).map(([sourceMissionId, guide]) => [
-      finalMissionIdForSource(sourceMissionId),
-      Object.freeze({
-        title: guide.title,
-        cardIds: Object.freeze(Array.from(guide.cardIds)),
-      }),
-    ]),
-  ))
+  const sourceGuides = Object.entries(source.missionGuides).map(([sourceMissionId, guide]) => [
+    finalMissionIdForSource(sourceMissionId),
+    Object.freeze({
+      title: guide.title,
+      cardIds: Object.freeze(Array.from(guide.cardIds)),
+    }),
+  ])
+  const semanticGuides = Object.entries(source.semanticGuides || {}).map(([ownerKey, guide]) => [
+    finalMissionIdForOwner(ownerKey),
+    Object.freeze({
+      title: guide.title,
+      cardIds: Object.freeze(Array.from(guide.cardIds)),
+    }),
+  ])
+  const missionGuides = Object.freeze(Object.fromEntries([...sourceGuides, ...semanticGuides]))
 
   function getCard (id) {
     return cardsById[id] || null
@@ -71,5 +96,6 @@
     getMissionGuide,
     allCards,
     finalMissionIdForSource,
+    finalMissionIdForOwner,
   })
 })
