@@ -357,6 +357,7 @@
   function workerRun (code, mission, variantIndex) {
     return new Promise((resolve, reject) => {
       const workerUrl = new URL('quest-worker.js', window.location.href)
+      workerUrl.searchParams.set('v', String(window.JSQuestVersion || Date.now()))
       const worker = new Worker(workerUrl)
       const cleanup = () => {
         window.clearTimeout(timeout)
