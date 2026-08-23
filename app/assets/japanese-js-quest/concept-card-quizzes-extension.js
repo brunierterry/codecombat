@@ -79,6 +79,11 @@
     'concept-card-039': Object.freeze([
       question('hero.canMove(direction) は何を調べますか？', 'その方向へ進めるか', ['宝石の数', '看板の色']),
       question('進めないとき hero.canMove(...) は何を返しますか？', 'false', ['true', '"wall" だけ'])
+    ]),
+    'concept-card-040': Object.freeze([
+      question('hero.transform("frog") は何をしますか？', 'ヒーローをカエルの姿に変える', ['ヒーローを右へ動かす', '看板を読む']),
+      question('人の姿に戻るにはどれを使いますか？', 'hero.transform("hero")', ['hero.transform("frog")', 'hero.look("hero")']),
+      question('hero.transform(form) の form には何を渡しますか？', 'なりたい姿を表す文字列', ['移動する回数だけ', 'if の条件だけ'])
     ])
   })
 
