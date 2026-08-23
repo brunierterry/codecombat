@@ -82,15 +82,16 @@ This document is the functional and business source of truth for the local Japan
 - A `logic-fix` starter must compile and run. Its failure comes from reasoning, ordering, direction, branch choice or another semantic mistake, not from invalid syntax.
 - Debugging missions must be unique missions built from previously learned material, not recycled concept missions with an arbitrary error inserted.
 - A `boss` mission may introduce new world mechanics without treating those mechanics as new JavaScript concepts. The programming solution must still respect the concepts that the learner is expected to know at that point, except for an explicitly documented debugging exception such as mission 03.
-- Boss missions normally cannot complete until the boss has been explicitly resolved by defeating, capturing, trapping or otherwise neutralizing it.
+- Boss missions normally cannot complete until the boss has been explicitly resolved by defeating, capturing, trapping or otherwise neutralizing it, or until an explicit defensive mechanism required by that boss has been activated.
 - Mission 06, MISSION 09 and MISSION 13 are approved escape-boss exercises: their objective is to avoid the dragon, collect the required gem and reach the goal while the dragon remains alive. For MISSION 06 in particular, the dragon must remain alive on success.
 - A dragon has a default attack range of three tiles in the four cardinal directions. If the hero is on the same row or column and enters one of those three tiles while visible to the dragon, the dragon breathes fire in that direction and the run fails.
 - An active dragon ray displays one flame per reachable attack tile from the dragon toward the hero. If the ray reaches the hero, the hero tile first displays a flame and then the hero becomes a skeleton to show that the fire defeated the hero.
-- Dragon line of sight is blocked by impassable world geometry such as a wall or pillar. A dragon does not attack through those blockers.
+- Dragon line of sight is blocked by impassable world geometry such as a wall, pillar or statue. A dragon does not attack through those blockers.
 - A tile occupied by a creature is always impassable to the hero. This remains true even when that creature is sleeping, disabled, magically prevented from attacking, or otherwise unable to damage the hero.
-- Boss and adventure world mechanics are reusable building blocks. Supported examples include a dragon fire lane blocked by a pillar, a lever that defeats or traps a boss, water, lily pads that only the frog form can cross, and a goal door that only the human hero form can use.
+- Boss and adventure world mechanics are reusable building blocks. Supported examples include a dragon fire lane blocked by a pillar or statue, a lever that defeats/traps a boss or raises a defensive statue, water, lily pads that only the frog form can cross, and a goal door that only the human hero form can use.
+- A lever may impose a form requirement. When a boss scenario specifies a human-only lever, frog form can stand on the lever tile but cannot activate it; the world must explain that the hero needs to return to human form.
 - New world mechanics must communicate failure or blocking visually and through understandable speech where practical. For dragon fire, the visible execution stops on the hit tile, flames propagate from the dragon across every reachable fire tile, the flame visibly reaches the hero, and the hero then becomes a skeleton.
-- A defeated visual for a boss such as a skull is shown only after an explicit boss-neutralization event. A failed run, an ordinary goal arrival or an escape objective must never implicitly mark a living boss as defeated. A hero skeleton caused by lethal damage is a separate hero-death visual and does not mean the boss was defeated.
+- A defeated visual for a boss such as a skull is shown only after an explicit boss-neutralization event. A failed run, an ordinary goal arrival, an escape objective or the activation of a defensive statue must never implicitly mark a living boss as defeated. A hero skeleton caused by lethal damage is a separate hero-death visual and does not mean the boss was defeated.
 - Defeating a boss does not require elaborate combat animation; activating a trap/lever may make the boss disappear or leave a simple defeated marker such as a skull.
 - The mission type appears in the opened mission near its mission number with the type emoji and label.
 - The sidebar keeps mission-type differences lightweight: non-concept types receive a subtle visual distinction rather than repeating large emojis in every row.
@@ -197,16 +198,21 @@ This document is the functional and business source of truth for the local Japan
 - MISSION 18 is the single-field `adventure` mission `スイレンの川`. The hero starts on the lower river bank, the river occupies the width of the field, a vertical path of lily pads crosses it, and the goal is represented by a door on the upper bank rather than a flag.
 - The MISSION 18 field must make the geography immediately visible: ordinary bank/floor tiles appear above and below the river, water tiles have a clearly blue water treatment, lily-pad tiles are visibly rendered as lily pads on water, and the upper-bank goal tile visibly renders a door.
 - Water tiles are impassable. A lily-pad tile is passable only in frog form. If the human hero tries to step onto a lily pad, the move is refused and a blocking speech bubble explains that the hero cannot swim, is too heavy for the lily pad, and that the pad looks strong enough for a small animal.
+- Lily pads are represented by the broadly supported green-leaf emoji `🍃`, rendered large enough to occupy roughly thirty percent of a field tile so the crossing remains clearly visible on systems that do not display the lotus emoji.
 - The first MISSION 18 hint suggests changing to a smaller form. A later hint explicitly tells the learner to use `hero.transform("frog")` to cross the lily pads.
 - The MISSION 18 goal door is usable only in the human hero form. If the frog tries to enter it, the move is refused and a speech bubble explains that the frog cannot use the door handle. A later hint explicitly tells the learner to use `hero.transform("hero")` before entering the door.
 - The MISSION 18 reference solution approaches the river, transforms to frog, crosses the lily pads, collects the gem on the upper bank, transforms back to the human hero, and enters the goal door in six moves.
-- MISSION 19 is the two-field boss `カエルと封印のドラゴン`. It combines the JavaScript concepts learned through MISSION 16: named values, comparisons and booleans, `if / else`, `||`, `&&`, sign reading, movement and frog/human transformations.
-- Both MISSION 19 fields use the same source program. The sign chooses the left or right lily-pad route; the pillar, lever, gem and goal are mirrored between the two fields. The river is visually represented as water with only the two lily-pad crossing lanes traversable by the frog.
-- The intended MISSION 19 program uses `side === "left" || side === "west"` to derive the left-side boolean, combines that value with another comparison through `&&`, uses `if / else` to move three cells to the selected river crossing, transforms into a frog, crosses four cells upward, then transforms back to human form.
-- The reference solution must not conditionally omit the river-crossing movement based on an auxiliary inspection check. Once the safe left/right route is selected and the hero is in frog form, the canonical solution explicitly performs the four upward crossing moves so the admin `答えを見る` code deterministically reaches the upper bank in both fields.
-- After reaching the upper bank, the hero transforms back to human form and moves upward behind the protected pillar. Choosing the wrong side enters the dragon's three-cell horizontal fire ray and fails. Choosing the indicated side lets the pillar block the ray.
-- The correct route steps on a lever that explicitly seals/defeats the dragon before the hero collects the gem and reaches the goal. MISSION 19 therefore uses normal boss neutralization rather than the earlier escape-boss exception.
-- The MISSION 19 reference route is eleven moves in either field, and the same unchanged code must pass both fields.
+- MISSION 19 is the two-field boss `カエルと守りのドラゴン`. It combines the JavaScript concepts learned through MISSION 16: named values, comparisons and booleans, `if / else`, `||`, `&&`, sign reading, movement and frog/human transformations.
+- Both MISSION 19 fields use the same source program. The sign chooses the left or right lily-pad crossing; the side statue, lever and gem are mirrored between the two fields while the dragon, top goal and central defensive-statue position stay fixed.
+- The playable middle column is, from top to bottom: the goal on the top field row; one normal floor tile; one initially empty floor tile reserved for the defensive statue; the dragon; four consecutive water tiles; the hero's starting floor tile; then the bottom wall.
+- The top goal has one impassable statue immediately on its left and one immediately on its right. Consequently the hero cannot enter the goal from either side and must approach it from the normal floor tile directly below it.
+- The row directly below the dragon is part of the four-row river. Each river row uses the same pattern across the eleven playable columns: water, water, lily pad, water, water, water, water, water, lily pad, water, water. The chosen lily path therefore must be crossed in frog form.
+- The intended MISSION 19 program uses `side === "left" || side === "west"` to derive the left-side boolean, combines it with another condition using `&&`, and uses `if / else` to move three cells to the sign-selected river crossing. It then transforms into a frog and moves upward five times: across four lily-pad river rows and onto the upper-bank row beside the dragon.
+- A static statue on the sign-selected side blocks the dragon's horizontal fire while the frog reaches the upper bank. Choosing the opposite side enters the dragon's three-tile horizontal fire ray and fails.
+- The lever is on the selected side one row above the dragon. Only the human/mage form can activate it. If frog form steps onto the lever, the lever remains inactive and a speech bubble explains that the hero must return to human form.
+- Activating the lever does not defeat or remove the dragon. It raises a new impassable statue on the central floor tile immediately above the dragon. The new statue is part of the authoritative field state, is rendered visibly, blocks movement, and blocks the dragon's upward fire ray.
+- Without the raised central statue, approaching the central top corridor or goal from above the dragon enters the dragon's upward three-tile fire ray and burns the hero. With the statue raised, the hero can move one row above it, return horizontally to the middle column and then enter the goal from below while the dragon remains alive.
+- The gem is placed on that post-lever route to the central corridor. The MISSION 19 reference route takes exactly fourteen moves in either field, raises the protective statue, collects the gem and reaches the goal without defeating the dragon.
 - MISSION 17, 18 and 19 introduce no new concept cards. Concept-card guides for the formerly current MISSION 17 and later concepts shift by three IDs together with their missions.
 
 ## Concept card reference base
@@ -311,7 +317,7 @@ This document is the functional and business source of truth for the local Japan
 - `gem` explains that gems give experience, increase wizard level and unlock powers.
 - The formal `transform`, `form` and `frog` reference entries remain hidden before concept mission 07. Mission 03 may display the exact `hero.transform("frog")` command as an explicit typo-fix target without unlocking the full transformation reference lesson.
 - `boolean`, `true`, `false`, `always`, constants, assignment and `hero.isTrue(boolean)` appear from concept mission 10.
-- Water, `lily` and the goal door are added to the map vocabulary when MISSION 18 is first reached; they are not exposed before the river adventure.
+- Water, `lily` and the goal door are added to the map vocabulary when MISSION 18 is first reached; statue vocabulary is added from MISSION 19.
 - `while (true)` and the infinite-loop warning appear from concept mission 26.
 
 ## Field and editor presentation
@@ -362,9 +368,10 @@ This document is the functional and business source of truth for the local Japan
 - The engine maintains an authoritative `alive` state for the hero. A new hero action may begin only while that state is alive.
 - Every hero API action resolves lethal world hazards at action boundaries. Hazards are checked before an action starts and again after an action changes the hero or world state, so later movement methods or future action methods cannot bypass danger resolution.
 - When an action kills the hero, the engine sets the hero to dead, records the death cause, emits the lethal trace frame and immediately terminates the learner's JavaScript execution. No later `hero.*` action from the source program may execute or appear in the trace.
-- `hero.move(...)` checks blocking world occupancy before changing the hero position. Walls, water, closed doors, form-incompatible lily pads/goal doors and creature-occupied tiles cannot be entered.
+- `hero.move(...)` checks blocking world occupancy before changing the hero position. Walls, statues, water, closed doors, form-incompatible lily pads/goal doors and creature-occupied tiles cannot be entered.
 - Entering a lethal trap kills the hero and stops the remaining JavaScript execution. Starting another hero action while already standing on a lethal hazard also resolves the hazard before that action can run.
 - Dragon-fire danger is resolved by the same action lifecycle rather than by post-processing a fully executed trace. Entering a live dragon ray therefore kills the hero before the next source instruction can execute.
+- Dynamic boss geometry such as MISSION 19's raised protective statue becomes part of authoritative field state immediately when its trigger succeeds, so it affects both movement collision and subsequent dragon line-of-sight checks.
 - Speech pauses execution until the learner closes the bubble.
 - Speech bubbles are attached visually to the hero's position at the corresponding trace frame.
 - A refused lily-pad or frog-at-goal-door move emits a normal trace-based hero speech bubble and keeps the hero on the original tile; it is not a lethal failure.
@@ -465,9 +472,10 @@ This document is the functional and business source of truth for the local Japan
 - Gem and goal are visible from mission 01.
 - Frog first appears as a visible typo-fix result in mission 03 and therefore appears exactly once in the legend from mission 03 onward, even though its formal concept lesson remains mission 07.
 - Enemy dragon and dragon fire first appear in mission 06 and are added to the legend from mission 06 onward.
-- A pillar becomes an active route-protection element in MISSION 09 and is used again in MISSION 13 and MISSION 19.
-- Water, lily pads and the goal door first appear in MISSION 18 and enter the legend at MISSION 18.
-- A lever first becomes an active boss-neutralization element in MISSION 19 and is shown at its configured field position.
+- A pillar becomes an active route-protection element in MISSION 09 and is used again in MISSION 13. MISSION 19 uses statue tiles for both its side protection and its dynamic central fire blocker.
+- Water, green-leaf `🍃` lily pads and the goal door first appear in MISSION 18 and enter the legend at MISSION 18.
+- A lever first becomes an active world-interaction element in MISSION 19 and is shown at its configured field position. In MISSION 19 it raises a protective statue rather than defeating the dragon.
+- Statue tiles are impassable and block dragon fire. They enter the legend with MISSION 19.
 - Trap first appears by MISSION 15.
 - Key and the normal keyed door first appear in MISSION 20 after the fourth insertion.
 - Enemy appears from MISSION 27 after the fourth insertion.
@@ -525,8 +533,8 @@ This document is the functional and business source of truth for the local Japan
 - It verifies MISSION 12's reversed-branch starter runs but fails by logic, while the corrected `if` code succeeds on both signs.
 - It verifies MISSION 13 uses `hero.readSign()` and `if`, contains both `看板：right` and `看板：left` fields, places the pillar on the indicated side, kills a hero choosing the unprotected side, and lets the same ten-move conditional solution pass both fields safely.
 - It verifies MISSION 17's syntax-broken starter does not execute, while its corrected `if / else` solution passes both fields.
-- It verifies MISSION 18 has exactly one field with visibly styled water, lily pads and a goal door; the human hero is refused on a lily pad with the requested swimming/weight speech, frog form crosses lily pads, frog form is refused at the goal door with the handle speech, and the human form can enter the goal door to finish.
-- It verifies MISSION 19 uses two fields and one unchanged program, requires `||`, `&&`, `if / else`, sign reading, movement and both transformations, kills the hero on the unprotected side, explicitly crosses the selected lily route in the canonical solution, and explicitly neutralizes the dragon through the lever on the protected side before success.
+- It verifies MISSION 18 has exactly one field with visibly styled water, enlarged green-leaf `🍃` lily pads and a goal door; the human hero is refused on a lily pad with the requested swimming/weight speech, frog form crosses lily pads, frog form is refused at the goal door with the handle speech, and the human form can enter the goal door to finish.
+- It verifies MISSION 19 uses two fields and one unchanged program, requires `||`, `&&`, `if / else`, sign reading, movement and both transformations, contains exactly four vertical river rows beneath the dragon, keeps the goal on the top row between two statues, kills the hero on the unprotected side, refuses lever activation in frog form, raises an impassable central statue only from human form, blocks the dragon's upward ray with that statue, keeps the dragon alive, and lets the same fourteen-move reference solution collect the gem and reach the goal on both fields.
 - It verifies wizard progression thresholds are exactly 1 total gem for level 1, 21 total gems for level 2 and 51 total gems for level 3, with level 4 at 91 under the continuing +10-per-level-cost pattern.
 - It verifies progression metadata identifies the level-2 crossing from cumulative scripted XP rather than assuming a fixed mission number, and that the mission immediately after that crossing starts at level 2.
 - It verifies focused sidebar visibility: 00–01 before mission 00 completion; completed missions remain visible permanently; only unfinished missions beyond the next concept boundary are hidden; and 00–34 are visible after admin unlock-all.
