@@ -130,13 +130,26 @@ for (const file of [
   'boss-mechanics.js',
   'mission-types.js',
   'mission-pack-v1.js',
-  'concept-card-mission-remap-v1.js',
+  'mission-pack-v4-pedagogy.js',
+  'mission-pack-v5-order.js',
+  'concept-card-curriculum-source.js',
+  'concept-card-curriculum-final.js',
+  'field-responsive.js',
   'mission-types-ui.js',
   'boss-ui.js',
 ]) {
   assert(indexSource.includes(`<script src="${file}`), `${file} must be loaded by index.html`)
 }
+for (const obsoleteRemap of [
+  'concept-card-mission-remap-v1.js',
+  'concept-card-mission-remap-v2.js',
+  'concept-card-mission-remap-v3.js',
+  'concept-card-mission-remap-v4.js',
+]) {
+  assert(!indexSource.includes(`<script src="${obsoleteRemap}`), `${obsoleteRemap} must not be loaded by the browser`)
+}
 assert(indexSource.includes('<link rel="stylesheet" href="mission-types.css">'))
+assert(indexSource.includes('<link rel="stylesheet" href="field-responsive.css">'))
 assert(!indexSource.includes('23のミッション'))
 assert(!indexSource.includes('0 / 23'))
 assert(indexSource.includes('いろいろなミッションで、JavaScriptを少しずつ身につけよう'))
@@ -144,10 +157,14 @@ assert(indexSource.includes('id="progress-label">0 / 2'))
 assert(indexSource.indexOf('curriculum-engine.js') < indexSource.indexOf('boss-mechanics.js'))
 assert(indexSource.indexOf('curriculum-v3.js') < indexSource.indexOf('mission-pack-v1.js'))
 assert(indexSource.indexOf('mission-types.js') < indexSource.indexOf('mission-pack-v1.js'))
+assert(indexSource.indexOf('mission-pack-v4.js') < indexSource.indexOf('mission-pack-v4-pedagogy.js'))
+assert(indexSource.indexOf('mission-pack-v4-pedagogy.js') < indexSource.indexOf('mission-pack-v5-order.js'))
+assert(indexSource.indexOf('mission-pack-v5-order.js') < indexSource.indexOf('concept-card-curriculum-final.js'))
+assert(indexSource.indexOf('concept-card-curriculum-source.js') < indexSource.indexOf('concept-card-curriculum-final.js'))
+assert(indexSource.indexOf('concept-card-curriculum-final.js') < indexSource.indexOf('learning-guide.js'))
 assert(indexSource.indexOf('mission-pack-v1.js') < indexSource.indexOf('progress-access.js'))
 assert(indexSource.indexOf('mission-pack-v1.js') < indexSource.indexOf('app-v3.js'))
-assert(indexSource.indexOf('concept-card-library-extension.js') < indexSource.indexOf('concept-card-mission-remap-v1.js'))
-assert(indexSource.indexOf('concept-card-mission-remap-v1.js') < indexSource.indexOf('learning-guide.js'))
+assert(indexSource.indexOf('app-v3.js') < indexSource.indexOf('field-responsive.js'))
 assert(indexSource.indexOf('app-v3.js') < indexSource.indexOf('mission-types-ui.js'))
 assert(indexSource.indexOf('app-v3.js') < indexSource.indexOf('boss-ui.js'))
 
@@ -174,4 +191,4 @@ for (const text of [
   'must remain incomplete',
 ]) assert(productRules.includes(text))
 
-console.log('Validated mission 00 goddess greeting, cache-busted worker URL/import execution, browser mission-pack wiring, boss-mechanics worker loading, temporary admin access, normal progress repair and separated solution help.')
+console.log('Validated mission 00 goddess greeting, cache-busted worker URL/import execution, current browser curriculum wiring, responsive field assets, temporary admin access, normal progress repair and separated solution help.')
