@@ -4,12 +4,7 @@
     : root.JSQuestConceptCards
   const api = factory(base)
   if (typeof module === 'object' && module.exports) module.exports = api
-  else {
-    root.JSQuestConceptCards = api
-    if (typeof document !== 'undefined' && document.readyState === 'loading' && root.JSQuestMissionPackV1) {
-      document.write('<script src="concept-card-mission-remap-v1.js"><\/script>')
-    }
-  }
+  else root.JSQuestConceptCards = api
 })(typeof self !== 'undefined' ? self : this, function (base) {
   'use strict'
 
