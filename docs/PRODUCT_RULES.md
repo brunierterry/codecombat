@@ -140,6 +140,12 @@ This document is the functional and business source of truth for the local Japan
 
 ## Mission pedagogy
 
+- Concept-card ownership is a non-negotiable pedagogical invariant. A card belongs to the first `concept` mission that formally introduces or first requires understanding of that programming concept, unless the user explicitly orders a concept move.
+- Mission insertion, deletion, renumbering or display-ID changes must never change concept ownership by themselves. Numeric mission IDs are presentation/routing details; the pedagogical owner is the stable source concept identity.
+- The canonical concept-card database keeps each card attached to its stable source concept identity. The current displayed mission is derived from that source identity through the curriculum's source-to-final mapping.
+- A concept-card mapping must never be applied a second time to an already remapped display ID. Remap scripts must be loaded exactly once, and no implicit loader such as `document.write(...)` may duplicate an explicitly loaded remap stage.
+- Inserted `adventure`, `typo-fix`, `logic-fix` and `boss` missions do not inherit or steal concept cards from the surrounding concept missions. They remain card-free unless the user explicitly changes the pedagogy and promotes a new concept into a concept mission.
+- Renumbering work is incomplete until every canonical concept card and every ordered mission guide is checked against its stable source concept identity and resolves to the correct current `concept` mission.
 - Every genuinely new programming concept must be introduced in a `concept` mission's `新しい考え方` section before the learner is expected to understand and apply it as a concept; explicitly documented debugging drills may expose a command as an opaque typo target without teaching its semantics.
 - Mission 00 contains exactly one executable line: `hero.say("Hello goddess!");`.
 - All learner-facing starter code, reference solutions, partial solutions and code examples use double-quoted string literals. Single-quoted strings are not introduced at this stage.
@@ -151,10 +157,12 @@ This document is the functional and business source of truth for the local Japan
 - The `hero.move(direction)` card explains that one method call moves the hero one tile in the requested direction and that moving several tiles requires calling the method several times.
 - Missions 02–06 are reinforcement missions for mission 01 and introduce no new concept cards. Mission 03's transformation call is a spelling/debugging target only; the formal transformation concept remains later.
 - Mission 10 introduces booleans, `true`, `false`, `const`, assignment with `=`, reuse of a named value, constant naming in romaji, the common use of meaningful English names, and `hero.isTrue(boolean)`.
+- Mission 10 owns exactly the boolean/constant cards `concept-card-007` through `concept-card-011`; inserting practice missions elsewhere must never move those cards away from this lesson.
 - Mission 10 has completed starter code. The learner validates it by executing it without needing to edit it.
 - Mission 10 includes a Japanese explanatory comment directly above `const alwaysTrue = true;` and another directly above `const alwaysFalse = false;`.
 - Mission 10 collects its gem and then continues to the flag. Successful execution must finish on the goal tile rather than on the gem tile.
 - Mission 11 is the first `if` concept mission. It introduces `hero.readSign()`, return values, `if`, braces and comparison, while referring back to constants and assignment learned in mission 10.
+- Mission 11 owns exactly `concept-card-012`, `concept-card-013` and `concept-card-014` for `hero.readSign()`, `if` and `===`; these cards must remain with this lesson after any later mission insertion or renumbering.
 - Mission 11 must not repeat dedicated concept cards for `const`, constants or assignment. Its learning guide contains one card for the `hero.readSign()` return value, one card for `if`, and one card for comparison with `===`.
 - Missions 14, 15 and 16 remain concept missions. Mission 14 reinforces `if / else` with `hero.look(...)`, mission 15 introduces `&&`, and mission 16 introduces `||`.
 - Mission 23 is titled `初めてのループ`, using the standard kanji spelling rather than `はじめてのループ`.
@@ -202,15 +210,17 @@ This document is the functional and business source of truth for the local Japan
 - The first MISSION 18 hint suggests changing to a smaller form. A later hint explicitly tells the learner to use `hero.transform("frog")` to cross the lily pads.
 - The MISSION 18 goal door is usable only in the human hero form. If the frog tries to enter it, the move is refused and a speech bubble explains that the frog cannot use the door handle. A later hint explicitly tells the learner to use `hero.transform("hero")` before entering the door.
 - The MISSION 18 reference solution approaches the river, transforms to frog, crosses the lily pads, collects the gem on the upper bank, transforms back to the human hero, and enters the goal door in six moves.
-- MISSION 19 is the two-field boss `カエルと守りのドラゴン`. It combines the JavaScript concepts learned through MISSION 16: named values, comparisons and booleans, `if / else`, `||`, `&&`, sign reading, movement and frog/human transformations.
+- MISSION 19 is the two-field boss `カエルと守りのドラゴン`. It combines concepts already learned through MISSION 16: named values, comparison, booleans, `if / else`, sign reading, movement and frog/human transformations. It deliberately does not require new logical operators beyond those needed by its simplified branch logic.
 - Both MISSION 19 fields use the same source program. The sign chooses the left or right lily-pad crossing; the side statue, lever and gem are mirrored between the two fields while the dragon, top goal and central defensive-statue position stay fixed.
 - The playable middle column is, from top to bottom: the goal on the top field row; one normal floor tile; one initially empty floor tile reserved for the defensive statue; the dragon; four consecutive water tiles; the hero's starting floor tile; then the bottom wall.
 - The top goal has one impassable statue immediately on its left and one immediately on its right. Consequently the hero cannot enter the goal from either side and must approach it from the normal floor tile directly below it.
 - The row directly below the dragon is part of the four-row river. Each river row uses the same pattern across the eleven playable columns: water, water, lily pad, water, water, water, water, water, lily pad, water, water. The chosen lily path therefore must be crossed in frog form.
-- The intended MISSION 19 program uses `side === "left" || side === "west"` to derive the left-side boolean, combines it with another condition using `&&`, and uses `if / else` to move three cells to the sign-selected river crossing. It then transforms into a frog and moves upward five times: across four lily-pad river rows and onto the upper-bank row beside the dragon.
+- The intended MISSION 19 program reads `const side = hero.readSign();`, derives `const goLeft = side === "left";`, and uses `if / else` to choose the left or right crossing. It then transforms into a frog and moves upward five times: across four lily-pad river rows and onto the upper-bank row beside the dragon.
 - A static statue on the sign-selected side blocks the dragon's horizontal fire while the frog reaches the upper bank. Choosing the opposite side enters the dragon's three-tile horizontal fire ray and fails.
 - The lever is on the selected side one row above the dragon. Only the human/mage form can activate it. If frog form steps onto the lever, the lever remains inactive and a speech bubble explains that the hero must return to human form.
 - Activating the lever does not defeat or remove the dragon. It raises a new impassable statue on the central floor tile immediately above the dragon. The new statue is part of the authoritative field state, is rendered visibly, blocks movement, and blocks the dragon's upward fire ray.
+- Existing statues and dynamically raised statues stop dragon fire in every cardinal direction. A future statue position that is still ordinary floor does not stop fire before the statue actually appears.
+- When the hero is behind a statue within the dragon's nominal three-tile range, the dragon may visibly breathe toward that direction, but flames stop before the statue, the hero remains alive and later JavaScript instructions continue executing.
 - Without the raised central statue, approaching the central top corridor or goal from above the dragon enters the dragon's upward three-tile fire ray and burns the hero. With the statue raised, the hero can move one row above it, return horizontally to the middle column and then enter the goal from below while the dragon remains alive.
 - The gem is placed on that post-lever route to the central corridor. The MISSION 19 reference route takes exactly fourteen moves in either field, raises the protective statue, collects the gem and reaches the goal without defeating the dragon.
 - MISSION 17, 18 and 19 introduce no new concept cards. Concept-card guides for the formerly current MISSION 17 and later concepts shift by three IDs together with their missions.
@@ -219,6 +229,7 @@ This document is the functional and business source of truth for the local Japan
 
 - Every genuinely new programming concept is introduced through a dedicated card displayed in the concept mission's `新しい考え方` section.
 - Each concept card is stored exactly once in the canonical concept-card reference base and has a stable, unique ID.
+- Each card's pedagogical owner is its stable source concept identity, not its mutable displayed mission number. The source association survives all later mission insertions and renumbering.
 - A mission guide stores its title and the ordered IDs of the cards it displays; it must not duplicate the card title or explanation outside the reference base.
 - The adventure renders the visible card title, explanatory HTML, code styling and explanatory tooltips by resolving those IDs from the reference base.
 - Every rendered card exposes its source ID through `data-concept-card-id` so later learning tools can connect visible content to the same canonical record.
@@ -227,7 +238,8 @@ This document is the functional and business source of truth for the local Japan
 - Refactoring storage or rendering must preserve the approved visual appearance, code markup, tooltip behavior and mission card order.
 - The mission 10 naming card explains that constants can receive meaningful romaji names without spaces, that English names are commonly used, and that `alwaysTrue` means “always true”.
 - A new-concept card must never be implemented only as ad-hoc mission HTML or an interface-only exception. It must be a record in the canonical concept-card database and be referenced by stable ID from its mission guide.
-- Every canonical concept card must be referenced by exactly one concept mission guide, and every mission-guide card ID must resolve to a card whose `missionId` matches that mission.
+- Every canonical concept card must be referenced by exactly one concept mission guide, and every mission-guide card ID must resolve to a card whose current `missionId` matches that concept mission after source-to-final mapping.
+- The concept-card remap pipeline must start from the canonical source association and apply each curriculum insertion exactly once. It must never remap an already remapped card a second time because of duplicate script loading.
 - Non-concept missions must not be given artificial concept cards merely to satisfy the card system.
 - No terminology enhancer or other post-render script may append a second visual concept block outside the canonical card database and card-memory lifecycle.
 
@@ -283,6 +295,7 @@ This document is the functional and business source of truth for the local Japan
 - The displayed mission number is authoritative UI state and must never be changed temporarily to render legacy guides.
 - A `jsquest:missionloaded` handler must not dispatch another `jsquest:missionloaded` event while handling the current event.
 - Renumbered legacy guides, glossary thresholds and technical terms use explicit final-ID/source-concept conversion without changing the DOM.
+- Concept-card remap stages are loaded explicitly in the page in curriculum order and must be loaded exactly once. Concept-card extension code must not dynamically inject an additional remap stage.
 - Mission execution uses the static `quest-worker.js` worker, which explicitly loads `engine.js`, `curriculum-engine.js` and the boss-mechanics extension.
 - The application must not globally replace or monkey-patch the browser's native `Worker` constructor.
 - The execution worker must report initialization and execution errors back to the page instead of silently waiting until timeout.
@@ -534,7 +547,7 @@ This document is the functional and business source of truth for the local Japan
 - It verifies MISSION 13 uses `hero.readSign()` and `if`, contains both `看板：right` and `看板：left` fields, places the pillar on the indicated side, kills a hero choosing the unprotected side, and lets the same ten-move conditional solution pass both fields safely.
 - It verifies MISSION 17's syntax-broken starter does not execute, while its corrected `if / else` solution passes both fields.
 - It verifies MISSION 18 has exactly one field with visibly styled water, enlarged green-leaf `🍃` lily pads and a goal door; the human hero is refused on a lily pad with the requested swimming/weight speech, frog form crosses lily pads, frog form is refused at the goal door with the handle speech, and the human form can enter the goal door to finish.
-- It verifies MISSION 19 uses two fields and one unchanged program, requires `||`, `&&`, `if / else`, sign reading, movement and both transformations, contains exactly four vertical river rows beneath the dragon, keeps the goal on the top row between two statues, kills the hero on the unprotected side, refuses lever activation in frog form, raises an impassable central statue only from human form, blocks the dragon's upward ray with that statue, keeps the dragon alive, and lets the same fourteen-move reference solution collect the gem and reach the goal on both fields.
+- It verifies MISSION 19 uses two fields and one unchanged program with `const side = hero.readSign()`, `const goLeft = side === "left"`, `if / else`, movement and both transformations; it contains exactly four vertical river rows beneath the dragon, keeps the goal on the top row between two statues, kills the hero on the unprotected side, refuses lever activation in frog form, raises an impassable central statue only from human form, blocks dragon fire with every live statue, keeps future statue positions transparent to fire before activation, keeps the dragon alive, and lets the same fourteen-move reference solution collect the gem and reach the goal on both fields.
 - It verifies wizard progression thresholds are exactly 1 total gem for level 1, 21 total gems for level 2 and 51 total gems for level 3, with level 4 at 91 under the continuing +10-per-level-cost pattern.
 - It verifies progression metadata identifies the level-2 crossing from cumulative scripted XP rather than assuming a fixed mission number, and that the mission immediately after that crossing starts at level 2.
 - It verifies focused sidebar visibility: 00–01 before mission 00 completion; completed missions remain visible permanently; only unfinished missions beyond the next concept boundary are hidden; and 00–34 are visible after admin unlock-all.
@@ -548,8 +561,12 @@ This document is the functional and business source of truth for the local Japan
 - It verifies saved curriculum and all mission-pack migrations preserve existing code and progress semantics while inserting new mandatory practice missions.
 - It verifies the first loop concept mission uses the exact title `初めてのループ`.
 - It verifies all 38 canonical cards, including the JavaScript and Editor cards, and the exact four-card order for mission 01.
+- It verifies every canonical source card and every source mission guide against the curriculum's stable source concept identity and current source-to-final mission mapping after every insertion.
+- It fails if a card or guide lands on a non-concept mission, disappears, duplicates, changes ordered ownership, or moves merely because displayed mission numbers changed.
+- It explicitly verifies `concept-card-007` through `concept-card-011` remain on MISSION 10 and `concept-card-012` through `concept-card-014` remain on MISSION 11.
 - It verifies every concept mission guide resolves its ordered concept-card IDs from the canonical reference base, all IDs are unique and every rendered card exposes its ID.
 - It verifies the card database and guide mappings are remapped to renumbered concept missions without assigning cards to practice missions.
+- It verifies every explicit concept-card remap script is loaded exactly once and that the concept-card extension cannot inject another remap stage implicitly.
 - It verifies that the set of IDs referenced by concept mission guides is exactly the set of records in the canonical concept-card database and that no card is referenced twice.
 - It verifies that no legacy or ad-hoc HTML injector can append a second comment-concept card outside the canonical database and memory system.
 - It verifies every canonical concept card has between one and three quiz questions and every question has three or four unique choices containing its correct answer.
