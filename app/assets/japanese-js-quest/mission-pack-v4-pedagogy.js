@@ -10,6 +10,7 @@
 
   const TRANSFORMATION_OWNER_KEY = 'hero-transform-form'
   const TRANSFORMATION_MISSION_ID_AT_V4 = 18
+  const TRANSFORMATION_SOURCE_ID = 7
   const PACK_INDEX = 3
 
   function apply (missions) {
@@ -20,7 +21,9 @@
       mission.type = 'concept'
       mission.conceptOwnerKey = TRANSFORMATION_OWNER_KEY
       delete mission.practiceOf
-      delete mission.prePracticeId
+      // Keep a stable pre-pack source identity so generic source-based rules do
+      // not mistake displayed MISSION 18 for the old loop concept with source ID 18.
+      mission.prePracticeId = TRANSFORMATION_SOURCE_ID
     }
 
     Object.defineProperty(missions, '__missionPackV4PedagogyApplied', { value: true })
@@ -41,6 +44,7 @@
     semanticOwner,
     TRANSFORMATION_OWNER_KEY,
     TRANSFORMATION_MISSION_ID_AT_V4,
+    TRANSFORMATION_SOURCE_ID,
     PACK_INDEX,
   })
 })
