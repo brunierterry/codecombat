@@ -265,6 +265,12 @@ h3 { margin-bottom: 0.25rem; }
 .tile.lily-pad {
   background: linear-gradient(180deg, #2b83c2 0%, #17649f 58%, #104f85 100%);
   filter: saturate(1.08);
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  line-height: 1;
+}
+.tile.statue {
+  background: linear-gradient(180deg, #26384e 0%, #172436 100%);
+  font-size: clamp(1.45rem, 2.8vw, 2.2rem);
 }
 .tile.goal-door {
   background: linear-gradient(180deg, #365a49 0%, #294b3b 100%);
