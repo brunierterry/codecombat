@@ -37,7 +37,7 @@
     const lever = tileAt(grid, width, boss.lever)
 
     if (dragon) {
-      const explicitlyDefeatable = boss.resolution && boss.resolution !== 'escape'
+      const explicitlyDefeatable = boss.resolution && !['escape', 'protective-statue'].includes(boss.resolution)
       const defeated = explicitlyDefeatable && dragon.classList.contains('floor')
       dragon.classList.remove('enemy', 'boss-defeated', 'boss-dragon')
       dragon.classList.add(defeated ? 'boss-defeated' : 'boss-dragon')
@@ -48,7 +48,7 @@
     if (pillar) {
       pillar.classList.add('boss-pillar')
       pillar.textContent = '🗿'
-      pillar.setAttribute('aria-label', '柱')
+      pillar.setAttribute('aria-label', '像')
     }
 
     if (lever) {
