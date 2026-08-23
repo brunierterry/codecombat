@@ -25,6 +25,8 @@ const packV3 = require(path.join(questPath, 'mission-pack-v3.js'))
 packV3.apply(missions, curriculum)
 const packV4 = require(path.join(questPath, 'mission-pack-v4.js'))
 packV4.apply(missions, curriculum)
+const packV4Pedagogy = require(path.join(questPath, 'mission-pack-v4-pedagogy.js'))
+packV4Pedagogy.apply(missions)
 const introMission = require(path.join(questPath, 'intro-mission.js'))
 const allMissions = [introMission, ...missions]
 
@@ -57,11 +59,19 @@ const expectedSourceGuides = Object.freeze({
   21: ['concept-card-034'],
   22: ['concept-card-035'],
 })
+const expectedSemanticGuides = Object.freeze({
+  'hero-transform-form': ['concept-card-040'],
+})
 
 assert.deepStrictEqual(
   Object.keys(sourceCards.missionGuides).map(Number).sort((a, b) => a - b),
   Object.keys(expectedSourceGuides).map(Number),
-  'Every source concept mission must be audited explicitly',
+  'Every core source concept mission must be audited explicitly',
+)
+assert.deepStrictEqual(
+  Object.keys(sourceCards.semanticGuides).sort(),
+  Object.keys(expectedSemanticGuides).sort(),
+  'Every inserted semantic concept owner must be audited explicitly',
 )
 
 for (const [sourceMissionIdText, expectedCardIds] of Object.entries(expectedSourceGuides)) {
@@ -85,14 +95,28 @@ for (const [sourceMissionIdText, expectedCardIds] of Object.entries(expectedSour
   )
 }
 
+for (const [ownerKey, expectedCardIds] of Object.entries(expectedSemanticGuides)) {
+  const sourceGuide = sourceCards.getSemanticGuide(ownerKey)
+  assert(sourceGuide, `Semantic concept owner ${ownerKey} must have a guide`)
+  assert.deepStrictEqual(sourceGuide.cardIds, expectedCardIds)
+  const finalMissionId = finalCards.finalMissionIdForOwner(ownerKey)
+  const finalGuide = finalCards.getMissionGuide(finalMissionId)
+  assert(finalGuide, `Semantic concept owner ${ownerKey} must resolve to MISSION ${finalMissionId}`)
+  assert.deepStrictEqual(finalGuide.cardIds, expectedCardIds)
+  assert.strictEqual(allMissions[finalMissionId].type, missionTypes.TYPES.concept.code)
+  assert.strictEqual(allMissions[finalMissionId].conceptOwnerKey, ownerKey)
+}
+
 const sourceIds = sourceCards.allCards().map(card => card.id)
 const finalIds = finalCards.allCards().map(card => card.id)
 assert.strictEqual(new Set(sourceIds).size, sourceIds.length, 'Source concept-card IDs must be unique')
 assert.deepStrictEqual(finalIds.slice().sort(), sourceIds.slice().sort(), 'Final mapping must preserve every concept card without deletion')
-assert.strictEqual(sourceIds.length, 39, 'The audited curriculum contains 39 canonical concept cards')
+assert.strictEqual(sourceIds.length, 40, 'The audited curriculum contains 40 canonical concept cards')
 
 for (const card of sourceCards.allCards()) {
-  const expectedMissionId = finalCards.finalMissionIdForSource(card.missionId)
+  const expectedMissionId = card.ownerKey
+    ? finalCards.finalMissionIdForOwner(card.ownerKey)
+    : finalCards.finalMissionIdForSource(card.missionId)
   assert.strictEqual(finalCards.getCard(card.id).missionId, expectedMissionId, `${card.id} must follow its semantic source lesson`)
   const quiz = quizzes.getQuiz(card.id)
   assert(Array.isArray(quiz) && quiz.length >= 1 && quiz.length <= 3, `${card.id} must keep a valid quiz`)
@@ -103,12 +127,13 @@ assert.deepStrictEqual(finalCards.getMissionGuide(11).cardIds, expectedSourceGui
 assert.deepStrictEqual(finalCards.getMissionGuide(14).cardIds, expectedSourceGuides[5])
 assert.deepStrictEqual(finalCards.getMissionGuide(15).cardIds, expectedSourceGuides[6])
 assert.deepStrictEqual(finalCards.getMissionGuide(16).cardIds, expectedSourceGuides[7])
+assert.deepStrictEqual(finalCards.getMissionGuide(18).cardIds, expectedSemanticGuides['hero-transform-form'])
 assert.deepStrictEqual(finalCards.getMissionGuide(20).cardIds, expectedSourceGuides[8])
 assert.deepStrictEqual(finalCards.getMissionGuide(21).cardIds, expectedSourceGuides[9])
 assert.deepStrictEqual(finalCards.getMissionGuide(22).cardIds, expectedSourceGuides[10])
 assert.deepStrictEqual(finalCards.getMissionGuide(23).cardIds, expectedSourceGuides[11])
 
-for (const missionId of [2, 3, 4, 5, 6, 8, 9, 12, 13, 17, 18, 19]) {
+for (const missionId of [2, 3, 4, 5, 6, 8, 9, 12, 13, 17, 19]) {
   assert.strictEqual(finalCards.getMissionGuide(missionId), null, `Practice MISSION ${missionId} must not receive new-concept cards`)
 }
 
@@ -125,8 +150,14 @@ assert.strictEqual(finalCards.getCard('concept-card-016').missionId, 15, 'Return
 
 assert.strictEqual(finalCards.getCard('concept-card-015').missionId, 14, 'else must be introduced in MISSION 14')
 assert.strictEqual(finalCards.getCard('concept-card-039').missionId, 16, 'hero.canMove must be introduced when first used in MISSION 16')
+assert.strictEqual(finalCards.getCard('concept-card-040').missionId, 18, 'hero.transform must be introduced at its first meaningful use in MISSION 18')
 assert.strictEqual(finalCards.getCard('concept-card-020').missionId, 22, 'else if must be introduced in MISSION 22')
 assert.strictEqual(finalCards.getCard('concept-card-021').missionId, 23, 'for must be introduced in MISSION 23')
+
+assert.strictEqual(allMissions[18].title, 'スイレンの川')
+assert.strictEqual(allMissions[18].type, missionTypes.TYPES.concept.code)
+assert(allMissions[18].solution.includes('hero.transform("frog")'))
+assert(allMissions[18].solution.includes('hero.transform("hero")'))
 
 const browser = vm.createContext({
   console,
@@ -135,15 +166,12 @@ const browser = vm.createContext({
     JSQuestMissionPackV2: packV2,
     JSQuestMissionPackV3: packV3,
     JSQuestMissionPackV4: packV4,
+    JSQuestMissionPackV4Pedagogy: packV4Pedagogy,
   },
 })
 for (const file of [
   'concept-card-library.js',
   'concept-card-curriculum-source.js',
-  'concept-card-mission-remap-v1.js',
-  'concept-card-mission-remap-v2.js',
-  'concept-card-mission-remap-v3.js',
-  'concept-card-mission-remap-v4.js',
   'concept-card-curriculum-final.js',
 ]) {
   vm.runInContext(readQuest(file), browser, { filename: file })
@@ -153,15 +181,26 @@ assert.deepStrictEqual(Array.from(browserCards.getMissionGuide(10).cardIds), exp
 assert.deepStrictEqual(Array.from(browserCards.getMissionGuide(11).cardIds), expectedSourceGuides[4])
 assert.deepStrictEqual(Array.from(browserCards.getMissionGuide(14).cardIds), expectedSourceGuides[5])
 assert.deepStrictEqual(Array.from(browserCards.getMissionGuide(15).cardIds), expectedSourceGuides[6])
+assert.deepStrictEqual(Array.from(browserCards.getMissionGuide(18).cardIds), expectedSemanticGuides['hero-transform-form'])
 assert.deepStrictEqual(Array.from(browserCards.getMissionGuide(23).cardIds), expectedSourceGuides[11])
 assert.strictEqual(browserCards.getMissionGuide(20).cardIds.includes('concept-card-007'), false)
 assert.strictEqual(browserCards.getMissionGuide(21).cardIds.includes('concept-card-012'), false)
 
 const index = readQuest('index.html')
+assert(index.includes('<script src="mission-pack-v4-pedagogy.js"></script>'))
 assert(index.includes('<script src="concept-card-curriculum-source.js"></script>'))
 assert(index.includes('<script src="concept-card-curriculum-final.js"></script>'))
 assert(!index.includes('<script src="concept-card-library-extension.js"></script>'))
+for (const remapFile of [
+  'concept-card-mission-remap-v1.js',
+  'concept-card-mission-remap-v2.js',
+  'concept-card-mission-remap-v3.js',
+  'concept-card-mission-remap-v4.js',
+]) {
+  assert(!index.includes(`<script src="${remapFile}"></script>`), `${remapFile} must not run in the browser anymore`)
+}
+assert(index.indexOf('mission-pack-v4.js') < index.indexOf('mission-pack-v4-pedagogy.js'))
+assert(index.indexOf('mission-pack-v4-pedagogy.js') < index.indexOf('concept-card-curriculum-final.js'))
 assert(index.indexOf('concept-card-curriculum-source.js') < index.indexOf('concept-card-curriculum-final.js'))
-assert(index.indexOf('concept-card-mission-remap-v4.js') < index.indexOf('concept-card-curriculum-final.js'))
 
-console.log('Validated all 23 source concept missions, all 39 stable cards, browser mapping, and first-use pedagogy through the final 35-mission curriculum.')
+console.log('Validated all 23 core source concept missions plus the inserted transformation concept, all 40 stable cards, browser mapping, and first-use pedagogy through the final 35-mission curriculum.')
