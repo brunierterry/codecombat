@@ -23,6 +23,7 @@
     X: 'door',
     W: 'water',
     O: 'lily',
+    S: 'statue',
     T: 'trap',
     E: 'enemy'
   }
@@ -94,7 +95,7 @@
   }
 
   function isBlocked (state, tile) {
-    if (tile === '#' || tile === 'E' || tile === 'W') return true
+    if (tile === '#' || tile === 'E' || tile === 'W' || tile === 'S') return true
     if (tile === 'O' && state.form !== 'frog') return true
     if (tile === 'X' && state.form === 'frog') return true
     if (tile === 'D' && !state.hasKey) return true
@@ -118,6 +119,7 @@
       deathCause: state.deathCause || null,
       bossDefeated: Boolean(state.bossDefeated),
       dragonHit: Boolean(state.dragonHit),
+      protectiveStatueRaised: Boolean(state.protectiveStatueRaised),
       wizardLevel: state.wizardLevel,
       moves: state.moves,
       gems: state.gems,
