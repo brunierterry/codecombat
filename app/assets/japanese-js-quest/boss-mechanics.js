@@ -9,6 +9,8 @@
   'use strict'
 
   const DEFAULT_DRAGON_RANGE = 3
+  const PROTECTIVE_STATUE_RESOLUTION = 'protective-statue'
+  const FROG_LEVER_MESSAGE = 'カエルの姿ではレバーを動かせないよ。人の姿に戻ってから使おう。'
   const CARDINAL_DIRECTIONS = Object.freeze({
     right: [1, 0],
     left: [-1, 0],
@@ -36,8 +38,13 @@
     return variant.map[y][x]
   }
 
+  function mapTileWithState (variant, boss, state, x, y) {
+    if (state?.protectiveStatueRaised && sameCell(boss?.protectiveStatue, { x, y })) return 'S'
+    return mapTile(variant, x, y)
+  }
+
   function blocksDragonFire (tile) {
-    return tile === '#' || tile === 'P'
+    return tile === '#' || tile === 'P' || tile === 'S'
   }
 
   function dragonRange (boss) {
@@ -45,7 +52,7 @@
     return Number.isFinite(configured) && configured > 0 ? Math.floor(configured) : DEFAULT_DRAGON_RANGE
   }
 
-  function dragonRayCells (variant, boss, direction) {
+  function dragonRayCells (variant, boss, direction, state) {
     const delta = CARDINAL_DIRECTIONS[direction]
     if (!variant || !boss?.dragon || !delta) return []
     const range = dragonRange(boss)
@@ -54,7 +61,7 @@
     for (let step = 1; step <= range; step++) {
       const x = boss.dragon.x + (delta[0] * step)
       const y = boss.dragon.y + (delta[1] * step)
-      if (blocksDragonFire(mapTile(variant, x, y))) break
+      if (blocksDragonFire(mapTileWithState(variant, boss, state, x, y))) break
       cells.push({ x, y })
     }
     return cells
@@ -71,10 +78,10 @@
     return null
   }
 
-  function dragonThreat (variant, boss, frame) {
+  function dragonThreat (variant, boss, frame, state) {
     const direction = directionTowardHero(boss, frame)
     if (!direction) return { hit: false, direction: null, fireCells: [] }
-    const fireCells = dragonRayCells(variant, boss, direction)
+    const fireCells = dragonRayCells(variant, boss, direction, state)
     return {
       hit: fireCells.some(cell => sameCell(cell, frame)),
       direction,
@@ -90,9 +97,10 @@
     return next
   }
 
-  function visualGrid (grid, boss, bossDefeated, fireCells) {
+  function visualGrid (grid, boss, bossDefeated, fireCells, protectiveStatueRaised) {
     let rows = Array.isArray(grid) ? grid.slice() : []
     if (bossDefeated) rows = replaceCell(rows, boss.dragon, '.')
+    if (protectiveStatueRaised && boss.protectiveStatue) rows = replaceCell(rows, boss.protectiveStatue, 'S')
     for (const cell of fireCells || []) rows = replaceCell(rows, cell, 'T')
     return rows
   }
@@ -101,28 +109,60 @@
     return state.grid.map(row => Array.isArray(row) ? row.join('') : String(row))
   }
 
+  function protectiveStatueOutcome (state, phase, action, boss) {
+    if (state.form !== 'hero') {
+      if (phase !== 'after' || action?.type !== 'move' || state.leverRefusalShown) return null
+      state.leverRefusalShown = true
+      return {
+        trace: {
+          type: 'say',
+          speech: FROG_LEVER_MESSAGE,
+          bossEvent: 'lever-refused',
+          grid: visualGrid(currentGridRows(state), boss, false, [], state.protectiveStatueRaised),
+        },
+      }
+    }
+
+    if (state.protectiveStatueRaised) return null
+    state.protectiveStatueRaised = true
+    if (phase !== 'after') return null
+    return {
+      trace: {
+        type: 'protective-statue-raised',
+        bossEvent: 'lever',
+        grid: visualGrid(currentGridRows(state), boss, false, [], true),
+      },
+    }
+  }
+
   function bossActionHook (variant) {
     const boss = variant.boss
-    return function ({ state, phase }) {
+    return function ({ state, phase, action }) {
       if (state.bossDefeated == null) state.bossDefeated = false
       if (state.dragonHit == null) state.dragonHit = false
+      if (state.protectiveStatueRaised == null) state.protectiveStatueRaised = false
       if (state.alive === false) return null
 
       if (!state.bossDefeated && boss.lever && sameCell(state.hero, boss.lever)) {
-        state.bossDefeated = true
-        if (phase === 'after') {
-          return {
-            trace: {
-              type: 'boss-defeated',
-              bossEvent: 'lever',
-              grid: visualGrid(currentGridRows(state), boss, true, []),
-            },
+        if (boss.resolution === PROTECTIVE_STATUE_RESOLUTION) {
+          const outcome = protectiveStatueOutcome(state, phase, action, boss)
+          if (outcome) return outcome
+        } else {
+          state.bossDefeated = true
+          if (phase === 'after') {
+            return {
+              trace: {
+                type: 'boss-defeated',
+                bossEvent: 'lever',
+                grid: visualGrid(currentGridRows(state), boss, true, [], state.protectiveStatueRaised),
+              },
+            }
           }
         }
       }
 
       if (state.bossDefeated) return null
-      const threat = dragonThreat(variant, boss, state.hero)
+      const threat = dragonThreat(variant, boss, state.hero, state)
       if (!threat.hit) return null
 
       state.dragonHit = true
@@ -137,7 +177,7 @@
           fireCells: threat.fireCells.map(cell => Object.assign({}, cell)),
           dragon: Object.assign({}, boss.dragon),
           attackRange: dragonRange(boss),
-          grid: visualGrid(currentGridRows(state), boss, false, threat.fireCells),
+          grid: visualGrid(currentGridRows(state), boss, false, threat.fireCells, state.protectiveStatueRaised),
         },
       }
     }
@@ -176,6 +216,9 @@
         ? 'まだドラゴンを倒していません。レバーを踏んで仕掛けを作動させよう。'
         : 'まだボスを倒したり捕まえたりしていません。')
     }
+    if (stateRules.protectiveStatueRaised && !state.protectiveStatueRaised) {
+      messages.push('人の姿でレバーを動かして、ドラゴンの上に炎をさえぎる像を出しましょう。')
+    }
 
     return { passed: messages.length === 0, messages }
   }
@@ -192,6 +235,7 @@
       if (isBossMission(mission)) {
         state.bossDefeated = false
         state.dragonHit = false
+        state.protectiveStatueRaised = false
       }
       return state
     }
@@ -210,6 +254,8 @@
 
   return Object.freeze({
     DEFAULT_DRAGON_RANGE,
+    PROTECTIVE_STATUE_RESOLUTION,
+    FROG_LEVER_MESSAGE,
     apply,
     isBossMission,
     normalizedMission,
