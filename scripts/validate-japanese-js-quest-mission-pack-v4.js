@@ -40,6 +40,11 @@ function readQuest (file) {
   return fs.readFileSync(path.join(questPath, file), 'utf8')
 }
 
+function finalMissionIdForConceptCardSource (sourceMissionId) {
+  return [packV1, packV2, packV3, packV4]
+    .reduce((missionId, pack) => pack.shiftedExistingId(missionId), Number(sourceMissionId))
+}
+
 assert.strictEqual(allMissions.length, 35)
 assert.deepStrictEqual(allMissions.map(mission => mission.id), Array.from({ length: 35 }, (_, id) => id))
 assert.strictEqual(packV4.FINAL_MISSION_COUNT, 35)
@@ -317,7 +322,7 @@ assert.deepStrictEqual(
   'Renumbering must preserve every stable concept-card ID',
 )
 for (const sourceCard of canonicalSourceCards) {
-  const expectedMissionId = curriculum.finalIdForLegacyId(sourceCard.missionId)
+  const expectedMissionId = finalMissionIdForConceptCardSource(sourceCard.missionId)
   const finalCard = remappedCards.getCard(sourceCard.id)
   assert(finalCard, 'Missing remapped concept card ' + sourceCard.id)
   assert.strictEqual(
@@ -334,7 +339,7 @@ for (const sourceCard of canonicalSourceCards) {
 
 for (const [sourceMissionIdText, sourceGuide] of Object.entries(sourceConceptCards.missionGuides)) {
   const sourceMissionId = Number(sourceMissionIdText)
-  const expectedMissionId = curriculum.finalIdForLegacyId(sourceMissionId)
+  const expectedMissionId = finalMissionIdForConceptCardSource(sourceMissionId)
   const finalGuide = remappedCards.getMissionGuide(expectedMissionId)
   assert(finalGuide, `Source concept mission ${sourceMissionId} must still have its guide at MISSION ${expectedMissionId}`)
   assert.deepStrictEqual(
