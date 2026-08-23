@@ -21,8 +21,8 @@ const allCards = cards.allCards()
 const allQuizzes = quizzes.allQuizzes()
 const missionOne = cards.getMissionGuide(1)
 
-assert.strictEqual(allCards.length, 39)
-assert.strictEqual(new Set(allCards.map(card => card.id)).size, 39)
+assert.strictEqual(allCards.length, 40)
+assert.strictEqual(new Set(allCards.map(card => card.id)).size, 40)
 assert.deepStrictEqual(missionOne.cardIds, [
   'concept-card-037',
   'concept-card-038',
@@ -31,7 +31,7 @@ assert.deepStrictEqual(missionOne.cardIds, [
 ])
 assert.strictEqual(missionOne.cards.length, 4)
 
-for (const cardId of ['concept-card-037', 'concept-card-038', 'concept-card-039']) {
+for (const cardId of ['concept-card-037', 'concept-card-038', 'concept-card-039', 'concept-card-040']) {
   const card = cards.getCard(cardId)
   const quiz = quizzes.getQuiz(cardId)
   assert(card)
@@ -48,6 +48,7 @@ for (const cardId of ['concept-card-037', 'concept-card-038', 'concept-card-039'
 assert.strictEqual(cards.getCard('concept-card-037').missionId, 1)
 assert.strictEqual(cards.getCard('concept-card-038').missionId, 1)
 assert.strictEqual(cards.getCard('concept-card-039').missionId, 7)
+assert.strictEqual(cards.getCard('concept-card-040').ownerKey, 'hero-transform-form')
 
 assert(cards.getCard('concept-card-037').titleHtml.includes('JavaScript'))
 assert(cards.getCard('concept-card-037').bodyHtml.includes('プログラミング言語'))
@@ -60,6 +61,7 @@ assert(cards.getCard('concept-card-004').titleHtml.includes('"Hello goddess!"'))
 assert(quizzes.getQuiz('concept-card-004').some(item => item.prompt.includes('Hello goddess!')))
 assert(cards.getCard('concept-card-016').titleHtml.includes('Return value'))
 assert(cards.getCard('concept-card-039').titleHtml.includes('hero.canMove(direction)'))
+assert(cards.getCard('concept-card-040').titleHtml.includes('hero.transform(form)'))
 
 const runtimeRoot = { JSQuestMissions: [introMission, ...missions] }
 applyMissionContentPolish(runtimeRoot)
@@ -168,4 +170,4 @@ for (const rule of [
   'wrap onto additional centered lines',
 ]) assert(productRules.includes(rule))
 
-console.log('Validated the canonical concept curriculum source, final editor, mission-copy, celebration, personalized goddess greeting, responsive shortcut and tooltip UX rules.')
+console.log('Validated all 40 canonical concept cards, final editor, mission-copy, celebration, personalized goddess greeting, responsive shortcut and tooltip UX rules.')
