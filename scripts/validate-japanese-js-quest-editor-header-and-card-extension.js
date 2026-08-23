@@ -7,7 +7,7 @@ const path = require('path')
 
 const repositoryPath = path.join(__dirname, '..')
 const questPath = path.join(repositoryPath, 'app', 'assets', 'japanese-js-quest')
-const cards = require(path.join(questPath, 'concept-card-library-extension.js'))
+const cards = require(path.join(questPath, 'concept-card-curriculum-source.js'))
 const quizzes = require(path.join(questPath, 'concept-card-quizzes-extension.js'))
 const missions = require(path.join(questPath, 'missions.js'))
 const introMission = require(path.join(questPath, 'intro-mission.js'))
@@ -21,8 +21,8 @@ const allCards = cards.allCards()
 const allQuizzes = quizzes.allQuizzes()
 const missionOne = cards.getMissionGuide(1)
 
-assert.strictEqual(allCards.length, 38)
-assert.strictEqual(new Set(allCards.map(card => card.id)).size, 38)
+assert.strictEqual(allCards.length, 39)
+assert.strictEqual(new Set(allCards.map(card => card.id)).size, 39)
 assert.deepStrictEqual(missionOne.cardIds, [
   'concept-card-037',
   'concept-card-038',
@@ -31,11 +31,10 @@ assert.deepStrictEqual(missionOne.cardIds, [
 ])
 assert.strictEqual(missionOne.cards.length, 4)
 
-for (const cardId of ['concept-card-037', 'concept-card-038']) {
+for (const cardId of ['concept-card-037', 'concept-card-038', 'concept-card-039']) {
   const card = cards.getCard(cardId)
   const quiz = quizzes.getQuiz(cardId)
   assert(card)
-  assert.strictEqual(card.missionId, 1)
   assert(Array.isArray(quiz))
   assert(quiz.length >= 1 && quiz.length <= 3)
   assert(Object.prototype.hasOwnProperty.call(allQuizzes, cardId))
@@ -46,6 +45,9 @@ for (const cardId of ['concept-card-037', 'concept-card-038']) {
     assert(item.choices.length >= 3 && item.choices.length <= 4)
   }
 }
+assert.strictEqual(cards.getCard('concept-card-037').missionId, 1)
+assert.strictEqual(cards.getCard('concept-card-038').missionId, 1)
+assert.strictEqual(cards.getCard('concept-card-039').missionId, 7)
 
 assert(cards.getCard('concept-card-037').titleHtml.includes('JavaScript'))
 assert(cards.getCard('concept-card-037').bodyHtml.includes('プログラミング言語'))
@@ -56,6 +58,8 @@ assert(cards.getCard('concept-card-005').bodyHtml.includes('進む回数だけ�
 assert(quizzes.getQuiz('concept-card-005').some(item => item.answer === '1マス'))
 assert(cards.getCard('concept-card-004').titleHtml.includes('"Hello goddess!"'))
 assert(quizzes.getQuiz('concept-card-004').some(item => item.prompt.includes('Hello goddess!')))
+assert(cards.getCard('concept-card-016').titleHtml.includes('Return value'))
+assert(cards.getCard('concept-card-039').titleHtml.includes('hero.canMove(direction)'))
 
 const runtimeRoot = { JSQuestMissions: [introMission, ...missions] }
 applyMissionContentPolish(runtimeRoot)
@@ -97,8 +101,10 @@ for (const shortcut of [
 ]) assert(index.includes(shortcut))
 assert(!index.includes('<kbd>Ctrl / ⌘ + Enter</kbd>'))
 
-assert(index.indexOf('concept-card-library.js') < index.indexOf('concept-card-library-extension.js'))
-assert(index.indexOf('concept-card-library-extension.js') < index.indexOf('learning-guide.js'))
+assert(index.indexOf('concept-card-library.js') < index.indexOf('concept-card-curriculum-source.js'))
+assert(index.indexOf('concept-card-curriculum-source.js') < index.indexOf('concept-card-curriculum-final.js'))
+assert(index.indexOf('concept-card-curriculum-final.js') < index.indexOf('learning-guide.js'))
+assert(!index.includes('<script src="concept-card-library-extension.js"></script>'))
 assert(index.indexOf('concept-card-quizzes.js') < index.indexOf('concept-card-quizzes-extension.js'))
 assert(index.indexOf('concept-card-quizzes-extension.js') < index.indexOf('concept-card-memory.js'))
 assert(index.indexOf('intro-mission.js') < index.indexOf('mission-content-polish.js'))
@@ -162,4 +168,4 @@ for (const rule of [
   'wrap onto additional centered lines',
 ]) assert(productRules.includes(rule))
 
-console.log('Validated the final editor, concept-card, mission-copy, celebration, personalized goddess greeting migration, responsive shortcut and tooltip UX rules.')
+console.log('Validated the canonical concept curriculum source, final editor, mission-copy, celebration, personalized goddess greeting, responsive shortcut and tooltip UX rules.')
