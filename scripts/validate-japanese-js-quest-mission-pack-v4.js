@@ -278,6 +278,8 @@ assert(app.includes('els.grid.dataset.variantIndex = String(currentVariant)'))
 
 const riverUi = readQuest('river-ui.js')
 assert(riverUi.includes('🍃 スイレンの葉'))
+assert(riverUi.includes('🗿 像'))
+assert(riverUi.includes("appendReferenceValue(values, 'statue', '🗿'"))
 assert(!riverUi.includes('🪷'))
 
 const runtime = readQuest('curriculum-runtime.js')
@@ -298,4 +300,4 @@ assert(bossUi.includes("!['escape', 'protective-statue'].includes(boss.resolutio
 const version = require(path.join(questPath, 'version.js'))
 assert.strictEqual(version, '0.4.4')
 
-console.log('Validated leaf lily visuals, protective-statue dragon boss, working mirrored execution, river terrain, wizard thresholds, MISSION 17 syntax repair and MISSION 18 adventure.')
+console.log('Validated leaf lily visuals, protective-statue dragon boss, statue vocabulary, working mirrored execution, river terrain, wizard thresholds, MISSION 17 syntax repair and MISSION 18 adventure.')
