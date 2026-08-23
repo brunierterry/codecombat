@@ -111,8 +111,15 @@ assert.strictEqual(bossMission.type, missionTypes.TYPES.boss.code)
 assert.strictEqual(bossMission.variants.length, 2)
 assert.strictEqual(bossMission.bossEncounter, true)
 assert.strictEqual(bossMission.bossResolution, bossMechanics.PROTECTIVE_STATUE_RESOLUTION)
-assert(bossMission.solution.includes('||'))
-assert(bossMission.solution.includes('&&'))
+assert(bossMission.solution.includes('const side = hero.readSign();'))
+assert(bossMission.solution.includes('const goLeft = side === "left";'))
+assert(bossMission.solution.includes('if (goLeft) {'))
+assert(!bossMission.solution.includes('||'))
+assert(!bossMission.solution.includes('&&'))
+assert(!bossMission.solution.includes('confirmedLeft'))
+assert(!bossMission.solution.includes('west'))
+assert(!bossMission.starterCode.includes('||'))
+assert(!bossMission.starterCode.includes('&&'))
 assert(bossMission.solution.includes('hero.transform("frog")'))
 assert(bossMission.solution.includes('hero.transform("hero")'))
 assert.strictEqual(bossMechanics.FROG_LEVER_MESSAGE.includes('人の姿'), true)
@@ -149,6 +156,35 @@ assert.deepStrictEqual(
     { protectiveStatueRaised: true },
   ),
   [],
+)
+
+const omnidirectionalStatueVariant = {
+  map: [
+    '#######',
+    '#..S..#',
+    '#.....#',
+    '#S.B.S#',
+    '#.....#',
+    '#..S..#',
+    '#######',
+  ],
+}
+const omnidirectionalStatueBoss = { dragon: { x: 3, y: 3 }, attackRange: 3 }
+assert.deepStrictEqual(
+  bossMechanics.dragonRayCells(omnidirectionalStatueVariant, omnidirectionalStatueBoss, 'up'),
+  [{ x: 3, y: 2 }],
+)
+assert.deepStrictEqual(
+  bossMechanics.dragonRayCells(omnidirectionalStatueVariant, omnidirectionalStatueBoss, 'down'),
+  [{ x: 3, y: 4 }],
+)
+assert.deepStrictEqual(
+  bossMechanics.dragonRayCells(omnidirectionalStatueVariant, omnidirectionalStatueBoss, 'left'),
+  [{ x: 2, y: 3 }],
+)
+assert.deepStrictEqual(
+  bossMechanics.dragonRayCells(omnidirectionalStatueVariant, omnidirectionalStatueBoss, 'right'),
+  [{ x: 4, y: 3 }],
 )
 
 for (let variantIndex = 0; variantIndex < bossMission.variants.length; variantIndex++) {
@@ -298,6 +334,6 @@ assert(bossUi.includes('grid?.dataset.variantIndex'))
 assert(bossUi.includes("!['escape', 'protective-statue'].includes(boss.resolution)"))
 
 const version = require(path.join(questPath, 'version.js'))
-assert.strictEqual(version, '0.4.4')
+assert.strictEqual(version, '0.4.5')
 
-console.log('Validated leaf lily visuals, protective-statue dragon boss, statue vocabulary, working mirrored execution, river terrain, wizard thresholds, MISSION 17 syntax repair and MISSION 18 adventure.')
+console.log('Validated omnidirectional statue fire blocking, simplified MISSION 19 sign logic, leaf lily visuals, protective-statue boss behavior, statue vocabulary, river terrain and wizard thresholds.')
