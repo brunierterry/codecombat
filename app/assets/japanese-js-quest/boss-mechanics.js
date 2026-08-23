@@ -38,7 +38,14 @@
     return variant.map[y][x]
   }
 
+  function liveTile (state, x, y) {
+    if (!state?.grid?.[y] || x < 0 || x >= state.grid[y].length) return null
+    return Array.isArray(state.grid[y]) ? state.grid[y][x] : String(state.grid[y])[x]
+  }
+
   function mapTileWithState (variant, boss, state, x, y) {
+    const tile = liveTile(state, x, y)
+    if (tile != null) return tile
     if (state?.protectiveStatueRaised && sameCell(boss?.protectiveStatue, { x, y })) return 'S'
     return mapTile(variant, x, y)
   }
