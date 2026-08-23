@@ -261,7 +261,10 @@ assert(runtime.includes("{ visible: finalId >= 3, text: '🐸 カエル' }"))
 assert(runtime.includes('missions().find(item => item.infiniteLoopDemo)'))
 
 const worker = read('app/assets/japanese-js-quest/quest-worker.js')
-assert(worker.includes("importScripts('engine.js', 'curriculum-engine.js', 'boss-mechanics.js')"))
+assert(worker.includes('const cacheToken = String(Date.now())'))
+assert(worker.includes("'engine.js?v=' + cacheToken"))
+assert(worker.includes("'curriculum-engine.js?v=' + cacheToken"))
+assert(worker.includes("'boss-mechanics.js?v=' + cacheToken"))
 
 const index = read('app/assets/japanese-js-quest/index.html')
 assert(index.includes('concept-card-memory.js?v=3'))
