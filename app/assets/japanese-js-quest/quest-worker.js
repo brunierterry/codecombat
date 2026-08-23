@@ -1,7 +1,12 @@
 /* global importScripts */
 'use strict'
 
-importScripts('engine.js', 'curriculum-engine.js', 'boss-mechanics.js')
+const cacheToken = String(Date.now())
+importScripts(
+  'engine.js?v=' + cacheToken,
+  'curriculum-engine.js?v=' + cacheToken,
+  'boss-mechanics.js?v=' + cacheToken,
+)
 
 const engine = self.JSQuestEngine
 
