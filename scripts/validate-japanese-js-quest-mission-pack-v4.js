@@ -33,6 +33,7 @@ const allMissions = [introMission, ...missions]
 const progression = require(path.join(questPath, 'progression.js'))
 progression.apply(allMissions, engine)
 require(path.join(questPath, 'loop-rules.js')).apply(allMissions)
+const sourceConceptCards = require(path.join(questPath, 'concept-card-library-extension.js'))
 const remappedCards = require(path.join(questPath, 'concept-card-mission-remap-v4.js'))
 
 function readQuest (file) {
@@ -307,6 +308,59 @@ assert.strictEqual(remappedCards.getMissionGuide(18), null)
 assert.strictEqual(remappedCards.getMissionGuide(19), null)
 assert(remappedCards.getMissionGuide(shiftedLegacyEight))
 
+const canonicalSourceCards = sourceConceptCards.allCards()
+const finalCards = remappedCards.allCards()
+assert.strictEqual(finalCards.length, canonicalSourceCards.length, 'Renumbering must never add or lose concept cards')
+assert.deepStrictEqual(
+  finalCards.map(card => card.id).sort(),
+  canonicalSourceCards.map(card => card.id).sort(),
+  'Renumbering must preserve every stable concept-card ID',
+)
+for (const sourceCard of canonicalSourceCards) {
+  const expectedMissionId = curriculum.finalIdForLegacyId(sourceCard.missionId)
+  const finalCard = remappedCards.getCard(sourceCard.id)
+  assert(finalCard, 'Missing remapped concept card ' + sourceCard.id)
+  assert.strictEqual(
+    finalCard.missionId,
+    expectedMissionId,
+    `${sourceCard.id} must stay attached to source concept mission ${sourceCard.missionId}, now MISSION ${expectedMissionId}`,
+  )
+  assert.strictEqual(
+    allMissions[expectedMissionId].type,
+    missionTypes.TYPES.concept.code,
+    `${sourceCard.id} must be owned by a concept mission, never by inserted practice`,
+  )
+}
+
+for (const [sourceMissionIdText, sourceGuide] of Object.entries(sourceConceptCards.missionGuides)) {
+  const sourceMissionId = Number(sourceMissionIdText)
+  const expectedMissionId = curriculum.finalIdForLegacyId(sourceMissionId)
+  const finalGuide = remappedCards.getMissionGuide(expectedMissionId)
+  assert(finalGuide, `Source concept mission ${sourceMissionId} must still have its guide at MISSION ${expectedMissionId}`)
+  assert.deepStrictEqual(
+    finalGuide.cardIds,
+    Array.from(sourceGuide.cardIds),
+    `MISSION ${expectedMissionId} must keep the exact cards belonging to source concept mission ${sourceMissionId}`,
+  )
+}
+
+for (const mission of allMissions) {
+  if (mission.type !== missionTypes.TYPES.concept.code) {
+    assert.strictEqual(
+      remappedCards.getMissionGuide(mission.id),
+      null,
+      `Inserted non-concept MISSION ${mission.id} must never steal a concept-card guide`,
+    )
+  }
+}
+
+for (const cardId of ['concept-card-007', 'concept-card-008', 'concept-card-009', 'concept-card-010', 'concept-card-011']) {
+  assert.strictEqual(remappedCards.getCard(cardId).missionId, 10, `${cardId} belongs to the boolean/const concept in MISSION 10`)
+}
+for (const cardId of ['concept-card-012', 'concept-card-013', 'concept-card-014']) {
+  assert.strictEqual(remappedCards.getCard(cardId).missionId, 11, `${cardId} belongs to readSign/if/comparison in MISSION 11`)
+}
+
 for (const mission of allMissions) {
   if (mission.infiniteLoopDemo) continue
   for (let variantIndex = 0; variantIndex < mission.variants.length; variantIndex++) {
@@ -329,6 +383,17 @@ assert(index.includes('<script src="river-ui.js"></script>'))
 assert(index.indexOf('mission-pack-v3.js') < index.indexOf('mission-pack-v4.js'))
 assert(index.indexOf('mission-pack-v4.js') < index.indexOf('intro-mission.js'))
 assert(index.indexOf('concept-card-mission-remap-v3.js') < index.indexOf('concept-card-mission-remap-v4.js'))
+for (const remapFile of [
+  'concept-card-mission-remap-v1.js',
+  'concept-card-mission-remap-v2.js',
+  'concept-card-mission-remap-v3.js',
+  'concept-card-mission-remap-v4.js',
+]) {
+  const tag = `<script src="${remapFile}"></script>`
+  assert.strictEqual(index.split(tag).length - 1, 1, `${remapFile} must be loaded exactly once`)
+}
+const conceptCardExtension = readQuest('concept-card-library-extension.js')
+assert(!conceptCardExtension.includes('document.write('), 'Concept-card remapping must never be injected implicitly a second time')
 
 const app = readQuest('app-v3.js')
 assert(app.includes("fieldRun: document.getElementById('run-code-field')"))
@@ -367,7 +432,16 @@ const bossUi = readQuest('boss-ui.js')
 assert(bossUi.includes('grid?.dataset.variantIndex'))
 assert(bossUi.includes("!['escape', 'protective-statue'].includes(boss.resolution)"))
 
-const version = require(path.join(questPath, 'version.js'))
-assert.strictEqual(version, '0.4.6')
+const productRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'PRODUCT_RULES.md'), 'utf8')
+assert(productRules.includes('Concept-card ownership is a non-negotiable pedagogical invariant.'))
+assert(productRules.includes('stable source concept identity'))
+assert(productRules.includes('must be loaded exactly once'))
 
-console.log('Validated visible non-lethal statue-blocked dragon fire, continued hero execution, omnidirectional statue blocking, simplified MISSION 19 sign logic and fresh worker mechanics.')
+const developmentRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'DEVELOPMENT_RULES.md'), 'utf8')
+assert(developmentRules.includes('stable semantic or source identity'))
+assert(developmentRules.includes('renumbering, insertion, reordering or migration'))
+
+const version = require(path.join(questPath, 'version.js'))
+assert.strictEqual(version, '0.4.7')
+
+console.log('Validated semantic concept-card ownership across all renumbering, exact mission 10/11 concept guides, no double remapping, and the complete MISSION 17-19 reinforcement pack.')
