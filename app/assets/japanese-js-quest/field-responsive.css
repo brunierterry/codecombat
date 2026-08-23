@@ -1,0 +1,39 @@
+/* Field sizing is based on the field block itself, not only on viewport width. */
+.game-grid {
+  container-type: inline-size;
+  max-width: 100%;
+}
+
+.game-grid .tile {
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  line-height: 1;
+  text-align: center;
+  font-size: var(--field-icon-size, 1.7rem);
+}
+
+.game-grid .tile.lily-pad {
+  font-size: var(--field-lily-size, 2rem);
+  line-height: 1;
+}
+
+.game-grid .tile.statue {
+  font-size: var(--field-statue-size, 1.8rem);
+  line-height: 1;
+}
+
+/*
+ * Keep the field and editor next to each other on genuinely wide layouts.
+ * In the intermediate range the sidebar may still remain beside the workspace,
+ * but the field/editor stack so the field never gets squeezed into a thin strip.
+ */
+@media (max-width: 1180px) {
+  .play-area {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
