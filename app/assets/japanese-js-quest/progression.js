@@ -32,6 +32,11 @@
     return mission.id
   }
 
+  function missionReward (mission) {
+    if (!mission || mission.id === 0) return 0
+    return Math.max(1, Number(mission.requirements?.state?.minGems) || 1)
+  }
+
   function replaceChar (row, index, char) {
     return row.slice(0, index) + char + row.slice(index + 1)
   }
@@ -77,7 +82,7 @@
 
     let xp = 0
     for (const mission of missions) {
-      const reward = mission.id === 0 ? 0 : Math.max(1, Number(mission.requirements?.state?.minGems) || 1)
+      const reward = missionReward(mission)
       mission.wizardXpBefore = xp
       mission.wizardLevel = levelForXp(xp)
       mission.wizardXpReward = reward
@@ -97,5 +102,5 @@
     return missions
   }
 
-  return { apply, levelForXp, thresholdForLevel, sourceMissionId }
+  return { apply, levelForXp, thresholdForLevel, sourceMissionId, missionReward }
 })
