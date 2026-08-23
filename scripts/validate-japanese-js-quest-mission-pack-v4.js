@@ -187,6 +187,34 @@ assert.deepStrictEqual(
   [{ x: 4, y: 3 }],
 )
 
+const protectedByStaticStatueCode = [
+  'hero.move("left");',
+  'hero.move("left");',
+  'hero.move("left");',
+  'hero.transform("frog");',
+  'hero.move("up");',
+  'hero.move("up");',
+  'hero.move("up");',
+  'hero.move("up");',
+  'hero.move("up");',
+  'hero.transform("hero");',
+  'hero.move("up");',
+].join('\n')
+const protectedByStaticStatue = engine.simulate(protectedByStaticStatueCode, bossMission, 0)
+assert.strictEqual(protectedByStaticStatue.ok, true)
+assert.notStrictEqual(protectedByStaticStatue.stopped, true)
+assert.strictEqual(protectedByStaticStatue.state.alive, true)
+assert.strictEqual(protectedByStaticStatue.state.dragonHit, false)
+assert.strictEqual(protectedByStaticStatue.state.x, 3)
+assert.strictEqual(protectedByStaticStatue.state.y, 2)
+assert.strictEqual(protectedByStaticStatue.state.protectiveStatueRaised, true)
+const blockedFireFrame = protectedByStaticStatue.trace.find(frame => frame.type === 'dragon-fire-blocked' && frame.x === 3 && frame.y === 3)
+assert(blockedFireFrame, 'The dragon must visibly breathe toward a protected hero without killing it')
+assert.deepStrictEqual(blockedFireFrame.fireCells, [{ x: 5, y: 3 }])
+assert.strictEqual(blockedFireFrame.grid[3][4], 'S')
+assert.strictEqual(blockedFireFrame.grid[3][5], 'T')
+assert.strictEqual(blockedFireFrame.alive, true)
+
 for (let variantIndex = 0; variantIndex < bossMission.variants.length; variantIndex++) {
   const result = engine.simulate(bossMission.solution, bossMission, variantIndex)
   const evaluation = engine.evaluate(bossMission, result, bossMission.solution)
@@ -222,6 +250,8 @@ assert.strictEqual(wrongSide.state.alive, false)
 assert.strictEqual(wrongSide.state.dragonHit, true)
 assert.strictEqual(wrongSide.state.deathCause, 'dragon-fire')
 assert.strictEqual(wrongSide.state.protectiveStatueRaised, false)
+const wrongSideEvaluation = engine.evaluate(bossMission, wrongSide, wrongSideCode)
+assert(wrongSideEvaluation.messages.some(message => message.includes('ただし、像があると炎はそこで止まります。')))
 
 const frogLeverBypassCode = [
   'hero.move("left");',
@@ -322,6 +352,10 @@ const runtime = readQuest('curriculum-runtime.js')
 assert(runtime.includes("const fieldRun = document.getElementById('run-code-field')"))
 assert(runtime.includes('[run, fieldRun].filter(Boolean).forEach'))
 
+const worker = readQuest('quest-worker.js')
+assert(worker.includes('const cacheToken = String(Date.now())'))
+assert(worker.includes("'boss-mechanics.js?v=' + cacheToken"))
+
 const styles = readQuest('styles.css')
 for (const selector of ['.tile.water', '.tile.lily-pad', '.tile.statue', '.tile.goal-door', '.field-actions']) {
   assert(styles.includes(selector), 'Missing visible river/field control styling: ' + selector)
@@ -334,6 +368,6 @@ assert(bossUi.includes('grid?.dataset.variantIndex'))
 assert(bossUi.includes("!['escape', 'protective-statue'].includes(boss.resolution)"))
 
 const version = require(path.join(questPath, 'version.js'))
-assert.strictEqual(version, '0.4.5')
+assert.strictEqual(version, '0.4.6')
 
-console.log('Validated omnidirectional statue fire blocking, simplified MISSION 19 sign logic, leaf lily visuals, protective-statue boss behavior, statue vocabulary, river terrain and wizard thresholds.')
+console.log('Validated visible non-lethal statue-blocked dragon fire, continued hero execution, omnidirectional statue blocking, simplified MISSION 19 sign logic and fresh worker mechanics.')
