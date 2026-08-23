@@ -36,14 +36,14 @@
     const legend = document.querySelector('.game-panel .legend')
     if (legend) {
       appendLegendEntry(legend, '🌊 水')
-      appendLegendEntry(legend, '🪷 スイレンの葉')
+      appendLegendEntry(legend, '🍃 スイレンの葉')
       appendLegendEntry(legend, '🚪 ゴールのドア')
     }
 
     const values = document.getElementById('reference-values')
     if (values) {
       appendReferenceValue(values, 'water', '🌊', 'ウォーター：水', '歩いて入れない水のマスです。')
-      appendReferenceValue(values, 'lily', '🪷', 'リリー：スイレンの葉', 'カエルの姿なら渡れるスイレンの葉です。hero.look(direction) では lily として見えます。')
+      appendReferenceValue(values, 'lily', '🍃', 'リリー：スイレンの葉', 'カエルの姿なら渡れるスイレンの葉です。hero.look(direction) では lily として見えます。')
       appendReferenceValue(values, 'goal door', '🚪', 'ゴールのドア', '人の姿で入るとミッションのゴールになるドアです。')
     }
   }
