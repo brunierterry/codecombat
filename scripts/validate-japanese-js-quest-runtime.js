@@ -23,7 +23,8 @@ const context = vm.createContext({
 
 context.importScripts = function (...names) {
   for (const name of names) {
-    vm.runInContext(readQuest(name), context, { filename: name })
+    const fileName = String(name).split('?')[0]
+    vm.runInContext(readQuest(fileName), context, { filename: name })
   }
 }
 
@@ -45,7 +46,10 @@ assert(postedMessages[0].evaluation.passed)
 assert(postedMessages[0].result.state.says.includes('Hello goddess!'))
 
 const workerSource = readQuest('quest-worker.js')
-assert(workerSource.includes("importScripts('engine.js', 'curriculum-engine.js', 'boss-mechanics.js')"))
+assert(workerSource.includes('const cacheToken = String(Date.now())'))
+assert(workerSource.includes("'engine.js?v=' + cacheToken"))
+assert(workerSource.includes("'curriculum-engine.js?v=' + cacheToken"))
+assert(workerSource.includes("'boss-mechanics.js?v=' + cacheToken"))
 assert(workerSource.includes('workerError'))
 
 const progressAccess = require(path.join(questRoot, 'progress-access.js'))
@@ -169,4 +173,4 @@ for (const text of [
   'must remain incomplete',
 ]) assert(productRules.includes(text))
 
-console.log('Validated mission 00 goddess greeting, worker execution, browser mission-pack wiring, boss-mechanics worker loading, temporary admin access, normal progress repair and separated solution help.')
+console.log('Validated mission 00 goddess greeting, cache-busted worker execution, browser mission-pack wiring, boss-mechanics worker loading, temporary admin access, normal progress repair and separated solution help.')
