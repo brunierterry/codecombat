@@ -71,6 +71,7 @@ assert(riverMission.variants[0].map.some(row => row.includes('X')))
 assert(!riverMission.variants[0].map.some(row => row.includes('G')))
 assert.strictEqual(engine.TILE_NAMES.W, 'water')
 assert.strictEqual(engine.TILE_NAMES.O, 'lily')
+assert.strictEqual(engine.TILE_NAMES.S, 'statue')
 assert.strictEqual(engine.TILE_NAMES.X, 'door')
 
 const heavyAttempt = engine.simulate('hero.move("up");\nhero.move("up");', riverMission, 0)
@@ -109,12 +110,46 @@ const bossMission = allMissions[19]
 assert.strictEqual(bossMission.type, missionTypes.TYPES.boss.code)
 assert.strictEqual(bossMission.variants.length, 2)
 assert.strictEqual(bossMission.bossEncounter, true)
-assert.strictEqual(bossMission.bossResolution, 'lever')
+assert.strictEqual(bossMission.bossResolution, bossMechanics.PROTECTIVE_STATUE_RESOLUTION)
 assert(bossMission.solution.includes('||'))
 assert(bossMission.solution.includes('&&'))
 assert(bossMission.solution.includes('hero.transform("frog")'))
 assert(bossMission.solution.includes('hero.transform("hero")'))
-assert(bossMission.variants.every(variant => variant.map.filter(row => row.includes('O')).every(row => row.includes('W'))))
+assert.strictEqual(bossMechanics.FROG_LEVER_MESSAGE.includes('人の姿'), true)
+
+for (const variant of bossMission.variants) {
+  assert.strictEqual(variant.map.length, 10)
+  assert.strictEqual(variant.map[0], '#....SGS....#')
+  assert.strictEqual(variant.map[0][6], 'G')
+  assert.strictEqual(variant.map[0][5], 'S')
+  assert.strictEqual(variant.map[0][7], 'S')
+  assert.strictEqual(variant.map[1][6], '.')
+  assert.strictEqual(variant.map[2][6], '.')
+  assert.strictEqual(variant.map[3][6], 'B')
+  assert.deepStrictEqual(variant.boss.dragon, { x: 6, y: 3 })
+  assert.deepStrictEqual(variant.boss.protectiveStatue, { x: 6, y: 2 })
+  assert.strictEqual(variant.boss.resolution, bossMechanics.PROTECTIVE_STATUE_RESOLUTION)
+  for (let y = 4; y <= 7; y++) {
+    assert.strictEqual(variant.map[y], '#WWOWWWWWOWW#')
+    assert.strictEqual(variant.map[y][6], 'W')
+  }
+  assert.strictEqual(variant.map[8][6], 'H')
+  assert.strictEqual(variant.map[9][6], '#')
+}
+
+assert.deepStrictEqual(
+  bossMechanics.dragonRayCells(bossMission.variants[0], bossMission.variants[0].boss, 'up'),
+  [{ x: 6, y: 2 }, { x: 6, y: 1 }, { x: 6, y: 0 }],
+)
+assert.deepStrictEqual(
+  bossMechanics.dragonRayCells(
+    bossMission.variants[0],
+    bossMission.variants[0].boss,
+    'up',
+    { protectiveStatueRaised: true },
+  ),
+  [],
+)
 
 for (let variantIndex = 0; variantIndex < bossMission.variants.length; variantIndex++) {
   const result = engine.simulate(bossMission.solution, bossMission, variantIndex)
@@ -122,12 +157,15 @@ for (let variantIndex = 0; variantIndex < bossMission.variants.length; variantIn
   assert.strictEqual(result.ok, true)
   assert.strictEqual(result.state.alive, true)
   assert.strictEqual(result.state.dragonHit, false)
-  assert.strictEqual(result.state.bossDefeated, true)
+  assert.strictEqual(result.state.bossDefeated, false)
+  assert.strictEqual(result.state.protectiveStatueRaised, true)
+  assert.strictEqual(result.state.grid[2][6], 'S')
   assert.strictEqual(result.state.gems, 1)
   assert.strictEqual(result.state.goalReached, true)
-  assert.strictEqual(result.state.moves, 11)
+  assert.strictEqual(result.state.moves, 14)
   assert.strictEqual(evaluation.passed, true, evaluation.messages.join('\n'))
-  assert(result.trace.some(frame => frame.type === 'boss-defeated'))
+  assert(result.trace.some(frame => frame.type === 'protective-statue-raised'))
+  assert(!result.trace.some(frame => frame.type === 'boss-defeated'))
 }
 
 const wrongSideCode = [
@@ -139,7 +177,6 @@ const wrongSideCode = [
   'hero.move("up");',
   'hero.move("up");',
   'hero.move("up");',
-  'hero.transform("hero");',
   'hero.move("up");',
 ].join('\n')
 const wrongSide = engine.simulate(wrongSideCode, bossMission, 0)
@@ -148,6 +185,32 @@ assert.strictEqual(wrongSide.stopped, true)
 assert.strictEqual(wrongSide.state.alive, false)
 assert.strictEqual(wrongSide.state.dragonHit, true)
 assert.strictEqual(wrongSide.state.deathCause, 'dragon-fire')
+assert.strictEqual(wrongSide.state.protectiveStatueRaised, false)
+
+const frogLeverBypassCode = [
+  'hero.move("left");',
+  'hero.move("left");',
+  'hero.move("left");',
+  'hero.transform("frog");',
+  'hero.move("up");',
+  'hero.move("up");',
+  'hero.move("up");',
+  'hero.move("up");',
+  'hero.move("up");',
+  'hero.move("up");',
+  'hero.move("up");',
+  'hero.transform("hero");',
+  'hero.move("right");',
+  'hero.move("right");',
+  'hero.move("right");',
+].join('\n')
+const frogLeverBypass = engine.simulate(frogLeverBypassCode, bossMission, 0)
+assert.strictEqual(frogLeverBypass.ok, true)
+assert.strictEqual(frogLeverBypass.stopped, true)
+assert.strictEqual(frogLeverBypass.state.alive, false)
+assert.strictEqual(frogLeverBypass.state.dragonHit, true)
+assert.strictEqual(frogLeverBypass.state.protectiveStatueRaised, false)
+assert(frogLeverBypass.trace.some(frame => frame.type === 'say' && frame.bossEvent === 'lever-refused'))
 
 assert.strictEqual(progression.thresholdForLevel(1), 1)
 assert.strictEqual(progression.thresholdForLevel(2), 21)
@@ -207,24 +270,32 @@ assert(app.includes("els.fieldRun.addEventListener('click', runCurrentCode)"))
 assert(!app.includes("els.fieldRun.addEventListener('click', () => els.run.click())"))
 assert(app.includes('new MutationObserver(syncRunButtons)'))
 assert(app.includes("W: { text: '≈', className: 'water'"))
-assert(app.includes("O: { text: '🪷', className: 'lily-pad'"))
+assert(app.includes("O: { text: '🍃', className: 'lily-pad'"))
+assert(app.includes("S: { text: '🗿', className: 'statue'"))
 assert(app.includes("X: { text: '🚪', className: 'goal-door'"))
+assert(!app.includes('🪷'))
 assert(app.includes('els.grid.dataset.variantIndex = String(currentVariant)'))
+
+const riverUi = readQuest('river-ui.js')
+assert(riverUi.includes('🍃 スイレンの葉'))
+assert(!riverUi.includes('🪷'))
 
 const runtime = readQuest('curriculum-runtime.js')
 assert(runtime.includes("const fieldRun = document.getElementById('run-code-field')"))
 assert(runtime.includes('[run, fieldRun].filter(Boolean).forEach'))
 
 const styles = readQuest('styles.css')
-for (const selector of ['.tile.water', '.tile.lily-pad', '.tile.goal-door', '.field-actions']) {
+for (const selector of ['.tile.water', '.tile.lily-pad', '.tile.statue', '.tile.goal-door', '.field-actions']) {
   assert(styles.includes(selector), 'Missing visible river/field control styling: ' + selector)
 }
+assert(styles.includes('font-size: clamp(1.8rem, 3.4vw, 2.6rem)'))
 assert(styles.includes('margin-top: 1rem'))
 
 const bossUi = readQuest('boss-ui.js')
 assert(bossUi.includes('grid?.dataset.variantIndex'))
+assert(bossUi.includes("!['escape', 'protective-statue'].includes(boss.resolution)"))
 
 const version = require(path.join(questPath, 'version.js'))
-assert.strictEqual(version, '0.4.3')
+assert.strictEqual(version, '0.4.4')
 
-console.log('Validated working mirrored field execution, visible water/lily/door terrain, 1/21/51 wizard thresholds, MISSION 17 syntax repair, MISSION 18 frog river, MISSION 19 two-field frog dragon boss and ID migration.')
+console.log('Validated leaf lily visuals, protective-statue dragon boss, working mirrored execution, river terrain, wizard thresholds, MISSION 17 syntax repair and MISSION 18 adventure.')
