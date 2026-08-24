@@ -269,6 +269,11 @@ assert(app.includes("O: { text: '🍃', className: 'lily-pad'"))
 assert(app.includes("S: { text: '🗿', className: 'statue'"))
 assert(app.includes("X: { text: '🚪', className: 'goal-door'"))
 
+const riverUi = readQuest('river-ui.js')
+assert(riverUi.includes("const WATER_SYMBOL = '≈'"))
+assert(riverUi.includes("const WATER_COLOR = '#dff8ff'"))
+assert(riverUi.includes("appendReferenceValue(values, 'water', WATER_SYMBOL"))
+
 const responsiveCss = readQuest('field-responsive.css')
 assert(responsiveCss.includes('min-width: 0'))
 assert(responsiveCss.includes('place-items: center'))
@@ -281,6 +286,6 @@ const developmentRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'DEVE
 assert(developmentRules.includes('renumbering, insertion, reordering or migration'))
 
 const version = require(path.join(questPath, 'version.js'))
-assert.strictEqual(version, '0.4.9')
+assert.strictEqual(version, '0.4.10')
 
-console.log('Validated the reordered MISSION 15 typo drill, MISSION 18 transformation river, MISSION 19 protective-statue dragon mechanics, XP continuity, current concept ownership and responsive field wiring.')
+console.log('Validated the reordered MISSION 15 typo drill, MISSION 18 transformation river, MISSION 19 protective-statue dragon mechanics, XP continuity, current concept ownership, water vocabulary and responsive field wiring.')
