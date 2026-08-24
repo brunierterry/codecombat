@@ -124,6 +124,15 @@ for (const text of [
   'cellWidth * 0.72',
 ]) assert(responsiveJs.includes(text), 'Missing actual-field-width icon scaling: ' + text)
 
+const riverUi = readQuest('river-ui.js')
+for (const text of [
+  "const WATER_SYMBOL = '≈'",
+  "const WATER_COLOR = '#dff8ff'",
+  'setWaterLegendEntry(legend)',
+  "appendReferenceValue(values, 'water', WATER_SYMBOL",
+  'styleWaterSymbol(button.querySelector(\'.value-icon\'))',
+]) assert(riverUi.includes(text), 'Missing water-symbol consistency rule: ' + text)
+
 const index = readQuest('index.html')
 assert(index.includes('<link rel="stylesheet" href="field-responsive.css">'))
 assert(index.includes('<script src="mission-pack-v5-order.js"></script>'))
@@ -133,6 +142,6 @@ assert(index.indexOf('mission-pack-v5-order.js') < index.indexOf('concept-card-c
 assert(index.indexOf('app-v3.js') < index.indexOf('field-responsive.js'))
 
 const version = require(path.join(questPath, 'version.js'))
-assert.strictEqual(version, '0.4.9')
+assert.strictEqual(version, '0.4.10')
 
-console.log('Validated MISSION 14-20 ordering, one-crystal XP continuity, semantic concept ownership, persistence migration, and responsive field icon sizing.')
+console.log('Validated MISSION 14-20 ordering, one-crystal XP continuity, responsive field sizing, and consistent water symbols.')
