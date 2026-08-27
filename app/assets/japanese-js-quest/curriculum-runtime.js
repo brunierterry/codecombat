@@ -1,13 +1,27 @@
 (function () {
   'use strict'
 
-  const MISSION_COUNT = 23
-  const INFINITE_MISSION_ID = 14
   const STORAGE_KEY = 'japanese-js-quest-progress-v1'
   const INFINITE_PREPARE_KEY = 'japanese-js-quest-infinite-prepared-v1'
   const PAGE_INSTANCE = String(Date.now()) + '-' + Math.random().toString(36).slice(2)
   const PREPARE_MESSAGE = 'Ctrl+F5 でページを再読み込みしてね。そうすれば、ぼくは無限ループの中へ進めるよ。'
   let infiniteLoopRunning = false
+
+  function missions () {
+    return window.JSQuestMissions || []
+  }
+
+  function missionCount () {
+    return missions().length
+  }
+
+  function infiniteMission () {
+    return missions().find(item => item.infiniteLoopDemo) || null
+  }
+
+  function infiniteMissionId () {
+    return infiniteMission()?.id ?? -1
+  }
 
   function currentMissionId () {
     const match = (document.getElementById('mission-number')?.textContent || '').match(/(\d+)/)
@@ -15,7 +29,14 @@
   }
 
   function currentMission () {
-    return (window.JSQuestMissions || []).find(item => item.id === currentMissionId()) || null
+    return missions().find(item => item.id === currentMissionId()) || null
+  }
+
+  function sourceMissionId (mission) {
+    if (!mission) return 0
+    if (Number.isInteger(mission.prePracticeId)) return mission.prePracticeId
+    if (Number.isInteger(mission.practiceOf)) return mission.practiceOf
+    return mission.id
   }
 
   function savedProgress () {
@@ -27,8 +48,9 @@
   }
 
   function isInfiniteCompleted () {
+    const id = infiniteMissionId()
     const completed = savedProgress().completed
-    return Array.isArray(completed) && completed.includes(INFINITE_MISSION_ID)
+    return id >= 0 && Array.isArray(completed) && completed.includes(id)
   }
 
   function preparedOnEarlierPageLoad () {
@@ -49,42 +71,45 @@
   }
 
   function patchMissionCount () {
-    const subtitle = document.querySelector('.subtitle')
-    if (subtitle) subtitle.textContent = '23のミッションで、関数・条件・ループを学ぼう'
     const progress = document.getElementById('progress-label')
-    if (progress && /\/\s*21\b/.test(progress.textContent)) {
-      progress.textContent = progress.textContent.replace(/\/\s*21\b/, '/ 23')
+    if (progress && /\/\s*(21|23)\b/.test(progress.textContent)) {
+      progress.textContent = progress.textContent.replace(/\/\s*(21|23)\b/, '/ ' + missionCount())
     }
   }
 
   function renderProgressiveLegend () {
     const legend = document.querySelector('.game-panel .legend')
-    if (!legend) return
-    const missionId = currentMissionId()
+    const mission = currentMission()
+    if (!legend || !mission) return
+    const sourceId = sourceMissionId(mission)
+    const finalId = mission.id
     const entries = [
-      { from: 0, text: '🧙 ヒーロー' },
-      { from: 1, text: '💎 宝石' },
-      { from: 1, text: '🏁 ゴール' },
-      { from: 2, text: '🐸 カエル' },
-      { from: 7, text: '⚠️ ワナ' },
-      { from: 9, text: '🔑 カギ' },
-      { from: 9, text: '🚪 ドア' },
-      { from: 15, text: '👹 敵' }
+      { visible: true, text: '🧙 ヒーロー' },
+      { visible: sourceId >= 1, text: '💎 宝石' },
+      { visible: sourceId >= 1, text: '🏁 ゴール' },
+      { visible: finalId >= 3, text: '🐸 カエル' },
+      { visible: finalId >= 6, text: '🐉 ドラゴン' },
+      { visible: finalId >= 6, text: '🔥 炎' },
+      { visible: sourceId >= 7, text: '⚠️ ワナ' },
+      { visible: sourceId >= 9, text: '🔑 カギ' },
+      { visible: sourceId >= 9, text: '🚪 ドア' },
+      { visible: sourceId >= 15, text: '👹 敵' },
     ]
     legend.innerHTML = entries
-      .filter(entry => entry.from <= missionId)
+      .filter(entry => entry.visible)
       .map(entry => '<span>' + entry.text + '</span>')
       .join('')
   }
 
   function hidePrematureStats () {
     const stats = document.getElementById('stats')
-    if (!stats) return
-    const missionId = currentMissionId()
+    const mission = currentMission()
+    if (!stats || !mission) return
+    const sourceId = sourceMissionId(mission)
     stats.querySelectorAll('.stat').forEach(stat => {
       const text = stat.textContent.trim()
-      if (text.startsWith('⚠️') && missionId < 7) stat.remove()
-      if (text.startsWith('🔑') && missionId < 9) stat.remove()
+      if (text.startsWith('⚠️') && sourceId < 7) stat.remove()
+      if (text.startsWith('🔑') && sourceId < 9) stat.remove()
     })
   }
 
@@ -92,9 +117,7 @@
     const feedback = document.getElementById('feedback')
     if (!feedback) return
     const current = feedback.textContent
-    const corrected = current
-      .replace('全20ミッション', '全' + MISSION_COUNT + 'ミッション')
-      .replace('全21ミッション', '全' + MISSION_COUNT + 'ミッション')
+    const corrected = current.replace(/全(?:20|21|23)ミッション/g, '全' + missionCount() + 'ミッション')
     if (corrected !== current) feedback.textContent = corrected
   }
 
@@ -157,11 +180,7 @@
       fallback.setAttribute('aria-disabled', String(locked))
     }
     if (reset) reset.disabled = locked
-
-    if (window.ace) {
-      const aceEditor = window.ace.edit('editor')
-      aceEditor.setReadOnly(locked)
-    }
+    if (window.ace) window.ace.edit('editor').setReadOnly(locked)
   }
 
   function setNormalRunButton () {
@@ -177,24 +196,20 @@
     if (!run) return
     run.classList.remove('primary')
     run.classList.add('infinite-prepare')
-    run.textContent = waitingForReload
-      ? '↻ Ctrl+F5 で再読み込み'
-      : '↻ 無限ループを準備する'
+    run.textContent = waitingForReload ? '↻ Ctrl+F5 で再読み込み' : '↻ 無限ループを準備する'
   }
 
   function configureInfiniteMissionGate () {
-    if (currentMissionId() !== INFINITE_MISSION_ID || isInfiniteCompleted()) {
+    if (currentMissionId() !== infiniteMissionId() || isInfiniteCompleted()) {
       setEditorPreparationLocked(false)
       setNormalRunButton()
       return
     }
-
     if (preparedOnEarlierPageLoad()) {
       setEditorPreparationLocked(false)
       setNormalRunButton()
       return
     }
-
     setEditorPreparationLocked(true)
     setPreparationRunButton(sessionStorage.getItem(INFINITE_PREPARE_KEY) != null)
   }
@@ -211,11 +226,13 @@
   }
 
   function persistInfiniteCompletion () {
+    const id = infiniteMissionId()
+    if (id < 0) return
     const progress = savedProgress()
     progress.completed = Array.isArray(progress.completed) ? progress.completed : []
-    if (!progress.completed.includes(INFINITE_MISSION_ID)) progress.completed.push(INFINITE_MISSION_ID)
+    if (!progress.completed.includes(id)) progress.completed.push(id)
     progress.completed.sort((a, b) => a - b)
-    progress.unlocked = Math.max(Number(progress.unlocked) || 1, INFINITE_MISSION_ID + 2)
+    progress.unlocked = Math.max(Number(progress.unlocked) || 1, id + 2)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(progress))
 
     const badge = document.getElementById('mission-badge')
@@ -282,8 +299,7 @@
 
     clearInfinitePreparation()
     persistInfiniteCompletion()
-    const next = document.getElementById('next-mission')
-    if (next) next.hidden = true
+    document.getElementById('next-mission')?.setAttribute('hidden', '')
     const hint = document.getElementById('hint-box')
     if (hint) hint.hidden = true
     const feedback = document.getElementById('feedback')
@@ -296,7 +312,6 @@
     updateInfiniteFieldProgress()
     disableAdventureControls()
     await delay(120)
-
     while (true) {
       await window.JSQuestSpeechUI.showSpeechBubble(mission.infiniteLoopMessage)
       await delay(80)
@@ -304,10 +319,9 @@
   }
 
   function interceptRun (event) {
-    if (currentMissionId() !== INFINITE_MISSION_ID) return
+    if (currentMissionId() !== infiniteMissionId()) return
     event.preventDefault()
     event.stopImmediatePropagation()
-
     if (!isInfiniteCompleted() && !preparedOnEarlierPageLoad()) {
       prepareInfiniteReload()
       return
@@ -317,8 +331,9 @@
 
   function installRunInterception () {
     const run = document.getElementById('run-code')
+    const fieldRun = document.getElementById('run-code-field')
     if (!run) return
-    run.addEventListener('click', interceptRun, true)
+    ;[run, fieldRun].filter(Boolean).forEach(button => button.addEventListener('click', interceptRun, true))
 
     const fallback = document.getElementById('editor-fallback')
     fallback?.addEventListener('keydown', event => {
@@ -334,7 +349,7 @@
       editor.commands.addCommand({
         name: 'runMission',
         bindKey: { win: 'Ctrl-Enter', mac: 'Command-Enter' },
-        exec: () => run.click()
+        exec: () => run.click(),
       })
     }
   }
@@ -355,7 +370,6 @@
     refreshMissionUi()
     document.addEventListener('jsquest:missionloaded', refreshMissionUi)
     document.addEventListener('jsquest:missioncompleted', correctFinalMessage)
-
     const stats = document.getElementById('stats')
     if (stats) new MutationObserver(hidePrematureStats).observe(stats, { childList: true })
   }
@@ -363,3 +377,8 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init)
   else init()
 })()
+
+if (typeof document !== 'undefined' && document.readyState === 'loading') {
+  document.write('<script src="mission-types-ui.js"><\/script>')
+  document.write('<script src="boss-ui.js"><\/script>')
+}

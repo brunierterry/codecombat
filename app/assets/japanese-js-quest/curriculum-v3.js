@@ -4,6 +4,11 @@
   else {
     root.JSQuestCurriculumV3 = api
     if (root.JSQuestMissions) api.apply(root.JSQuestMissions)
+    if (typeof document !== 'undefined' && document.readyState === 'loading') {
+      document.write('<script src="mission-types.js"><\/script>')
+      document.write('<script src="mission-pack-v1.js"><\/script>')
+      document.write('<script src="boss-mechanics.js"><\/script>')
+    }
   }
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict'
@@ -158,6 +163,7 @@
       const legacyId = Number(mission.id)
       mission.legacyId = legacyId
       mission.id = finalIdForLegacyId(legacyId)
+      if (legacyId === 10 && mission.title === 'はじめてのループ') mission.title = '初めてのループ'
     }
 
     missions.push(booleanMission(), infiniteLoopMission())

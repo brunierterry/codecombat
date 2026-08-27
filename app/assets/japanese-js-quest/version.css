@@ -1,0 +1,8 @@
+.app-version {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  opacity: 0.48;
+}

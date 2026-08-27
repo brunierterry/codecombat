@@ -10,13 +10,31 @@
 
   function thresholdForLevel (level) {
     if (level <= 0) return 0
-    return 1 + ((level - 1) * (3 * level + 2)) / 2
+    if (level === 1) return 1
+
+    let threshold = 1
+    for (let targetLevel = 2; targetLevel <= level; targetLevel++) {
+      threshold += targetLevel * 10
+    }
+    return threshold
   }
 
   function levelForXp (xp) {
     let level = 0
     while (thresholdForLevel(level + 1) <= xp) level++
     return level
+  }
+
+  function sourceMissionId (mission) {
+    if (!mission) return 0
+    if (Number.isInteger(mission.prePracticeId)) return mission.prePracticeId
+    if (Number.isInteger(mission.practiceOf)) return mission.practiceOf
+    return mission.id
+  }
+
+  function missionReward (mission) {
+    if (!mission || mission.id === 0) return 0
+    return Math.max(1, Number(mission.requirements?.state?.minGems) || 1)
   }
 
   function replaceChar (row, index, char) {
@@ -64,7 +82,7 @@
 
     let xp = 0
     for (const mission of missions) {
-      const reward = mission.id === 0 ? 0 : Math.max(1, Number(mission.requirements?.state?.minGems) || 1)
+      const reward = missionReward(mission)
       mission.wizardXpBefore = xp
       mission.wizardLevel = levelForXp(xp)
       mission.wizardXpReward = reward
@@ -73,7 +91,7 @@
       mission.nextLevelXp = thresholdForLevel(mission.wizardLevel + 1)
       mission.currentLevelXp = thresholdForLevel(mission.wizardLevel)
 
-      if (mission.wizardLevel >= 1) {
+      if (mission.wizardLevel >= 1 && sourceMissionId(mission) >= 2) {
         if (!mission.api.includes('hero.transform("frog")')) mission.api.push('hero.transform("frog")')
         if (!mission.api.includes('hero.transform("hero")')) mission.api.push('hero.transform("hero")')
       }
@@ -84,5 +102,5 @@
     return missions
   }
 
-  return { apply, levelForXp, thresholdForLevel }
+  return { apply, levelForXp, thresholdForLevel, sourceMissionId, missionReward }
 })

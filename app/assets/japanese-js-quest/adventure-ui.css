@@ -72,6 +72,37 @@
   transition: width 260ms ease;
 }
 
+.field-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 0.8rem;
+}
+
+.field-run-button {
+  min-width: 7.6rem;
+}
+
+.tile.water {
+  color: #d8f2ff;
+  background: linear-gradient(160deg, #1e5d86, #19496f);
+}
+
+.tile.water:nth-child(even) {
+  background: linear-gradient(160deg, #24698f, #1b5277);
+}
+
+.tile.lily-pad {
+  background: #1f5e59;
+}
+
+.tile.lily-pad:nth-child(even) {
+  background: #256a62;
+}
+
+.tile.goal-door {
+  background: #294f3f;
+}
+
 .admin-unlock-button {
   border-color: #8c65d6;
   color: #eadfff;
@@ -105,34 +136,30 @@
   cursor: not-allowed;
 }
 
-#editor-fallback {
-  overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #58779f #0b1020;
-}
+#editor-fallback { overflow: auto; }
 
 #editor-fallback::-webkit-scrollbar,
 #editor .ace_scrollbar::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
 }
 
 #editor-fallback::-webkit-scrollbar-track,
 #editor .ace_scrollbar::-webkit-scrollbar-track {
   border-radius: 999px;
-  background: #0b1020;
+  background: var(--scrollbar-track);
 }
 
 #editor-fallback::-webkit-scrollbar-thumb,
 #editor .ace_scrollbar::-webkit-scrollbar-thumb {
-  border: 3px solid #0b1020;
+  border: 3px solid var(--scrollbar-track);
   border-radius: 999px;
-  background: #58779f;
+  background: var(--scrollbar-thumb);
 }
 
 #editor-fallback::-webkit-scrollbar-thumb:hover,
 #editor .ace_scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #6f94c3;
+  background: var(--scrollbar-thumb-hover);
 }
 
 .tile.hero.form-dragon::after {

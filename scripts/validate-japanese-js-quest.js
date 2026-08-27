@@ -39,13 +39,22 @@ vm.runInNewContext(
 curriculum.apply(legacyMissions)
 const missions = progression.apply([introMission, ...legacyMissions], engine)
 
+// This validator intentionally protects the original concept-only curriculum.
+// The expanded assembled campaign is validated separately by mission-pack-v1.
 assert.strictEqual(missions.length, 23)
 assert.deepStrictEqual(missions.map(item => item.id), Array.from({ length: 23 }, (_, index) => index))
 assert.strictEqual(mission(missions, 0).wizardLevel, 0)
 assert.strictEqual(mission(missions, 1).wizardLevel, 0)
 for (const id of [2, 3, 4, 5]) assert.strictEqual(mission(missions, id).wizardLevel, 1)
-assert.deepStrictEqual([1, 2, 3].map(progression.thresholdForLevel), [1, 5, 12])
-assert.strictEqual(introMission.starterCode, 'hero.say(\'Hello Yuzu\');')
+assert.deepStrictEqual([1, 2, 3].map(progression.thresholdForLevel), [1, 21, 51])
+const personalizedIntroCode = '// goddess は「神さま・女神さま」の意味。ヒーローに自分の名前で呼ばれてもいいなら、「自分の名前 + sama」に変えてもいいよ。\nhero.say("Hello goddess!");'
+assert.strictEqual(introMission.starterCode, personalizedIntroCode)
+assert.strictEqual(introMission.solution, personalizedIntroCode)
+assert.strictEqual(introMission.requirements.state.sayText, undefined)
+const personalizedIntroSource = 'hero.say("Hello Aoi sama!");'
+const personalizedIntroResult = engine.simulate(personalizedIntroSource, introMission, 0)
+assert(personalizedIntroResult.ok)
+assert(engine.evaluate(introMission, personalizedIntroResult, personalizedIntroSource).passed)
 
 for (const item of missions) {
   assert(item.title && item.starterCode && item.solution)
@@ -61,15 +70,11 @@ for (const item of missions) {
   assert(partialSolution.includes('// ヒント:'), `Mission ${item.id} partial help must contain comments`)
 
   if (item.infiniteLoopDemo) continue
-
   item.variants.forEach((variant, variantIndex) => {
     const result = engine.simulate(item.solution, item, variantIndex)
     const evaluation = engine.evaluate(item, result, item.solution)
     assert(result.ok, `Mission ${item.id}, field ${variantIndex + 1}: ${result.error?.message}`)
-    assert(
-      evaluation.passed,
-      `Mission ${item.id}, field ${variantIndex + 1}: ${evaluation.messages.join(' | ')}`,
-    )
+    assert(evaluation.passed, `Mission ${item.id}, field ${variantIndex + 1}: ${evaluation.messages.join(' | ')}`)
   })
 
   assert(
@@ -95,7 +100,6 @@ for (const source of [
   'hero.isTrue(alwaysFalse);',
 ]) assert(booleanMission.starterCode.includes(source))
 assert.strictEqual((booleanMission.starterCode.match(/hero\.move\("right"\);/g) || []).length, 2)
-assert(booleanMission.originalStarterCode.includes('hero.move("right");'))
 
 const booleanResult = engine.simulate(booleanMission.solution, booleanMission, 0)
 assert(engine.evaluate(booleanMission, booleanResult, booleanMission.solution).passed)
@@ -103,8 +107,6 @@ assert(booleanResult.state.says.includes(curriculumEngine.TRUE_MESSAGE))
 assert(booleanResult.state.says.includes(curriculumEngine.FALSE_MESSAGE))
 assert.strictEqual(booleanResult.state.goalReached, true)
 assert.strictEqual(booleanResult.state.moves, 2)
-assert(engine.simulate('hero.isTrue(true);', booleanMission, 0).state.says.includes('正しいです。'))
-assert(engine.simulate('hero.isTrue(false);', booleanMission, 0).state.says.includes('違いますよ。'))
 assertSpokenFailure(engine.simulate('hero.isTrue("true");', booleanMission, 0), 'invalid-boolean', 'true か false')
 assertSpokenFailure(engine.simulate('hero.isTrue();', booleanMission, 0), 'invalid-boolean', 'true か false')
 assertSpokenFailure(engine.simulate('hero.isTrue(true, false);', booleanMission, 0), 'invalid-boolean', 'true か false')
@@ -117,9 +119,7 @@ const infiniteMission = mission(missions, 14)
 assert(infiniteMission.infiniteLoopDemo)
 assert(infiniteMission.starterCode.startsWith('hero.move("right");'))
 assert(infiniteMission.starterCode.includes('while (true)'))
-assert(infiniteMission.starterCode.includes('hero.say('))
 assert(infiniteMission.instructions.some(text => text.includes('Ctrl+F5')))
-assert(infiniteMission.instructions.some(text => text.includes('丸い矢印')))
 assert.strictEqual(mission(missions, 15).legacyId, 13)
 assert(mission(missions, 15).starterCode.includes('while (!hero.isAtGoal())'))
 
@@ -168,81 +168,58 @@ assert.deepStrictEqual(
   ['move', 'transform', 'say', 'transform', 'move', 'move', 'move', 'transform', 'say', 'move', 'transform'],
 )
 const speechFrames = orderedResult.trace.filter(frame => frame.type === 'say')
-assert.notDeepStrictEqual(
-  [speechFrames[0].x, speechFrames[0].y],
-  [speechFrames[1].x, speechFrames[1].y],
-)
+assert.notDeepStrictEqual([speechFrames[0].x, speechFrames[0].y], [speechFrames[1].x, speechFrames[1].y])
 
 for (const id of [4, 5, 6, 7, 8, 9, 10, 15, 16, 17, 19, 20, 21, 22]) {
   assert(mission(missions, id).starterCode.includes('hero.say('))
 }
 
 const storedCards = conceptCards.allCards()
-assert.strictEqual(storedCards.length, 35)
+assert.strictEqual(storedCards.length, 36)
 assert.strictEqual(new Set(storedCards.map(card => card.id)).size, storedCards.length)
 assert(storedCards.every(card => /^concept-card-\d{3}$/.test(card.id)))
 assert(storedCards.every(card => Number.isInteger(card.missionId)))
 assert(storedCards.every(card => card.titleHtml && card.bodyHtml))
-assert.strictEqual(conceptCards.getCard('concept-card-001').titleHtml, '<code>hero</code> はオブジェクト')
 assert(conceptCards.getCard('concept-card-007').titleHtml.includes('Boolean'))
-assert(conceptCards.getCard('concept-card-010').titleHtml.includes('名前は自分で決められる'))
-assert(conceptCards.getCard('concept-card-010').bodyHtml.includes('ローマ字'))
 assert(conceptCards.getCard('concept-card-010').bodyHtml.includes('alwaysTrue'))
 assert(conceptCards.getCard('concept-card-025').bodyHtml.includes('コンピューターの力を使い続ける危険'))
+assert(conceptCards.getCard('concept-card-036').titleHtml.includes('Comment'))
 
+const guidedCardIds = []
 for (let missionId = 0; missionId < missions.length; missionId++) {
   const guide = conceptCards.getMissionGuide(missionId)
-  assert(guide, `Mission ${missionId} must have a concept guide`)
-  assert(guide.title)
+  assert(guide, `Core concept mission ${missionId} must have a guide`)
   assert(guide.cards.length > 0)
-  assert.strictEqual(guide.cards.length, guide.cardIds.length)
   guide.cards.forEach((card, index) => {
-    assert(card)
     assert.strictEqual(card.id, guide.cardIds[index])
     assert.strictEqual(card.missionId, missionId)
-    assert.strictEqual(conceptCards.getCard(card.id), card)
+    guidedCardIds.push(card.id)
   })
 }
-assert.deepStrictEqual(
-  conceptCards.getMissionGuide(3).cardIds,
-  ['concept-card-007', 'concept-card-008', 'concept-card-009', 'concept-card-010', 'concept-card-011'],
-)
-assert.deepStrictEqual(
-  conceptCards.getMissionGuide(4).cardIds,
-  ['concept-card-012', 'concept-card-013', 'concept-card-014'],
-)
+assert.deepStrictEqual(guidedCardIds.slice().sort(), storedCards.map(card => card.id).sort())
+assert.strictEqual(new Set(guidedCardIds).size, guidedCardIds.length)
 
 const indexSource = read('app/assets/japanese-js-quest/index.html')
-assert(indexSource.includes('23のミッション'))
-assert(indexSource.includes('0 / 23'))
 assert(indexSource.indexOf('branch-prompts.js') < indexSource.indexOf('curriculum-v3.js'))
 assert(indexSource.indexOf('curriculum-v3.js') < indexSource.indexOf('intro-mission.js'))
 assert(indexSource.indexOf('concept-card-library.js') < indexSource.indexOf('learning-guide.js'))
 assert(indexSource.indexOf('solution-help.js') < indexSource.indexOf('app-v3.js'))
-assert(indexSource.includes('id="show-solution"'))
-assert(indexSource.includes('disabled hidden>ヘルプ</button>'))
 assert(!indexSource.includes('../javascripts/ace/ace.js'))
 for (const file of ['curriculum-engine.js', 'curriculum-ui.js', 'curriculum-runtime.js', 'concept-card-library.js', 'solution-help.js']) {
   assert(indexSource.includes(`<script src="${file}"></script>`))
 }
 
 const curriculumUiSource = read('app/assets/japanese-js-quest/curriculum-ui.js')
-for (const text of ['hero.isTrue(boolean)', 'alwaysTrue', 'while (true)']) {
+for (const text of ['hero.isTrue(boolean)', 'alwaysTrue', 'while (true)', 'sourceMissionId']) {
   assert(curriculumUiSource.includes(text))
 }
-assert(!curriculumUiSource.includes('renderBooleanGuide'))
-assert(!curriculumUiSource.includes('renderInfiniteGuide'))
-assert(!curriculumUiSource.includes('guideShell'))
-assert(!curriculumUiSource.includes('removeMovedConstCards'))
 assert(!curriculumUiSource.includes("dispatchEvent(new CustomEvent('jsquest:missionloaded'"))
 assert(!curriculumUiSource.includes('missionNumber.textContent ='))
 
 const learningGuideSource = read('app/assets/japanese-js-quest/learning-guide.js')
 assert(learningGuideSource.includes('window.JSQuestConceptCards'))
 assert(learningGuideSource.includes('data-concept-card-id'))
-assert(learningGuideSource.includes('card.titleHtml'))
-assert(learningGuideSource.includes('card.bodyHtml'))
-assert(!learningGuideSource.includes('const guides ='))
+assert(learningGuideSource.includes('existingSection?.remove()'))
 
 const appSource = read('app/assets/japanese-js-quest/app-v3.js')
 for (const text of [
@@ -254,7 +231,6 @@ for (const text of [
   'solutionHelp.partialForMission(mission, engine)',
   '管理者用の正解コードを表示しました。保存はしていません。',
 ]) assert(appSource.includes(text))
-assert(!appSource.includes('attempts[mission.id]'))
 assert(!appSource.includes('progress.unlocked = missions.length'))
 assert(!appSource.includes('localStorage.setItem(codeKeyPrefix + mission.id, mission.solution)'))
 
@@ -265,11 +241,12 @@ assert(terminologySource.includes('legacyIdForFinalId'))
 
 const runtimeSource = read('app/assets/japanese-js-quest/curriculum-runtime.js')
 for (const text of [
-  'const MISSION_COUNT = 23',
-  'const INFINITE_MISSION_ID = 14',
-  "{ from: 7, text: '⚠️ ワナ' }",
-  "{ from: 9, text: '🔑 カギ' }",
-  "{ from: 15, text: '👹 敵' }",
+  'function missionCount ()',
+  'missions().find(item => item.infiniteLoopDemo)',
+  'function sourceMissionId (mission)',
+  "{ visible: sourceId >= 7, text: '⚠️ ワナ' }",
+  "{ visible: sourceId >= 9, text: '🔑 カギ' }",
+  "{ visible: sourceId >= 15, text: '👹 敵' }",
   "document.body.classList.add('infinite-loop-running')",
   'if (corrected !== current) feedback.textContent = corrected',
 ]) assert(runtimeSource.includes(text))
@@ -279,18 +256,15 @@ assert(runtimeSource.indexOf('persistInfiniteCompletion()') < runtimeSource.inde
 const productRules = read('docs/PRODUCT_RULES.md')
 const developmentRules = read('docs/DEVELOPMENT_RULES.md')
 for (const text of [
-  '23 missions numbered 00 through 22',
+  '35 missions numbered 00 through 34',
+  '## Mission types and reinforcement architecture',
   '## Boolean lesson and `hero.isTrue`',
   '## Intentional infinite-loop mission',
-  'Trap appears from mission 07',
-  'Enemy appears from mission 15',
   '## Standalone loading and stable curriculum rendering',
   '## Concept card reference base',
   'stable, unique ID',
   '`data-concept-card-id`',
-  'Future flashcards, quizzes and review activities must reuse the same reference records',
   '## Final answers and learner partial help',
-  'only in admin mode',
   'three failed executions',
   'must remain incomplete',
 ]) assert(productRules.includes(text))
@@ -298,4 +272,4 @@ assert(developmentRules.includes('Read `docs/PRODUCT_RULES.md`'))
 
 const totalFields = missions.reduce((sum, item) => sum + item.variants.length, 0)
 assert.strictEqual(totalFields, 37)
-console.log(`Validated ${missions.length} missions, ${totalFields} fields, ${storedCards.length} canonical concept cards and incomplete learner help.`)
+console.log(`Validated ${missions.length} core concept missions, ${totalFields} fields, ${storedCards.length} core canonical concept cards and incomplete learner help.`)

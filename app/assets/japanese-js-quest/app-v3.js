@@ -31,6 +31,7 @@
     editor: document.getElementById('editor'),
     fallback: document.getElementById('editor-fallback'),
     run: document.getElementById('run-code'),
+    fieldRun: document.getElementById('run-code-field'),
     resetCode: document.getElementById('reset-code'),
     hint: document.getElementById('show-hint'),
     solution: document.getElementById('show-solution'),
@@ -204,7 +205,11 @@
       { from: 6, text: '⚠️ ワナ' },
       { from: 8, text: '🔑 カギ' },
       { from: 8, text: '🚪 ドア' },
-      { from: 13, text: '👹 敵' }
+      { from: 13, text: '👹 敵' },
+      { from: 18, text: '🌊 水' },
+      { from: 18, text: '🍃 スイレンの葉' },
+      { from: 18, text: '🚪 ゴールのドア' },
+      { from: 19, text: '🗿 像' }
     ]
     els.legend.innerHTML = entries
       .filter(entry => entry.from <= missionId)
@@ -307,12 +312,17 @@
     '*': { text: '💎', className: 'gem', label: '宝石' },
     K: { text: '🔑', className: 'key', label: 'カギ' },
     D: { text: '🚪', className: 'door', label: 'ドア' },
+    X: { text: '🚪', className: 'goal-door', label: 'ゴールのドア' },
+    W: { text: '≈', className: 'water', label: '水' },
+    O: { text: '🍃', className: 'lily-pad', label: 'スイレンの葉' },
+    S: { text: '🗿', className: 'statue', label: '像' },
     T: { text: '⚠️', className: 'trap', label: 'ワナ' },
     E: { text: '👹', className: 'enemy', label: '敵' }
   }
 
   function renderGrid (rows, heroX, heroY, form) {
     els.grid.innerHTML = ''
+    els.grid.dataset.variantIndex = String(currentVariant)
     els.grid.style.gridTemplateColumns = 'repeat(' + rows[0].length + ', minmax(0, 1fr))'
     for (let y = 0; y < rows.length; y++) {
       for (let x = 0; x < rows[y].length; x++) {
@@ -347,6 +357,7 @@
   function workerRun (code, mission, variantIndex) {
     return new Promise((resolve, reject) => {
       const workerUrl = new URL('quest-worker.js', window.location.href)
+      workerUrl.searchParams.set('v', String(window.JSQuestVersion || Date.now()))
       const worker = new Worker(workerUrl)
       const cleanup = () => {
         window.clearTimeout(timeout)
@@ -496,7 +507,31 @@
       : 'ほぼ完成コードを見る'
   }
 
+  function syncRunButtons () {
+    if (!els.run || !els.fieldRun) return
+    els.fieldRun.disabled = els.run.disabled
+    els.fieldRun.hidden = els.run.hidden
+    els.fieldRun.textContent = els.run.textContent
+    els.fieldRun.className = els.run.className + ' field-run-button'
+    els.fieldRun.title = els.run.title
+    els.fieldRun.setAttribute('aria-disabled', els.run.getAttribute('aria-disabled') || String(els.run.disabled))
+  }
+
+  function installMirroredRunButton () {
+    if (!els.run || !els.fieldRun) return
+    els.fieldRun.addEventListener('click', runCurrentCode)
+    new MutationObserver(syncRunButtons).observe(els.run, {
+      attributes: true,
+      childList: true,
+      characterData: true,
+      subtree: true
+    })
+    syncRunButtons()
+  }
+
   els.run.addEventListener('click', runCurrentCode)
+  installMirroredRunButton()
+
   els.resetCode.addEventListener('click', () => {
     if (!window.confirm('このミッションのコードを最初にもどしますか？')) return
     const mission = missions[currentIndex]
