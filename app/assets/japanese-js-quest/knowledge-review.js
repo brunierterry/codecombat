@@ -214,6 +214,9 @@
 
     card.spacing = nextSpacing(card.spacing, accuracy, selfScore)
     card.reviewCount += 1
+    // Voluntary third-or-later sessions still train the memory schedule but do
+    // not award per-card knowledge points, so repeated same-day study cannot
+    // become a point-farming path.
     if (awardPoints !== false) card.reviewPoints += accuracyPoints(correct, total)
     card.lastReviewedDate = dateKey(now)
     card.lastAccuracy = accuracy
@@ -253,9 +256,9 @@
   function knowledgePoints (state) {
     const cards = Object.values(state.cards)
     const base = cards.length * BASE_POINTS_PER_CARD
-    const reviewPoints = cards.reduce((sum, card) => sum + Math.max(0, Number(card.reviewPoints) || 0), 0)
+    const review = cards.reduce((sum, card) => sum + Math.max(0, Number(card.reviewPoints) || 0), 0)
     const session = Math.max(0, Number(state.sessionBonusPoints) || 0)
-    return { total: base + reviewPoints + session, base, review: reviewPoints, session, cardCount: cards.length }
+    return { total: base + review + session, base, review, session, cardCount: cards.length }
   }
 
   function dailyReviewDue (state, now) {
