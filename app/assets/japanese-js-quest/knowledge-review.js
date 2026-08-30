@@ -204,7 +204,7 @@
     return state.activeSession
   }
 
-  function reviewCard (state, cardId, correctAnswers, totalQuestions, recall, now) {
+  function reviewCard (state, cardId, correctAnswers, totalQuestions, recall, now, awardPoints) {
     const card = state.cards[cardId]
     if (!card) throw new Error('このカードはまだ復習できません。')
     const total = Math.max(1, Math.floor(Number(totalQuestions) || 1))
@@ -214,7 +214,7 @@
 
     card.spacing = nextSpacing(card.spacing, accuracy, selfScore)
     card.reviewCount += 1
-    card.reviewPoints += accuracyPoints(correct, total)
+    if (awardPoints !== false) card.reviewPoints += accuracyPoints(correct, total)
     card.lastReviewedDate = dateKey(now)
     card.lastAccuracy = accuracy
     card.lastRecall = selfScore
@@ -253,9 +253,9 @@
   function knowledgePoints (state) {
     const cards = Object.values(state.cards)
     const base = cards.length * BASE_POINTS_PER_CARD
-    const review = cards.reduce((sum, card) => sum + Math.max(0, Number(card.reviewPoints) || 0), 0)
+    const reviewPoints = cards.reduce((sum, card) => sum + Math.max(0, Number(card.reviewPoints) || 0), 0)
     const session = Math.max(0, Number(state.sessionBonusPoints) || 0)
-    return { total: base + review + session, base, review, session, cardCount: cards.length }
+    return { total: base + reviewPoints + session, base, review: reviewPoints, session, cardCount: cards.length }
   }
 
   function dailyReviewDue (state, now) {
