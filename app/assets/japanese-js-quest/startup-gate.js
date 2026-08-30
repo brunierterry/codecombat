@@ -6,7 +6,6 @@
 
   const PENDING_KEY = 'japanese-js-quest-startup-pending-v1'
   const INTRO_KEY = 'japanese-js-quest-story-intro-seen-v1'
-  const INTRO_SENTINEL = '__startup_gate_waiting__'
   const storage = window.localStorage
 
   function hasExistingSave () {
@@ -27,7 +26,9 @@
   }
 
   storage.setItem(PENDING_KEY, '1')
-  storage.setItem(INTRO_KEY, INTRO_SENTINEL)
+  // story-intro.js only skips when this value is exactly "1". The pending key
+  // records that this is a temporary bypass, so a reload still shows this gate.
+  storage.setItem(INTRO_KEY, '1')
 
   const overlay = document.createElement('section')
   overlay.className = 'startup-gate-overlay'
