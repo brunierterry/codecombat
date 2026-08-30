@@ -286,6 +286,6 @@ const developmentRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'DEVE
 assert(developmentRules.includes('renumbering, insertion, reordering or migration'))
 
 const version = require(path.join(questPath, 'version.js'))
-assert.strictEqual(version, '0.4.10')
+assert(/^\d+\.\d+\.\d+$/.test(version), 'Historical river/boss regression only requires a valid canonical semantic version')
 
 console.log('Validated the reordered MISSION 15 typo drill, MISSION 18 transformation river, MISSION 19 protective-statue dragon mechanics, XP continuity, current concept ownership, water vocabulary and responsive field wiring.')

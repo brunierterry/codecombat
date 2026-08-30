@@ -7,6 +7,7 @@ on:
       - feature/japanese-js-quest-learning-reinforcement
       - feature/japanese-js-quest-mission-types-first-pack
       - feature/japanese-js-quest-mission-7-reinforcement
+      - feature/japanese-js-quest-backup-review
     paths:
       - 'app/assets/japanese-js-quest/**'
       - 'scripts/validate-japanese-js-quest.js'
@@ -22,6 +23,7 @@ on:
       - 'scripts/validate-japanese-js-quest-mission-order-responsive-field.js'
       - 'scripts/validate-japanese-js-quest-dragon-polish.js'
       - 'scripts/validate-japanese-js-quest-story-intro.js'
+      - 'scripts/validate-japanese-js-quest-backup-review.js'
       - 'docs/PRODUCT_RULES.md'
       - 'docs/DEVELOPMENT_RULES.md'
       - '.github/workflows/japanese-js-quest.yml'
@@ -41,6 +43,7 @@ on:
       - 'scripts/validate-japanese-js-quest-mission-order-responsive-field.js'
       - 'scripts/validate-japanese-js-quest-dragon-polish.js'
       - 'scripts/validate-japanese-js-quest-story-intro.js'
+      - 'scripts/validate-japanese-js-quest-backup-review.js'
       - 'docs/PRODUCT_RULES.md'
       - 'docs/DEVELOPMENT_RULES.md'
       - '.github/workflows/japanese-js-quest.yml'
@@ -80,3 +83,5 @@ jobs:
         run: node scripts/validate-japanese-js-quest-dragon-polish.js
       - name: Validate first-launch story introduction
         run: node scripts/validate-japanese-js-quest-story-intro.js
+      - name: Validate portable saves and knowledge review
+        run: node scripts/validate-japanese-js-quest-backup-review.js

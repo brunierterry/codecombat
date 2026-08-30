@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="hero-life.css">
   <link rel="stylesheet" href="story-intro.css">
   <link rel="stylesheet" href="version.css">
+  <link rel="stylesheet" href="knowledge-review.css">
 </head>
 <body class="story-intro-checking">
   <header class="topbar"><div><p class="eyebrow">CODECOMBAT LOCAL CAMPAIGN</p><h1>JavaScript クエスト</h1><p class="subtitle">いろいろなミッションで、JavaScriptを少しずつ身につけよう</p></div><div class="top-actions"><span id="save-status" aria-live="polite">自動保存</span><button id="reset-progress" class="button ghost" type="button">進みぐあいをリセット</button></div></header>
@@ -32,7 +33,9 @@
       <section class="feedback-panel" aria-live="polite"><div><h3>結果</h3><div id="feedback" class="feedback neutral">コードを書いて「実行する」を押そう。</div><div id="hint-box" class="hint-box" hidden></div></div><button id="next-mission" class="button success" type="button" hidden>次のミッションへ →</button></section>
     </section>
   </main>
-  <footer><p>進みぐあいとコードは、このブラウザの中だけに保存されます。</p><small id="app-version" class="app-version" aria-label="アプリのバージョン"></small></footer>
+  <footer><p>進みぐあいとコードはブラウザーに保存され、メニューから ZIP に書き出せます。</p><small id="app-version" class="app-version" aria-label="アプリのバージョン"></small></footer>
+  <script src="save-transfer.js"></script>
+  <script src="startup-gate.js"></script>
   <script src="story-intro.js"></script>
   <script src="story-intro-replay.js"></script>
   <script src="engine.js"></script>
@@ -61,12 +64,14 @@
   <script src="concept-card-quizzes.js"></script>
   <script src="concept-card-quizzes-extension.js"></script>
   <script src="concept-card-memory.js?v=3"></script>
+  <script src="knowledge-review.js"></script>
   <script src="concept-complete-celebration.js"></script>
   <script src="technical-terms.js"></script>
   <script src="curriculum-ui.js"></script>
   <script src="progress-access.js"></script>
   <script src="solution-help.js"></script>
   <script src="app-v3.js"></script>
+  <script src="mission-navigation-ui.js"></script>
   <script src="field-responsive.js"></script>
   <script src="curriculum-runtime.js"></script>
   <script src="river-ui.js"></script>
@@ -76,5 +81,6 @@
   <script src="mission-types-ui.js?v=2"></script>
   <script src="boss-ui.js"></script>
   <script src="version.js"></script>
+  <script src="knowledge-review-ui.js"></script>
 </body>
 </html>

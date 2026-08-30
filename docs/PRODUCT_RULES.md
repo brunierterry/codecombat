@@ -596,3 +596,52 @@ This document is the functional and business source of truth for the local Japan
 - It verifies the canonical application version is rendered discreetly in the footer and follows the repository versioning rules.
 - It verifies required documentation exists and remains consistent with the implementation.
 - ESLint must pass for changed JavaScript files.
+
+## Portable save and recovery
+
+- The game provides a portable ZIP save that can restore a learner after a clean reinstall, a changed local server port or cleared browser storage.
+- Export produces a ZIP archive containing a versioned `progress.json` payload. The payload contains every quest-owned `localStorage` record needed to reconstruct the learner state, including completed missions, the current unlock state, saved mission code, validated concept-card IDs, story/onboarding state, migration markers and spaced-review memory.
+- Export never copies unrelated browser `localStorage` keys.
+- Import validates the backup format and schema before replacing quest-owned storage. Invalid or foreign keys in a backup are rejected rather than written to the browser.
+- Import clears stale quest-owned keys that are absent from the imported save while preserving unrelated browser storage.
+- A successful import marks the browser as containing an existing quest save and reloads the game so all normal normalization/migration paths run on the restored state.
+- A genuinely fresh browser with no meaningful quest data shows a blocking startup choice before the story introduction: `新しくはじめる` starts a new adventure and `つづきから` opens a file picker for a previously exported save.
+- A browser that already has meaningful local quest progress skips the startup choice and opens directly at the learner's current progression.
+- Starting a new game from the fresh-start chooser clears only quest-owned state, establishes a new local save slot and then shows the normal first-launch story introduction.
+- The top-right menu exposes clearly separate actions for progress export and progress import. These actions are distinct from concept review and from the optional Anki export.
+- Full progress reset uses stronger protection than the older generic single-confirmation rule: first the learner/parent must export the current ZIP save, then a second explicit confirmation asks whether the export has really been saved and whether the reset should proceed. The older single-confirmation wording is superseded for full reset.
+
+## Spaced review and knowledge points
+
+- Validated canonical concept cards automatically enter a persistent spaced review pool by stable concept-card ID. Newly unlocked cards start with repetition/spacing priority value 1, and that value never drops below 1.
+- A normal review session uses six concept cards when at least six unlocked cards are available. If fewer are available, it uses all currently reviewable cards without duplicating a card inside the session.
+- Card selection is semi-random and weighted toward weaker/recent cards: lower spacing values are more likely to be selected, while cards whose spacing has grown after strong recall return less often.
+- A first daily review opportunity is indicated by a small red notification on the top-right menu. Review is optional; opening the game never forces the learner to complete it.
+- Each review card shows its canonical title and quiz before revealing the explanatory card body. After the learner submits the quiz, the canonical explanation is revealed even when one or more answers were wrong, so the attempt becomes immediate feedback rather than a gate.
+- After reading the explanation, the learner rates recall with a three-position slider: `😅 ぜんぶ忘れてた`, `🙂 なんとなく覚えてた`, or `😎 完璧に覚えてた`.
+- Quiz performance is the dominant signal for the next repetition priority and self-assessment refines it. A 0% quiz score must substantially reduce spacing even if the learner claims perfect recall; a 100% quiz score increases spacing, and choosing `完璧に覚えてた` increases it much more than choosing `ぜんぶ忘れてた`.
+- The knowledge points counter shown beside the menu is the sum of stable learning points and review-earned points; the learner does not need to see the internal component breakdown.
+- Stable learning points equal 5 points for every concept card currently present in the review pool. Existing learners therefore receive the correct base knowledge score automatically when the feature first appears.
+- For scored review sessions, each reviewed card adds 3 points for 100% quiz accuracy, 1 point when at least one answer is correct, and 0 points when every answer is wrong.
+- The first completed review session of a local calendar day adds a 10 points session bonus. The second completed session of the same day adds a 3 points session bonus. A third or later same-day session remains available for voluntary study and still updates spaced-review memory, but adds no further knowledge points, including no per-card farming points.
+- Review history, per-card spacing, review count, accumulated review points, latest accuracy/recall and daily session counts are persisted under a dedicated review-memory storage key and are included in portable save export/import.
+- The review system reuses the canonical concept-card and quiz databases; it must never maintain a second copy of pedagogical card content.
+- The menu includes a separate, lower-emphasis Anki/AnkiDroid export action. It exports only already unlocked/reviewable canonical cards as UTF-8 tab-separated text with HTML enabled so the learner may optionally study the same concepts in AnkiDroid.
+
+## Top menu and mission-change navigation
+
+- The existing mission sidebar, mission summary, field panel and JavaScript editor remain structurally unchanged by the knowledge-review feature.
+- Header utilities move into a responsive hamburger menu in the top-right. Normal-player menu entries include concept review, progress export/import, optional Anki export and reset; admin-only controls appear in the same menu only when admin mode is active.
+- The total knowledge points counter is displayed immediately to the left of the hamburger menu.
+- Whenever the learner changes missions—either by selecting a mission in the sidebar or by using `次のミッションへ` after success—the viewport returns to the new mission overview so its mission title, story, instructions and any new learning material are visible before the learner continues coding.
+- Mission navigation must not leave the viewport down at the previous mission's field/editor position. The mission overview is aligned below the sticky top bar when the header is sticky, and reduced-motion preferences are respected.
+- The mission overview scroll behavior runs after the mission-loading/editor-focus work so a legacy editor autofocus cannot pull the learner back down to the JavaScript editor.
+
+## Validation for portable learning state
+
+- Regression validation verifies a portable ZIP save round-trip, `progress.json` presence, restoration of mission progress/code/concept memory, rejection of foreign keys and preservation of unrelated browser storage.
+- It verifies fresh-start choice behavior, existing-save bypass, two-step reset protection and the inclusion of review memory in exported state.
+- It verifies six-card unique review selection, minimum spacing 1, weaker-card weighting, the effect of quiz accuracy and self-assessment, daily notification state, 5-point base knowledge calculation, 3/1/0 quiz-performance points, the 10 points first-session bonus, the 3 points second-session bonus and zero point farming from a third same-day session.
+- It verifies the AnkiDroid-compatible export is separate from the portable game save and only exports already unlocked canonical cards.
+- It verifies mission-change navigation is wired through the canonical `jsquest:missionloaded` lifecycle and returns the viewport to the mission overview after editor focus/layout work.
+- Historical regression suites for older mission packs must validate the behavior they own and a syntactically valid canonical semantic version, but must not pin an obsolete release such as `0.4.10`. The current feature/release validator owns the exact current version assertion.
