@@ -143,8 +143,8 @@ const startup = readQuest('startup-gate.js')
 for (const text of [
   '新しくはじめる',
   'つづきから',
-  "storage.setItem(PENDING_KEY, '1')",
-  "storage.setItem(INTRO_KEY, '1')",
+  'storage.setItem(PENDING_KEY, \'1\')',
+  'storage.setItem(INTRO_KEY, \'1\')',
   'transfer.clearQuestStorage(storage)',
   'transfer.importFile(file, storage)',
   'window.JSQuestStoryIntro?.replay()',
@@ -158,9 +158,9 @@ for (const text of [
   'ぜんぶ忘れてた',
   'なんとなく覚えてた',
   '完璧に覚えてた',
-  "emoji: '😅'",
-  "emoji: '🙂'",
-  "emoji: '😎'",
+  'emoji: \'😅\'',
+  'emoji: \'🙂\'',
+  'emoji: \'😎\'',
   'Anki用カードを書き出す',
   '#separator:tab',
   '#html:true',
@@ -182,13 +182,13 @@ for (const text of [
 
 const navigation = readQuest('mission-navigation-ui.js')
 for (const text of [
-  "document.addEventListener('jsquest:missionloaded', scheduleMissionScroll)",
-  "document.querySelector('.mission-card')",
-  "document.querySelector('.topbar')",
+  'document.addEventListener(\'jsquest:missionloaded\', scheduleMissionScroll)',
+  'document.querySelector(\'.mission-card\')',
+  'document.querySelector(\'.topbar\')',
   'getComputedStyle(topbar).position',
   'window.requestAnimationFrame(() => window.requestAnimationFrame(scrollMissionOverviewIntoView))',
   'window.scrollTo({ top: targetTop',
-  "prefers-reduced-motion: reduce",
+  'prefers-reduced-motion: reduce',
 ]) assert(navigation.includes(text), 'Missing mission-navigation scroll rule: ' + text)
 
 const productRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'PRODUCT_RULES.md'), 'utf8')
