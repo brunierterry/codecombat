@@ -52,10 +52,27 @@
   document.body.appendChild(overlay)
   document.body.classList.add('startup-gate-active')
 
+  function campaignElements () {
+    return Array.from(document.body.children).filter(element =>
+      !['SCRIPT', 'STYLE'].includes(element.tagName) && element !== overlay
+    )
+  }
+
+  function setCampaignInert (inert) {
+    campaignElements().forEach(element => { element.inert = inert })
+  }
+
+  // story-intro.js runs immediately after this file and removes its own inert
+  // state when it sees the temporary intro flag. Re-apply our startup lock on
+  // the next task so the campaign stays keyboard- and pointer-inaccessible.
+  setCampaignInert(true)
+  window.setTimeout(() => setCampaignInert(true), 0)
+
   const status = overlay.querySelector('#startup-gate-status')
   const input = overlay.querySelector('#startup-import-file')
 
   function closeGate () {
+    setCampaignInert(false)
     overlay.remove()
     document.body.classList.remove('startup-gate-active')
   }
