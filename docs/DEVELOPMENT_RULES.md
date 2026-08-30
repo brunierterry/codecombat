@@ -20,7 +20,6 @@ These rules apply to every contribution to Chiritsumo.
 - Increment `MAJOR` only when the user explicitly requests a major version change; when `MAJOR` changes, reset `MINOR` and `REVISION` to `0` unless the user specifies otherwise.
 - The product must display the current version discreetly at the very bottom of its main page.
 - Keep one canonical version value that the UI reads rather than duplicating independently maintained version strings.
-- A historical regression test should assert the behavior owned by that historical feature, not pin the application's old release number indefinitely. Exact current-version assertions belong to the validator for the current release/change; older suites may validate only the canonical version format unless their behavior genuinely depends on a specific version value.
 
 ## Change discipline
 
