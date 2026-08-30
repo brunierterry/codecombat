@@ -129,10 +129,13 @@ for (const asset of [
   'startup-gate.js',
   'knowledge-review.js',
   'knowledge-review-ui.js',
-]) assert(index.includes(asset), 'Missing backup/review asset: ' + asset)
+  'mission-navigation-ui.js',
+]) assert(index.includes(asset), 'Missing backup/review/navigation asset: ' + asset)
 assert(index.indexOf('save-transfer.js') < index.indexOf('startup-gate.js'))
 assert(index.indexOf('startup-gate.js') < index.indexOf('story-intro.js'))
 assert(index.indexOf('concept-card-memory.js') < index.indexOf('knowledge-review.js'))
+assert(index.indexOf('app-v3.js') < index.indexOf('mission-navigation-ui.js'))
+assert(index.indexOf('mission-navigation-ui.js') < index.indexOf('field-responsive.js'))
 assert(index.indexOf('version.js') < index.indexOf('knowledge-review-ui.js'))
 assert(index.includes('メニューから ZIP に書き出せます'))
 
@@ -177,6 +180,17 @@ for (const text of [
   '@media (max-width: 650px)',
 ]) assert(reviewCss.includes(text), 'Missing responsive review/menu style: ' + text)
 
+const navigation = readQuest('mission-navigation-ui.js')
+for (const text of [
+  "document.addEventListener('jsquest:missionloaded', scheduleMissionScroll)",
+  "document.querySelector('.mission-card')",
+  "document.querySelector('.topbar')",
+  'getComputedStyle(topbar).position',
+  'window.requestAnimationFrame(() => window.requestAnimationFrame(scrollMissionOverviewIntoView))',
+  'window.scrollTo({ top: targetTop',
+  "prefers-reduced-motion: reduce",
+]) assert(navigation.includes(text), 'Missing mission-navigation scroll rule: ' + text)
+
 const productRules = fs.readFileSync(path.join(repositoryPath, 'docs', 'PRODUCT_RULES.md'), 'utf8')
 for (const text of [
   'portable ZIP save',
@@ -186,9 +200,10 @@ for (const text of [
   'AnkiDroid',
   '10 points',
   '3 points',
-]) assert(productRules.includes(text), 'Missing backup/review product rule: ' + text)
+  'mission overview',
+]) assert(productRules.includes(text), 'Missing backup/review/navigation product rule: ' + text)
 
 const version = require(path.join(questPath, 'version.js'))
-assert.strictEqual(version, '0.5.0')
+assert.strictEqual(version, '0.5.1')
 
-console.log('Validated portable ZIP save/import, fresh-start choice, spaced six-card review, knowledge points, daily anti-farming rules, Anki export and responsive top menu.')
+console.log('Validated portable ZIP save/import, fresh-start choice, spaced six-card review, knowledge points, daily anti-farming rules, Anki export, responsive top menu and mission-change overview scrolling.')
